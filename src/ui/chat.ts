@@ -1,8 +1,8 @@
 import { Message, QuickAction, Offer } from "../types";
-import { MessageComponent } from "./message";
-import { QuickActionsComponent } from "./quick-actions";
-import { OfferPreviewCard } from "./offer-preview";
-import { OffersPanel } from "./offers";
+import { MessageComponent } from "./components/message";
+import { QuickActionsComponent } from "./components/quick-actions";
+import { OfferPreviewCard } from "./components/offer-preview";
+import { DetailPanel } from "./detail-panel";
 import { RedeemManager } from "../redeem/manager";
 import { APIClient } from "../api/client";
 import {
@@ -28,7 +28,7 @@ export class ChatPopup {
   private onClose: () => void;
   private welcomeElement: HTMLDivElement | null = null;
   private isMaximized: boolean = false;
-  private offersPanel: OffersPanel | null = null;
+  private detailPanel: DetailPanel | null = null;
   private currentOffers: Offer[] = [];
   private sessionId: string = "";
   private apiClient: APIClient;
@@ -56,18 +56,18 @@ export class ChatPopup {
       ".me-agent-maximize-button"
     )!;
 
-    // Initialize offers panel
-    this.offersPanel = new OffersPanel(
-      () => this.hideOffersPanel(),
+    // Initialize detail panel
+    this.detailPanel = new DetailPanel(
+      () => this.hideDetailPanel(),
       (offerCode) => this.handleOfferClick(offerCode),
       this.redeemManager || undefined
     );
 
-    // Mount offers panel inside chat
-    const offersWrapper = this.element.querySelector(
-      ".me-agent-offers-panel-wrapper"
+    // Mount detail panel inside chat
+    const detailWrapper = this.element.querySelector(
+      ".me-agent-detail-panel-wrapper"
     )!;
-    offersWrapper.appendChild(this.offersPanel.getElement());
+    detailWrapper.appendChild(this.detailPanel.getElement());
 
     this.setupEventListeners();
   }
@@ -121,7 +121,7 @@ export class ChatPopup {
           </div>
         </div>
       </div>
-      <div class="me-agent-offers-panel-wrapper"></div>
+      <div class="me-agent-detail-panel-wrapper"></div>
     `;
 
     return chat;
@@ -336,8 +336,8 @@ export class ChatPopup {
       // Scroll to bottom after animation
       setTimeout(() => this.scrollToBottom(), 300);
     } else {
-      // Minimizing - hide offers panel first
-      this.hideOffersPanel();
+      // Minimizing - hide detail panel first
+      this.hideDetailPanel();
 
       // Trigger slide out animation
       this.element.classList.add("minimizing");
@@ -385,7 +385,7 @@ export class ChatPopup {
    */
   hide(): void {
     this.element.classList.remove("visible");
-    this.hideOffersPanel(); // Hide offers when closing chat
+    this.hideDetailPanel(); // Hide detail panel when closing chat
     if (this.isMaximized) {
       this.toggleMaximize(); // Reset to normal size when closing
     }
@@ -408,21 +408,34 @@ export class ChatPopup {
   }
 
   /**
-   * Show offer preview card
+   * Show offer preview card - appends to the last assistant message
    */
   showOfferPreview(offers: Offer[]): void {
     // Create preview card with its own offers bound to the click handler
     const previewCard = OfferPreviewCard.create(offers, () =>
-      this.showOffersPanel(offers)
+      this.showDetailPanel(offers)
     );
-    this.messagesContainer.appendChild(previewCard);
+
+    // Find the last assistant message and append the card to its content wrapper
+    const messages = this.messagesContainer.querySelectorAll(
+      ".me-agent-message.assistant"
+    );
+    const lastMessage = messages[messages.length - 1] as HTMLElement;
+
+    if (lastMessage) {
+      MessageComponent.appendToMessage(lastMessage, previewCard);
+    } else {
+      // Fallback: append to messages container if no assistant message found
+      this.messagesContainer.appendChild(previewCard);
+    }
+
     this.scrollToBottom();
   }
 
   /**
-   * Show offers panel
+   * Show detail panel with offers
    */
-  private showOffersPanel(offers: Offer[]): void {
+  private showDetailPanel(offers: Offer[]): void {
     // Store the offers that are being displayed
     this.currentOffers = offers;
 
@@ -431,17 +444,17 @@ export class ChatPopup {
       this.toggleMaximize();
     }
 
-    this.element.classList.add("has-offers-panel");
-    this.offersPanel?.showGrid(offers);
-    this.offersPanel?.show();
+    this.element.classList.add("has-detail-panel");
+    this.detailPanel?.showGrid(offers);
+    this.detailPanel?.show();
   }
 
   /**
-   * Hide offers panel
+   * Hide detail panel
    */
-  private hideOffersPanel(): void {
-    this.element.classList.remove("has-offers-panel");
-    this.offersPanel?.hide();
+  private hideDetailPanel(): void {
+    this.element.classList.remove("has-detail-panel");
+    this.detailPanel?.hide();
   }
 
   /**
@@ -454,17 +467,17 @@ export class ChatPopup {
         this.toggleMaximize();
       }
 
-      // Show the offers panel
-      this.element.classList.add("has-offers-panel");
-      this.offersPanel?.show();
+      // Show the detail panel
+      this.element.classList.add("has-detail-panel");
+      this.detailPanel?.show();
 
       // Fetch and display offer details
-      this.offersPanel?.showLoading();
+      this.detailPanel?.showLoading();
       const offerDetail = await this.apiClient.fetchOfferDetails(
         offerCode,
         this.sessionId
       );
-      this.offersPanel?.showDetail(offerDetail);
+      this.detailPanel?.showDetail(offerDetail);
     } catch (error) {
       console.error("Error fetching offer details:", error);
       alert("Failed to load offer details. Please try again.");

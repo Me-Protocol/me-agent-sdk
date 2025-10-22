@@ -94,14 +94,14 @@ export const styles = `
     overflow: hidden;
   }
 
-  /* Offers Panel Wrapper (right side) */
-  .me-agent-offers-panel-wrapper {
+  /* Detail Panel Wrapper (right side) */
+  .me-agent-detail-panel-wrapper {
     width: 0;
     overflow: hidden;
     transition: width 0.3s ease;
   }
 
-  .me-agent-chat.has-offers-panel .me-agent-offers-panel-wrapper {
+  .me-agent-chat.has-detail-panel .me-agent-detail-panel-wrapper {
     width: 476px;
     border-left: 1px solid #e5e7eb;
   }
@@ -118,8 +118,8 @@ export const styles = `
     animation: slideInFromRight 0.3s ease;
   }
 
-  /* Maximized with offers panel */
-  .me-agent-chat.maximized.has-offers-panel {
+  /* Maximized with detail panel */
+  .me-agent-chat.maximized.has-detail-panel {
     width: 1076px !important;
   }
 
@@ -398,7 +398,7 @@ export const styles = `
 
   .me-agent-quick-action-icon {
     flex-shrink: 0;
-    color: #667eea;
+    color: #999999;
   }
 
   .me-agent-quick-action-text {
@@ -429,6 +429,7 @@ export const styles = `
     padding: 16px 20px;
     background: white;
     display: flex;
+    align-items: center;
     gap: 8px;
     border-radius: 16px;
   }
@@ -524,68 +525,76 @@ export const styles = `
     }
   }
 
-  /* Offer Preview Card */
-  .me-agent-offer-preview {
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
+  /* Card List Component (for offers, earnings, etc.) */
+  .me-agent-card-list {
+    background: #CCD3FF;
+    border: 1px solid #8899FF;
+    border-radius: 16px;
     padding: 16px;
-    margin: 12px 0;
+    margin-top: 8px;
     animation: slideIn 0.3s ease;
   }
 
-  .me-agent-offer-preview-content {
+  .me-agent-card-list-content {
     display: flex;
     gap: 12px;
     align-items: center;
   }
 
-  .me-agent-offer-avatars {
+  .me-agent-card-avatars {
     display: flex;
     position: relative;
-    padding-left: 8px;
+    min-width: fit-content;
   }
 
-  .me-agent-offer-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 2px solid white;
+  .me-agent-card-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    border: 2px solid #CCD3FF;
     background-size: cover;
     background-position: center;
+    background-color: white;
     margin-left: -8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
   }
 
-  .me-agent-offer-preview-text {
+  .me-agent-card-avatar:first-child {
+    margin-left: 0;
+  }
+
+  .me-agent-card-list-text {
     flex: 1;
   }
 
-  .me-agent-offer-preview-title {
+  .me-agent-card-list-title {
     font-size: 14px;
     color: #374151;
-    margin: 0 0 8px 0;
     font-weight: 500;
   }
 
-  .me-agent-offer-preview-button {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+  .me-agent-card-list-button {
+    color: #0F0F0F;
     border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 500;
+    font-size: 14px;
+    font-weight: 600;
     cursor: pointer;
+    padding: 0px;
+    margin: 0px;
     transition: transform 0.2s ease;
+    background: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
   }
 
-  .me-agent-offer-preview-button:hover {
+  .me-agent-card-list-button:hover {
     transform: scale(1.05);
   }
 
-  /* Offers Panel */
-  .me-agent-offers-panel {
+  /* Detail Panel */
+  .me-agent-detail-panel {
     width: 100%;
     height: 100%;
     background: white;
@@ -597,7 +606,7 @@ export const styles = `
     transition: opacity 0.3s ease;
   }
 
-  .me-agent-offers-panel.visible {
+  .me-agent-detail-panel.visible {
     opacity: 1;
     pointer-events: auto;
   }
@@ -1316,7 +1325,7 @@ export const styles = `
       border-radius: 0;
     }
 
-    .me-agent-chat.maximized.has-offers-panel {
+    .me-agent-chat.maximized.has-detail-panel {
       width: 100vw !important;
     }
 
@@ -1345,7 +1354,7 @@ export const styles = `
       padding: 16px;
     }
 
-    .me-agent-offer-preview-content {
+    .me-agent-card-list-content {
       flex-direction: column;
       align-items: flex-start;
     }

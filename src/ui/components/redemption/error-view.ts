@@ -1,5 +1,5 @@
-import { RewardBalance } from "../../types";
-import { getCloseIcon, getChevronLeftIcon } from "../icons";
+import { RewardBalance } from "../../../types";
+import { getCloseIcon, getChevronLeftIcon } from "../../icons";
 
 /**
  * Affordability Error View Component

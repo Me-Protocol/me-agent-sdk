@@ -1,4 +1,4 @@
-import { RedeemManager } from '../../redeem/manager';
+import { RedeemManager } from "../../../redeem/manager";
 
 /**
  * Loading View Component
@@ -33,28 +33,29 @@ export class OnboardingView {
     onSuccess: () => void,
     onError: (error: string) => void
   ): Promise<void> {
-    const statusDiv = element.querySelector('.me-agent-onboarding-status') as HTMLDivElement;
-    
+    const statusDiv = element.querySelector(
+      ".me-agent-onboarding-status"
+    ) as HTMLDivElement;
+
     try {
       if (statusDiv) {
-        statusDiv.textContent = 'Authenticating...';
+        statusDiv.textContent = "Authenticating...";
       }
-      
+
       // Login to ME Protocol (creates account if new user)
       await redeemManager.loginToMEProtocol();
-      
+
       if (statusDiv) {
-        statusDiv.textContent = 'Almost done...';
+        statusDiv.textContent = "Almost done...";
       }
-      
+
       // Small delay to show success
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       onSuccess();
     } catch (error: any) {
-      console.error('Login error:', error);
-      onError(error.message || 'Failed to authenticate. Please try again.');
+      console.error("Login error:", error);
+      onError(error.message || "Failed to authenticate. Please try again.");
     }
   }
 }
-

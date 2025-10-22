@@ -1,16 +1,16 @@
 import { Offer, OfferDetail, RewardBalance } from "../types";
 import { RedeemManager } from "../redeem/manager";
-import { OTPView } from "./redemption/otp-view";
-import { RewardSelectionView } from "./redemption/reward-selection-view";
-import { AffordabilityErrorView } from "./redemption/error-view";
-import { ConfirmationView } from "./redemption/confirmation-view";
-import { OnboardingView } from "./redemption/onboarding-view";
+import { OTPView } from "./components/redemption/otp-view";
+import { RewardSelectionView } from "./components/redemption/reward-selection-view";
+import { AffordabilityErrorView } from "./components/redemption/error-view";
+import { ConfirmationView } from "./components/redemption/confirmation-view";
+import { OnboardingView } from "./components/redemption/onboarding-view";
 import { getCloseIcon, getChevronLeftIcon } from "./icons";
 
 /**
- * Offers Panel Component - Handles offer grid and details view
+ * Detail Panel Component - Handles side panel for offers, earnings, redemption, etc.
  */
-export class OffersPanel {
+export class DetailPanel {
   private element: HTMLDivElement;
   private currentView:
     | "grid"
@@ -44,7 +44,7 @@ export class OffersPanel {
    */
   private create(): HTMLDivElement {
     const panel = document.createElement("div");
-    panel.className = "me-agent-offers-panel";
+    panel.className = "me-agent-detail-panel";
     return panel;
   }
 

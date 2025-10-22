@@ -1,5 +1,5 @@
-import { RewardBalance } from "../../types";
-import { getCloseIcon, getChevronLeftIcon } from "../icons";
+import { RewardBalance } from "../../../types";
+import { getCloseIcon, getChevronLeftIcon } from "../../icons";
 
 /**
  * Reward Selection View Component

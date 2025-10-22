@@ -1,5 +1,5 @@
-import { RewardBalance, OfferDetail } from "../../types";
-import { getCloseIcon, getChevronLeftIcon } from "../icons";
+import { RewardBalance, OfferDetail } from "../../../types";
+import { getCloseIcon, getChevronLeftIcon } from "../../icons";
 
 /**
  * Confirmation View Component

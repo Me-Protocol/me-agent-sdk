@@ -305,3 +305,21 @@ export function getChatIcon(options: IconOptions = {}): string {
     </svg>
   `.trim();
 }
+
+/**
+ * Arrow Right Icon (for card list button)
+ */
+export function getArrowRightIcon(options: IconOptions = {}): string {
+  const {
+    width = 24,
+    height = 24,
+    color = "currentColor",
+    className = "",
+  } = options;
+
+  return `
+  <svg width="${width}" height="${height}" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}">
+    <path d="M13.3281 8L1.66146 8M13.3281 8L8.32813 3M13.3281 8L8.32813 13" stroke="${color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+`.trim();
+}

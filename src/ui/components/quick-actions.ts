@@ -1,10 +1,10 @@
-import { QuickAction } from "../types";
+import { QuickAction } from "../../types";
 import {
   getSearchIcon,
   getTagIcon,
   getGiftIcon,
   getSparklesIcon,
-} from "./icons";
+} from "../icons";
 
 /**
  * Quick Actions Component - Renders a list of actionable items

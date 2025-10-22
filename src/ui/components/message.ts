@@ -1,5 +1,5 @@
-import { Message } from "../types";
-import { getUserAvatarIcon, getAssistantAvatarIcon } from "./icons";
+import { Message } from "../../types";
+import { getUserAvatarIcon, getAssistantAvatarIcon } from "../icons";
 
 /**
  * Message Component - Renders individual chat messages
@@ -174,6 +174,21 @@ export class MessageComponent {
           });
         });
       }
+    }
+  }
+
+  /**
+   * Append a card list or other element to a message's content wrapper
+   */
+  static appendToMessage(
+    messageElement: HTMLElement,
+    element: HTMLElement
+  ): void {
+    const contentWrapper = messageElement.querySelector(
+      ".me-agent-message-content-wrapper"
+    ) as HTMLElement;
+    if (contentWrapper) {
+      contentWrapper.appendChild(element);
     }
   }
 }

@@ -1,5 +1,5 @@
-import { RedeemManager } from "../../redeem/manager";
-import { getCloseIcon, getChevronLeftIcon } from "../icons";
+import { RedeemManager } from "../../../redeem/manager";
+import { getCloseIcon, getChevronLeftIcon } from "../../icons";
 
 /**
  * OTP Verification View Component
