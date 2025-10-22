@@ -1,4 +1,5 @@
 import { Message } from "../types";
+import { getUserAvatarIcon, getAssistantAvatarIcon } from "./icons";
 
 /**
  * Message Component - Renders individual chat messages
@@ -39,6 +40,25 @@ export class MessageComponent {
   }
 
   /**
+   * Get avatar for message role
+   */
+  private static getAvatar(role: string): string {
+    if (role === "user") {
+      return getUserAvatarIcon({
+        width: 32,
+        height: 32,
+        className: "me-agent-message-avatar",
+      });
+    }
+    // Default to assistant avatar for "assistant" and "system" roles
+    return getAssistantAvatarIcon({
+      width: 32,
+      height: 32,
+      className: "me-agent-message-avatar",
+    });
+  }
+
+  /**
    * Create a message element
    */
   static create(
@@ -48,6 +68,15 @@ export class MessageComponent {
     const messageDiv = document.createElement("div");
     messageDiv.className = `me-agent-message ${message.role}`;
     messageDiv.setAttribute("data-message-id", message.id);
+
+    // Avatar
+    const avatarDiv = document.createElement("div");
+    avatarDiv.className = "me-agent-message-avatar-wrapper";
+    avatarDiv.innerHTML = this.getAvatar(message.role);
+
+    // Content wrapper
+    const contentWrapper = document.createElement("div");
+    contentWrapper.className = "me-agent-message-content-wrapper";
 
     const contentDiv = document.createElement("div");
     contentDiv.className = "me-agent-message-content";
@@ -71,7 +100,9 @@ export class MessageComponent {
       });
     }
 
-    messageDiv.appendChild(contentDiv);
+    contentWrapper.appendChild(contentDiv);
+    messageDiv.appendChild(avatarDiv);
+    messageDiv.appendChild(contentWrapper);
 
     return messageDiv;
   }
@@ -84,19 +115,33 @@ export class MessageComponent {
     loadingDiv.className = "me-agent-message assistant";
     loadingDiv.setAttribute("data-loading", "true");
 
+    // Avatar
+    const avatarDiv = document.createElement("div");
+    avatarDiv.className = "me-agent-message-avatar-wrapper";
+    avatarDiv.innerHTML = this.getAvatar("assistant");
+
+    // Content wrapper
+    const contentWrapper = document.createElement("div");
+    contentWrapper.className = "me-agent-message-content-wrapper";
+
     const contentDiv = document.createElement("div");
     contentDiv.className = "me-agent-message-content";
 
     const loadingIndicator = document.createElement("div");
     loadingIndicator.className = "me-agent-loading";
     loadingIndicator.innerHTML = `
-      <div class="me-agent-loading-dot"></div>
-      <div class="me-agent-loading-dot"></div>
-      <div class="me-agent-loading-dot"></div>
+      <span class="me-agent-loading-text">Typing</span>
+      <span class="me-agent-loading-dots">
+        <span class="me-agent-loading-dot"></span>
+        <span class="me-agent-loading-dot"></span>
+        <span class="me-agent-loading-dot"></span>
+      </span>
     `;
 
     contentDiv.appendChild(loadingIndicator);
-    loadingDiv.appendChild(contentDiv);
+    contentWrapper.appendChild(contentDiv);
+    loadingDiv.appendChild(avatarDiv);
+    loadingDiv.appendChild(contentWrapper);
 
     return loadingDiv;
   }

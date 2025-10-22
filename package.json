@@ -8,8 +8,9 @@
   "scripts": {
     "build": "rollup -c",
     "watch": "rollup -c -w",
-    "dev": "rollup -c -w & npx serve example",
-    "serve": "npx serve example"
+    "dev": "npm run watch",
+    "serve": "npx serve example -l 5500",
+    "dev:full": "concurrently \"npm run watch\" \"npm run serve\""
   },
   "keywords": [
     "chatbot",
@@ -24,6 +25,7 @@
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.5",
+    "concurrently": "^9.2.1",
     "rollup": "^4.9.0",
     "tslib": "^2.6.2",
     "typescript": "^5.3.3"

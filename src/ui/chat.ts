@@ -1,5 +1,6 @@
 import { Message, QuickAction, Offer } from "../types";
 import { MessageComponent } from "./message";
+import { QuickActionsComponent } from "./quick-actions";
 import { OfferPreviewCard } from "./offer-preview";
 import { OffersPanel } from "./offers";
 import { RedeemManager } from "../redeem/manager";
@@ -9,6 +10,8 @@ import {
   getMaximizeIcon,
   getMinimizeIcon,
   getSendIcon,
+  getAssistantAvatarIcon,
+  getChatIcon,
 } from "./icons";
 
 /**
@@ -79,7 +82,15 @@ export class ChatPopup {
     chat.innerHTML = `
       <div class="me-agent-chat-content">
         <div class="me-agent-chat-header">
-          <h3 class="me-agent-chat-title">AI Assistant</h3>
+          <div class="me-agent-chat-title-container">
+            ${getChatIcon({
+              width: 20,
+              height: 20,
+              className: "me-agent-chat-icon",
+              color: "#999999",
+            })}
+            <h3 class="me-agent-chat-title">Chats</h3>
+          </div>
           <div class="me-agent-header-buttons">
             <button class="me-agent-maximize-button" aria-label="Maximize chat">
               <span class="me-agent-maximize-icon">${getMaximizeIcon({
@@ -97,15 +108,17 @@ export class ChatPopup {
         </div>
         <div class="me-agent-messages"></div>
         <div class="me-agent-input-container">
-          <input 
-            type="text" 
-            class="me-agent-input" 
-            placeholder="Type your message..."
-            aria-label="Message input"
-          />
-          <button class="me-agent-send-button" aria-label="Send message">${getSendIcon(
-            { width: 18, height: 18 }
-          )}</button>
+          <div class="me-agent-input-content">
+            <input 
+              type="text" 
+              class="me-agent-input" 
+              placeholder="Ask or search anything..."
+              aria-label="Message input"
+            />
+            <button class="me-agent-send-button" aria-label="Send message">${getSendIcon(
+              { width: 18, height: 18 }
+            )}</button>
+          </div>
         </div>
       </div>
       <div class="me-agent-offers-panel-wrapper"></div>
@@ -135,6 +148,22 @@ export class ChatPopup {
         this.handleSend();
       }
     });
+
+    // Monitor input changes to enable/disable send button
+    this.inputElement.addEventListener("input", () => {
+      this.updateSendButtonState();
+    });
+
+    // Set initial send button state
+    this.updateSendButtonState();
+  }
+
+  /**
+   * Update send button state based on input value
+   */
+  private updateSendButtonState(): void {
+    const hasText = this.inputElement.value.trim().length > 0;
+    this.sendButton.disabled = !hasText;
   }
 
   /**
@@ -145,6 +174,7 @@ export class ChatPopup {
     if (message) {
       this.onSendMessage(message);
       this.inputElement.value = "";
+      this.updateSendButtonState(); // Disable button after clearing input
     }
   }
 
@@ -153,48 +183,76 @@ export class ChatPopup {
    */
   showWelcome(): void {
     this.welcomeElement = document.createElement("div");
-    this.welcomeElement.className = "me-agent-welcome";
+    this.welcomeElement.className =
+      "me-agent-message assistant me-agent-welcome-message";
 
     const quickActions: QuickAction[] = [
-      { label: "🔍 Search for an offer", value: "Search for an offer" },
-      { label: "🎁 Earn a reward", value: "Earn a reward" },
+      {
+        id: "search",
+        label: "Search for an offer",
+        value: "Search for an offer",
+        icon: "search",
+      },
+      {
+        id: "offers",
+        label: "Browse offers",
+        value: "Browse offers",
+        icon: "offers",
+      },
+      { id: "rewards", label: "My rewards", value: "My rewards", icon: "tags" },
     ];
 
-    this.welcomeElement.innerHTML = `
-      <h4 class="me-agent-welcome-title">How can I help today?</h4>
-      <div class="me-agent-quick-actions">
-        ${quickActions
-          .map(
-            (action, index) => `
-          <button class="me-agent-quick-action" data-action-index="${index}">
-            ${action.label}
-          </button>
-        `
-          )
-          .join("")}
-      </div>
+    // Avatar
+    const avatarDiv = document.createElement("div");
+    avatarDiv.className = "me-agent-message-avatar-wrapper";
+    avatarDiv.innerHTML = getAssistantAvatarIcon({
+      width: 32,
+      height: 32,
+      className: "me-agent-message-avatar",
+    });
+
+    // Content wrapper
+    const contentWrapper = document.createElement("div");
+    contentWrapper.className = "me-agent-message-content-wrapper";
+
+    // Message content
+    const contentDiv = document.createElement("div");
+    contentDiv.className = "me-agent-message-content";
+    contentDiv.innerHTML = `
+      <div>👋</div>
+      <div>Hi there! Welcome, I am Meely. How would you like me to help you today?</div>
     `;
 
-    // Add click handlers for quick actions
-    this.welcomeElement
-      .querySelectorAll(".me-agent-quick-action")
-      .forEach((button, index) => {
-        button.addEventListener("click", () => {
-          const action = quickActions[index];
-          this.onSendMessage(action.value);
-        });
-      });
+    // Quick actions
+    const actionsContainer = QuickActionsComponent.create(
+      quickActions,
+      (action) => {
+        // Hide only the quick actions, not the entire message
+        actionsContainer.remove();
+        this.onSendMessage(action.value);
+      }
+    );
+
+    contentWrapper.appendChild(contentDiv);
+    contentWrapper.appendChild(actionsContainer);
+    this.welcomeElement.appendChild(avatarDiv);
+    this.welcomeElement.appendChild(contentWrapper);
 
     this.messagesContainer.appendChild(this.welcomeElement);
   }
 
   /**
-   * Hide welcome message
+   * Hide welcome message (but keep the message, just remove quick actions)
    */
   hideWelcome(): void {
     if (this.welcomeElement) {
-      this.welcomeElement.remove();
-      this.welcomeElement = null;
+      // Just hide the quick actions, keep the welcome message visible
+      const actionsContainer = this.welcomeElement.querySelector(
+        ".me-agent-quick-actions"
+      );
+      if (actionsContainer) {
+        actionsContainer.remove();
+      }
     }
   }
 
@@ -202,7 +260,8 @@ export class ChatPopup {
    * Add a message to the chat
    */
   addMessage(message: Message): void {
-    this.hideWelcome();
+    // Don't call hideWelcome here - let it stay visible
+    // this.hideWelcome();
     const messageElement = MessageComponent.create(message, (offerCode) => {
       this.handleOfferClick(offerCode);
     });

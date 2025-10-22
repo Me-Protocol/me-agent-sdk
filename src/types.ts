@@ -59,8 +59,10 @@ export interface SessionResponse {
  * Quick action button configuration
  */
 export interface QuickAction {
+  id: string;
   label: string;
   value: string;
+  icon?: string;
 }
 
 /**

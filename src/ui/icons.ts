@@ -38,8 +38,8 @@ export function getCloseIcon(options: IconOptions = {}): string {
   } = options;
 
   return `
-    <svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}">
-      <path d="M18 6L6 18M6 6L18 18" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <svg width="${width}" height="${height}" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}">
+        <path d="M8 8L13 13M8 8L3 3M8 8L3 13M8 8L13 3" stroke="${color}" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   `.trim();
 }
@@ -92,8 +92,9 @@ export function getMaximizeIcon(options: IconOptions = {}): string {
   } = options;
 
   return `
-    <svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}">
-      <path d="M8 3H5C3.89543 3 3 3.89543 3 5V8M21 8V5C21 3.89543 20.1046 3 19 3H16M16 21H19C20.1046 21 21 20.1046 21 19V16M3 16V19C3 20.1046 3.89543 21 5 21H8" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <svg width="${width}" height="${height}" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}">
+        <rect x="2" y="3" width="12" height="10" rx="2" stroke="${color}"/>
+        <rect x="8" y="4" width="5" height="8" rx="1" fill="${color}"/>
     </svg>
   `.trim();
 }
@@ -110,8 +111,9 @@ export function getMinimizeIcon(options: IconOptions = {}): string {
   } = options;
 
   return `
-    <svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}">
-      <path d="M4 14H10V20M20 10H14V4" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <svg width="${width}" height="${height}" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}">
+        <rect x="2" y="3" width="12" height="10" rx="2" stroke="${color}"/>
+        <rect x="8" y="4" width="5" height="8" rx="1" fill="${color}"/>
     </svg>
   `.trim();
 }
@@ -187,6 +189,119 @@ export function getGiftIcon(options: IconOptions = {}): string {
       <rect x="3" y="8" width="18" height="4" rx="1" stroke="${color}" stroke-width="2"/>
       <rect x="5" y="12" width="14" height="9" rx="1" stroke="${color}" stroke-width="2"/>
       <path d="M12 8V21M9 8C9 6.34315 7.65685 5 6 5C4.34315 5 3 6.34315 3 8M15 8C15 6.34315 16.3431 5 18 5C19.6569 5 21 6.34315 21 8" stroke="${color}" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  `.trim();
+}
+
+/**
+ * User Avatar Icon (GitHub-style)
+ */
+export function getUserAvatarIcon(options: IconOptions = {}): string {
+  const {
+    width = 32,
+    height = 32,
+    color = "currentColor",
+    className = "",
+  } = options;
+
+  return `
+    <svg width="${width}" height="${height}" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}">
+      <circle cx="16" cy="16" r="16" fill="#667eea"/>
+      <path d="M16 16C18.2091 16 20 14.2091 20 12C20 9.79086 18.2091 8 16 8C13.7909 8 12 9.79086 12 12C12 14.2091 13.7909 16 16 16Z" fill="white"/>
+      <path d="M16 18C11.5817 18 8 20.6863 8 24V26H24V24C24 20.6863 20.4183 18 16 18Z" fill="white"/>
+    </svg>
+  `.trim();
+}
+
+/**
+ * Assistant Avatar Icon (Bot)
+ */
+export function getAssistantAvatarIcon(options: IconOptions = {}): string {
+  const { width = 32, height = 32, color = "white", className = "" } = options;
+
+  return `
+    <svg width="${width}" height="${height}" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}">
+        <rect width="${width}" height="${height}" rx="16" fill="#0F0F0F"/>
+        <path d="M18.5513 15.9277V17.3563M12.7656 15.9277V17.3563M13.4888 21.642C13.4888 21.642 14.2121 22.3563 15.6585 22.3563C17.1049 22.3563 17.8281 21.642 17.8281 21.642M14.9353 15.9277V19.4992H15.6585" stroke="${color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M23.5625 15.4375C23.8111 15.4375 24.0496 15.3387 24.2254 15.1629C24.4012 14.9871 24.5 14.7486 24.5 14.5V12.625C24.5 12.3764 24.4012 12.1379 24.2254 11.9621C24.0496 11.7863 23.8111 11.6875 23.5625 11.6875H8.5625C8.31386 11.6875 8.0754 11.7863 7.89959 11.9621C7.72377 12.1379 7.625 12.3764 7.625 12.625V14.5C7.625 14.7486 7.72377 14.9871 7.89959 15.1629C8.0754 15.3387 8.31386 15.4375 8.5625 15.4375" stroke="${color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M11.8437 11.6879C11.2221 11.6879 10.626 11.441 10.1865 11.0014C9.74693 10.5619 9.5 9.96576 9.5 9.34416C9.5 8.72256 9.74693 8.12642 10.1865 7.68688C10.626 7.24734 11.2221 7.00041 11.8437 7.00041C12.7481 6.98465 13.6344 7.42347 14.3869 8.25962C15.1395 9.09578 15.7234 10.2905 16.0625 11.6879C16.4016 10.2905 16.9855 9.09578 17.7381 8.25962C18.4906 7.42347 19.3769 6.98465 20.2812 7.00041C20.9028 7.00041 21.499 7.24734 21.9385 7.68688C22.3781 8.12642 22.625 8.72256 22.625 9.34416C22.625 9.96576 22.3781 10.5619 21.9385 11.0014C21.499 11.441 20.9028 11.6879 20.2812 11.6879" stroke="${color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M23.6931 15.3577C23.6931 15.3577 23.005 15.394 22.7288 15.6791C22.4583 15.9584 22.4341 16.63 22.4341 16.63V23.1256C22.4341 23.6228 22.2366 24.0998 21.885 24.4514C21.5333 24.803 21.0564 25.0006 20.5592 25.0006L11.1842 25.0006C10.6869 25.0006 10.21 24.803 9.85833 24.4514C9.5067 24.0998 9.30915 23.6228 9.30915 23.1256V16.63C9.30915 16.63 9.27141 16.0437 8.90737 15.6791C8.55244 15.3237 8.02344 15.2773 8.02344 15.2773" stroke="${color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `.trim();
+}
+
+/**
+ * Search Icon (for quick actions)
+ */
+export function getSearchIcon(options: IconOptions = {}): string {
+  const {
+    width = 20,
+    height = 20,
+    color = "currentColor",
+    className = "",
+  } = options;
+
+  return `
+    <svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}">
+      <circle cx="11" cy="11" r="8" stroke="${color}" stroke-width="2"/>
+      <path d="M21 21L16.5 16.5" stroke="${color}" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  `.trim();
+}
+
+/**
+ * Tag Icon (for quick actions)
+ */
+export function getTagIcon(options: IconOptions = {}): string {
+  const {
+    width = 20,
+    height = 20,
+    color = "currentColor",
+    className = "",
+  } = options;
+
+  return `
+    <svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}">
+      <path d="M20.59 13.41L13.42 20.58C13.05 20.95 12.55 21.15 12.04 21.15C11.53 21.15 11.03 20.95 10.66 20.58L2 12V2H12L20.59 10.59C21.37 11.37 21.37 12.63 20.59 13.41Z" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="7" cy="7" r="1.5" fill="${color}"/>
+    </svg>
+  `.trim();
+}
+
+/**
+ * Sparkles Icon (for AI suggestions)
+ */
+export function getSparklesIcon(options: IconOptions = {}): string {
+  const {
+    width = 20,
+    height = 20,
+    color = "currentColor",
+    className = "",
+  } = options;
+
+  return `
+    <svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}">
+      <path d="M12 3L13.5 8.5L19 10L13.5 11.5L12 17L10.5 11.5L5 10L10.5 8.5L12 3Z" stroke="${color}" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M19 3L19.5 5L21.5 5.5L19.5 6L19 8L18.5 6L16.5 5.5L18.5 5L19 3Z" stroke="${color}" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M19 16L19.5 18L21.5 18.5L19.5 19L19 21L18.5 19L16.5 18.5L18.5 18L19 16Z" stroke="${color}" stroke-width="2" stroke-linejoin="round"/>
+    </svg>
+  `.trim();
+}
+
+/**
+ * Chat Icon (for chat title)
+ */
+export function getChatIcon(options: IconOptions = {}): string {
+  const {
+    width = 24,
+    height = 24,
+    color = "currentColor",
+    className = "",
+  } = options;
+
+  return `
+    <svg width="${width}" height="${height}" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}">
+        <path d="M17 4.16667V13.5C17 13.8094 16.8784 14.1062 16.662 14.325C16.4457 14.5437 16.1522 14.6667 15.8462 14.6667H6.25482L3.90386 16.72L3.89737 16.7251C3.68967 16.9031 3.42612 17.0005 3.15386 17C2.98459 16.9997 2.81744 16.9619 2.6642 16.8892C2.46488 16.7963 2.29624 16.6473 2.17845 16.4601C2.06066 16.2728 1.99872 16.0552 2.00002 15.8333V4.16667C2.00002 3.85725 2.12159 3.5605 2.33797 3.34171C2.55436 3.12292 2.84785 3 3.15386 3H15.8462C16.1522 3 16.4457 3.12292 16.662 3.34171C16.8784 3.5605 17 3.85725 17 4.16667Z" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   `.trim();
 }
