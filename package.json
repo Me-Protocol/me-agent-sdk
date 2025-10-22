@@ -1,0 +1,35 @@
+{
+  "name": "me-agent-sdk",
+  "version": "1.0.0",
+  "description": "AI Chatbot SDK - Embeddable chatbot widget for any website",
+  "type": "module",
+  "main": "dist/me-agent-sdk.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rollup -c",
+    "watch": "rollup -c -w",
+    "dev": "rollup -c -w & npx serve example",
+    "serve": "npx serve example"
+  },
+  "keywords": [
+    "chatbot",
+    "sdk",
+    "ai",
+    "widget"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.5",
+    "rollup": "^4.9.0",
+    "tslib": "^2.6.2",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@developeruche/protocol-core": "^0.10.51-ethers5",
+    "@developeruche/runtime-sdk": "^0.11.6-development"
+  }
+}

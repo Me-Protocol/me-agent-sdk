@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MeAgent SDK Demo - Plain HTML</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="demo-container">
+    <header class="demo-header">
+      <h1>🤖 MeAgent SDK Demo</h1>
+      <p>Plain HTML Integration Example</p>
+    </header>
+
+    <main class="demo-content">
+      <section class="demo-section">
+        <h2>Welcome!</h2>
+        <p>
+          This is a demo page showing how to integrate the MeAgent SDK into a plain HTML website.
+          Look for the chat button in the bottom-right corner!
+        </p>
+      </section>
+
+      <section class="demo-section">
+        <h3>Features</h3>
+        <ul>
+          <li>✨ Easy integration with a single script tag</li>
+          <li>💬 AI-powered chat assistant</li>
+          <li>🎨 Beautiful, modern UI</li>
+          <li>📱 Fully responsive design</li>
+          <li>⚡ Real-time streaming responses</li>
+          <li>🔒 Secure authentication</li>
+        </ul>
+      </section>
+
+      <section class="demo-section">
+        <h3>How to Use</h3>
+        <ol>
+          <li>Click the floating button in the bottom-right corner</li>
+          <li>Try the quick action buttons or type your own message</li>
+          <li>Watch the AI respond in real-time!</li>
+        </ol>
+      </section>
+
+      <section class="demo-section code-section">
+        <h3>Integration Code</h3>
+        <pre><code>&lt;!-- Load SDK via CDN --&gt;
+&lt;script src="../dist/me-agent-sdk.js"&gt;&lt;/script&gt;
+
+&lt;!-- Initialize SDK --&gt;
+&lt;script&gt;
+  MeAgent.init({
+    emailAddress: 'user@example.com',
+    brandId: 'your-brand-id',
+    userId: 'user-123',
+    position: 'bottom-right',
+    environment: MeAgent.Environment.DEV, // DEV, STAGING, or PROD
+    network: MeAgent.Network.SEPOLIA // SEPOLIA, HEDERA, BASE, or POLYGON
+  });
+&lt;/script&gt;</code></pre>
+      </section>
+      
+      <section class="demo-section">
+        <h3>🌍 Environments</h3>
+        <p>The SDK supports multiple environments:</p>
+        <ul>
+          <li><strong>DEV</strong> - Development environment (default)</li>
+          <li><strong>STAGING</strong> - Staging environment</li>
+          <li><strong>PROD</strong> - Production environment</li>
+        </ul>
+        <p>Set the environment using: <code>environment: MeAgent.Environment.DEV</code></p>
+      </section>
+
+      <section class="demo-section">
+        <h3>🌐 Supported Networks</h3>
+        <p>The SDK supports multiple blockchain networks:</p>
+        <ul>
+          <li><strong>Sepolia</strong> - Ethereum testnet (default)</li>
+          <li><strong>Hedera</strong> - Hedera testnet</li>
+          <li><strong>Base</strong> - Base network</li>
+          <li><strong>Polygon</strong> - Polygon network</li>
+        </ul>
+        <p>Set the network using: <code>network: MeAgent.Network.SEPOLIA</code></p>
+      </section>
+
+      <section class="demo-section">
+        <h3>🎁 Redemption Features</h3>
+        <p>The SDK includes offer redemption capabilities with Magic Link authentication:</p>
+        <ul>
+          <li>🔐 Email-based authentication with OTP</li>
+          <li>💰 Reward balance viewing</li>
+          <li>🎯 Offer redemption with rewards</li>
+          <li>✅ Affordability checking</li>
+          <li>📊 Transaction summaries</li>
+        </ul>
+        <p><small>Configuration is network-specific and managed automatically.</small></p>
+      </section>
+    </main>
+
+    <footer class="demo-footer">
+      <p>© 2025 MeAgent SDK</p>
+    </footer>
+  </div>
+
+  <!-- Load the SDK -->
+  <script src="../dist/me-agent-sdk.js"></script>
+
+  <!-- Initialize the SDK -->
+  <script>
+    window.addEventListener('DOMContentLoaded', async () => {
+      try {
+        await MeAgent.init({
+          emailAddress: 'colourjim+chillguy@gmail.com',
+          brandId: 'demo-brand',
+          userId: 'demo-user-001',
+          position: 'bottom-right',
+          environment: MeAgent.Environment.DEV,
+          network: MeAgent.Network.SEPOLIA
+        });
+        console.log('MeAgent SDK initialized successfully');
+        console.log('Environment:', MeAgent.Environment.DEV);
+        console.log('Network:', MeAgent.Network.SEPOLIA);
+      } catch (error) {
+        console.error('Failed to initialize MeAgent SDK:', error);
+      }
+    });
+  </script>
+</body>
+</html>
+

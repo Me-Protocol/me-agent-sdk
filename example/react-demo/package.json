@@ -1,0 +1,17 @@
+{
+  "name": "me-agent-react-demo",
+  "version": "1.0.0",
+  "description": "React integration demo for MeAgent SDK",
+  "private": true,
+  "scripts": {
+    "serve": "npx serve ."
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "serve": "^14.2.0"
+  }
+}
+

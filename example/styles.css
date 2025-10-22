@@ -1,0 +1,148 @@
+/* Demo Page Styles */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  line-height: 1.6;
+  color: #333;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+}
+
+.demo-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.demo-header {
+  background: white;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.demo-header h1 {
+  font-size: 2.5em;
+  margin-bottom: 10px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.demo-header p {
+  font-size: 1.2em;
+  color: #666;
+}
+
+.demo-content {
+  background: white;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+.demo-section {
+  margin-bottom: 40px;
+}
+
+.demo-section:last-child {
+  margin-bottom: 0;
+}
+
+.demo-section h2 {
+  font-size: 2em;
+  margin-bottom: 15px;
+  color: #1f2937;
+}
+
+.demo-section h3 {
+  font-size: 1.5em;
+  margin-bottom: 15px;
+  color: #374151;
+}
+
+.demo-section p {
+  font-size: 1.1em;
+  color: #4b5563;
+  margin-bottom: 15px;
+}
+
+.demo-section ul,
+.demo-section ol {
+  margin-left: 30px;
+  margin-bottom: 15px;
+}
+
+.demo-section li {
+  font-size: 1.1em;
+  color: #4b5563;
+  margin-bottom: 10px;
+}
+
+.code-section pre {
+  background: #1f2937;
+  color: #f9fafb;
+  padding: 20px;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.95em;
+  line-height: 1.5;
+}
+
+.code-section code {
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.demo-footer {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  color: #6b7280;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .demo-header h1 {
+    font-size: 2em;
+  }
+
+  .demo-header p {
+    font-size: 1em;
+  }
+
+  .demo-content {
+    padding: 20px;
+  }
+
+  .demo-section h2 {
+    font-size: 1.5em;
+  }
+
+  .demo-section h3 {
+    font-size: 1.3em;
+  }
+
+  .demo-section p,
+  .demo-section li {
+    font-size: 1em;
+  }
+
+  .code-section pre {
+    font-size: 0.85em;
+    padding: 15px;
+  }
+}
+
