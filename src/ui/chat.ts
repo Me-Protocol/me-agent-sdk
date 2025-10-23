@@ -261,8 +261,6 @@ export class ChatPopup {
    * Add a message to the chat
    */
   addMessage(message: Message): void {
-    // Don't call hideWelcome here - let it stay visible
-    // this.hideWelcome();
     const messageElement = MessageComponent.create(message, (offerCode) => {
       this.handleOfferClick(offerCode);
     });

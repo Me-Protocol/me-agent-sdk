@@ -95,6 +95,34 @@ export interface Offer {
 }
 
 /**
+ * Offer variant type
+ */
+export interface OfferVariant {
+  id: string;
+  offerId: string;
+  totalInventory: number;
+  inventory: number;
+  discountPercentage: string;
+  rewardValue: string;
+  offerCode: string;
+  variantId: string;
+  variant: {
+    id: string;
+    name: string;
+    price: string;
+    description: string | null;
+    inventory: number;
+    productImages: Array<{
+      url: string;
+    }>;
+    options?: Array<{
+      name: string;
+      value: string;
+    }>;
+  };
+}
+
+/**
  * Offer detail response
  */
 export interface OfferDetail {
@@ -125,30 +153,7 @@ export interface OfferDetail {
     rewardSymbol: string;
   };
   offerImages: Array<{ url: string }>;
-  offerVariants?: Array<{
-    id: string;
-    offerId: string;
-    totalInventory: number;
-    inventory: number;
-    discountPercentage: string;
-    rewardValue: string;
-    offerCode: string;
-    variantId: string;
-    variant: {
-      id: string;
-      name: string;
-      price: string;
-      description: string | null;
-      inventory: number;
-      productImages: Array<{
-        url: string;
-      }>;
-      options?: Array<{
-        name: string;
-        value: string;
-      }>;
-    };
-  }>;
+  offerVariants?: OfferVariant[];
 }
 
 /**

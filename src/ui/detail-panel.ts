@@ -1,4 +1,10 @@
-import { Offer, OfferDetail, RewardBalance } from "../types";
+import {
+  Offer,
+  OfferDetail,
+  OfferVariant,
+  RewardBalance,
+  SwapAmountResponse,
+} from "../types";
 import { RedeemManager } from "../redeem/manager";
 import { OTPView } from "./components/redemption/otp-view";
 import { RewardSelectionView } from "./components/redemption/reward-selection-view";
@@ -24,9 +30,9 @@ export class DetailPanel {
   private onOfferClick: (offerCode: string) => void;
   private redeemManager: RedeemManager | null = null;
   private currentOfferDetail: OfferDetail | null = null;
-  private selectedVariant: any = null;
+  private selectedVariant: OfferVariant | null = null;
   private selectedReward: RewardBalance | null = null;
-  private swapAmount: any = null;
+  private swapAmount: SwapAmountResponse | null = null;
 
   constructor(
     onClose: () => void,
@@ -217,7 +223,7 @@ export class DetailPanel {
   /**
    * Render variants selector
    */
-  private renderVariantsSelector(offerVariants?: any[]): string {
+  private renderVariantsSelector(offerVariants?: OfferVariant[]): string {
     if (!offerVariants || offerVariants.length === 0) {
       return "";
     }
@@ -229,9 +235,7 @@ export class DetailPanel {
             .map((offerVariant, index) => {
               const variant = offerVariant.variant;
               const options = variant.options || [];
-              const optionsText = options
-                .map((opt: any) => opt.value)
-                .join(" / ");
+              const optionsText = options.map((opt) => opt.value).join(" / ");
               const isOutOfStock = offerVariant.inventory <= 0;
 
               return `
@@ -597,7 +601,10 @@ export class DetailPanel {
   /**
    * Show confirmation view
    */
-  private showConfirmation(reward: RewardBalance, swapAmount: any): void {
+  private showConfirmation(
+    reward: RewardBalance,
+    swapAmount: SwapAmountResponse
+  ): void {
     if (!this.currentOfferDetail) return;
 
     this.currentView = "confirm";

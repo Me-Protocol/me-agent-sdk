@@ -1,4 +1,4 @@
-import { RewardBalance, OfferDetail } from "../../../types";
+import { RewardBalance, OfferDetail, SwapAmountResponse } from "../../../types";
 import { getCloseIcon, getChevronLeftIcon } from "../../icons";
 
 /**
@@ -10,7 +10,7 @@ export class ConfirmationView {
    */
   static render(
     reward: RewardBalance,
-    swapAmount: any,
+    swapAmount: SwapAmountResponse,
     offerDetail: OfferDetail
   ): string {
     return `

@@ -4,6 +4,8 @@ import {
   SendMessagePayload,
   OfferDetail,
   MELoginResponse,
+  SwapAmountPayload,
+  SwapAmountResponse,
 } from "../types";
 import { EnvConfig } from "../config/env";
 
@@ -136,16 +138,6 @@ export class APIClient {
               try {
                 const parsed = JSON.parse(data);
 
-                // Debug logging to diagnose duplication issue
-                if (parsed.content?.parts?.[0]?.text) {
-                  console.log("[SDK Debug] Received chunk:", {
-                    partial: parsed.partial,
-                    textLength: parsed.content.parts[0].text.length,
-                    textPreview:
-                      parsed.content.parts[0].text.substring(0, 50) + "...",
-                  });
-                }
-
                 // Extract text from content.parts[0].text
                 if (parsed.content?.parts?.[0]?.text) {
                   const text = parsed.content.parts[0].text;
@@ -242,7 +234,10 @@ export class APIClient {
   /**
    * Fetch swap amount needed for redemption
    */
-  async fetchSwapAmount(payload: any, token: string): Promise<any> {
+  async fetchSwapAmount(
+    payload: SwapAmountPayload,
+    token: string
+  ): Promise<SwapAmountResponse> {
     try {
       const response = await fetch(
         `${this.env.API_URL}reward/sdk/swap-amount`,
