@@ -47,13 +47,20 @@ export class CardList {
     // Add overlay avatar if there are more items
     const overlayAvatar =
       remainingCount > 0
-        ? `<div class="me-agent-card-avatar me-agent-card-avatar-overlay" style="z-index: ${
-            maxVisible + 1
-          };">
-          <span class="me-agent-card-avatar-count">+${
-            remainingCount > 99 ? "99+" : remainingCount
-          }</span>
-         </div>`
+        ? (() => {
+            // Get the next image (4th item) to show as background
+            const nextItem = config.items[maxVisible];
+            const overlayImage =
+              nextItem?.image ||
+              `https://via.placeholder.com/40x40?text=${maxVisible + 1}`;
+            return `<div class="me-agent-card-avatar me-agent-card-avatar-overlay" style="background-image: url('${overlayImage}'); z-index: ${
+              maxVisible + 1
+            };">
+            <span class="me-agent-card-avatar-count">+${
+              remainingCount > 99 ? "99+" : remainingCount
+            }</span>
+           </div>`;
+          })()
         : "";
 
     container.innerHTML = `

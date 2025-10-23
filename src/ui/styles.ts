@@ -564,11 +564,22 @@ export const styles = `
   }
 
   .me-agent-card-avatar-overlay {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
+  }
+
+  .me-agent-card-avatar-overlay::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 12px;
+    z-index: 1;
   }
 
   .me-agent-card-avatar-count {
@@ -576,6 +587,8 @@ export const styles = `
     font-size: 14px;
     font-weight: 700;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    position: relative;
+    z-index: 2;
   }
 
   .me-agent-card-list-text {

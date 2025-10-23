@@ -172,6 +172,7 @@ export class ChatPopup {
   private handleSend(): void {
     const message = this.inputElement.value.trim();
     if (message) {
+      this.hideWelcome(); // Remove quick actions when user sends a message
       this.onSendMessage(message);
       this.inputElement.value = "";
       this.updateSendButtonState(); // Disable button after clearing input
