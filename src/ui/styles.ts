@@ -102,13 +102,13 @@ export const styles = `
   }
 
   .me-agent-chat.has-detail-panel .me-agent-detail-panel-wrapper {
-    width: 476px;
-    border-left: 1px solid #e5e7eb;
+    width: 672px;
+    border-left: 1px solid #999999;
   }
 
   /* Maximized State */
   .me-agent-chat.maximized {
-    width: 600px !important;
+    width: 672px !important;
     height: 100vh !important;
     top: 0 !important;
     bottom: 0 !important;
@@ -120,7 +120,7 @@ export const styles = `
 
   /* Maximized with detail panel */
   .me-agent-chat.maximized.has-detail-panel {
-    width: 1076px !important;
+    width: 1272px !important;
   }
 
   .me-agent-chat.minimizing {
@@ -641,8 +641,8 @@ export const styles = `
 
   .me-agent-offers-header {
     padding: 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: white;
+    color: #0f0f0f;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -660,7 +660,7 @@ export const styles = `
   .me-agent-offers-close {
     background: none;
     border: none;
-    color: white;
+    color: #0f0f0f;
     cursor: pointer;
     padding: 8px;
     border-radius: 4px;
@@ -700,75 +700,85 @@ export const styles = `
     overflow-y: auto;
     padding: 20px;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 16px;
     align-content: start;
   }
 
   .me-agent-offer-card {
-    background: white;
-    border: 1px solid #e5e7eb;
+    background: #FAFAFA;
     border-radius: 12px;
     overflow: hidden;
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: all 0.2s ease;
+    border: 1px solid #F5F5F5;
   }
 
   .me-agent-offer-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    transform: scale(1.02);
+  }
+
+  .me-agent-offer-image-container {
+    position: relative;
+    width: 100%;
+    padding-top: 100%;
+    overflow: hidden;
   }
 
   .me-agent-offer-image {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
-    height: 120px;
+    height: 100%;
     background-size: cover;
     background-position: center;
     background-color: #f3f4f6;
   }
 
+  .me-agent-offer-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: #000000;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    z-index: 1;
+  }
+
   .me-agent-offer-info {
-    padding: 12px;
+    padding: 16px;
   }
 
   .me-agent-offer-name {
     font-size: 14px;
     font-weight: 600;
-    color: #1f2937;
-    margin: 0 0 4px 0;
+    color: #0f0f0f;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .me-agent-offer-brand {
-    font-size: 12px;
-    color: #6b7280;
-    margin: 0 0 8px 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  .me-agent-offer-pricing {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
   .me-agent-offer-price {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .me-agent-offer-discount {
-    background: #dcfce7;
-    color: #166534;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 600;
+    font-size: 14px;
+    color: #0f0f0f;
+    font-weight: 700;
   }
 
   .me-agent-offer-original-price {
-    font-size: 13px;
-    color: #1f2937;
-    font-weight: 600;
+    font-size: 14px;
+    color: #9ca3af;
+    font-weight: 400;
+    text-decoration: line-through;
   }
 
   /* Offers Loading */
@@ -1325,7 +1335,22 @@ export const styles = `
     transform: scale(1.02);
   }
 
+  /* Tablet Responsive */
+  @media (max-width: 1024px) {
+    .me-agent-offers-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+  }
+
   /* Mobile Responsive */
+  @media (max-width: 768px) {
+    .me-agent-offers-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+  }
+
   @media (max-width: 480px) {
     .me-agent-chat {
       width: calc(100vw - 32px) !important;
@@ -1378,8 +1403,7 @@ export const styles = `
     }
 
     .me-agent-offers-grid {
-      grid-template-columns: 1fr;
-      padding: 16px;
+      padding: 12px;
     }
 
     .me-agent-card-list-content {

@@ -92,15 +92,26 @@ export class DetailPanel {
     const imageUrl =
       offer.image || "https://via.placeholder.com/300x200?text=No+Image";
 
+    const discountedPrice = (
+      offer.price *
+      (1 - offer.discountPercentage / 100)
+    ).toFixed(2);
+
     return `
       <div class="me-agent-offer-card" data-offer-code="${offer.offerCode}">
-        <div class="me-agent-offer-image" style="background-image: url('${imageUrl}')"></div>
+        <div class="me-agent-offer-image-container">
+          <div class="me-agent-offer-image" style="background-image: url('${imageUrl}')"></div>
+          <span class="me-agent-offer-badge">${
+            offer.discountPercentage
+          }% Off</span>
+        </div>
         <div class="me-agent-offer-info">
           <h4 class="me-agent-offer-name">${offer.name}</h4>
-          <p class="me-agent-offer-brand">${offer.brandName}</p>
-          <div class="me-agent-offer-price">
-            <span class="me-agent-offer-discount">${offer.discountPercentage}% OFF</span>
-            <span class="me-agent-offer-original-price">$${offer.price}</span>
+          <div class="me-agent-offer-pricing">
+            <span class="me-agent-offer-price">$${discountedPrice}</span>
+            <span class="me-agent-offer-original-price">$${offer.price.toFixed(
+              2
+            )}</span>
           </div>
         </div>
       </div>
@@ -132,6 +143,23 @@ export class DetailPanel {
   }
 
   /**
+   * Render header with back button
+   */
+  private renderHeader(backText: string = "Back"): string {
+    return `
+      <div class="me-agent-offers-header">
+        <button class="me-agent-offers-back" aria-label="Back">
+          ${getChevronLeftIcon({ width: 20, height: 20 })}
+          <span>${backText}</span>
+        </button>
+        <button class="me-agent-offers-close" aria-label="Close">${getCloseIcon(
+          { width: 20, height: 20 }
+        )}</button>
+      </div>
+    `;
+  }
+
+  /**
    * Show offer details
    */
   showDetail(detail: OfferDetail): void {
@@ -152,15 +180,7 @@ export class DetailPanel {
     const variantsHtml = this.renderVariantsSelector(detail.offerVariants);
 
     this.element.innerHTML = `
-      <div class="me-agent-offers-header">
-        <button class="me-agent-offers-back" aria-label="Back to offers">
-          ${getChevronLeftIcon({ width: 20, height: 20 })}
-          <span>Back</span>
-        </button>
-        <button class="me-agent-offers-close" aria-label="Close offers">${getCloseIcon(
-          { width: 20, height: 20 }
-        )}</button>
-      </div>
+      ${this.renderHeader("Product details")}
       <div class="me-agent-offer-detail">
         <div class="me-agent-offer-detail-image" style="background-image: url('${mainImage}')"></div>
         
