@@ -29,22 +29,38 @@ export class CardList {
     const container = document.createElement("div");
     container.className = "me-agent-card-list";
 
-    // Create preview with avatars (show up to 3)
-    const previewItems = config.items.slice(0, 3);
+    // Create preview with avatars (show up to 3, plus a 4th with count if more)
+    const maxVisible = 3;
+    const previewItems = config.items.slice(0, maxVisible);
+    const remainingCount = config.items.length - maxVisible;
+
     const avatarGroup = previewItems
       .map((item, index) => {
         const imageUrl =
           item.image || `https://via.placeholder.com/40x40?text=${index + 1}`;
         return `<div class="me-agent-card-avatar" style="background-image: url('${imageUrl}'); z-index: ${
-          3 - index
+          index + 1
         };"></div>`;
       })
       .join("");
+
+    // Add overlay avatar if there are more items
+    const overlayAvatar =
+      remainingCount > 0
+        ? `<div class="me-agent-card-avatar me-agent-card-avatar-overlay" style="z-index: ${
+            maxVisible + 1
+          };">
+          <span class="me-agent-card-avatar-count">+${
+            remainingCount > 99 ? "99+" : remainingCount
+          }</span>
+         </div>`
+        : "";
 
     container.innerHTML = `
       <div class="me-agent-card-list-content">
         <div class="me-agent-card-avatars">
           ${avatarGroup}
+          ${overlayAvatar}
         </div>
         <div class="me-agent-card-list-text">
           <p class="me-agent-card-list-title">${

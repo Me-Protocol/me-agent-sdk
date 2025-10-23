@@ -563,6 +563,21 @@ export const styles = `
     margin-left: 0;
   }
 
+  .me-agent-card-avatar-overlay {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .me-agent-card-avatar-count {
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+
   .me-agent-card-list-text {
     flex: 1;
   }
@@ -581,7 +596,7 @@ export const styles = `
     cursor: pointer;
     padding: 0px;
     margin: 0px;
-    transition: transform 0.2s ease;
+    transition: opacity 0.2s ease;
     background: none;
     display: flex;
     align-items: center;
@@ -590,7 +605,7 @@ export const styles = `
   }
 
   .me-agent-card-list-button:hover {
-    transform: scale(1.05);
+    opacity: 0.8;
   }
 
   /* Detail Panel */
