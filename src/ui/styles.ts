@@ -97,6 +97,7 @@ export const styles = `
   /* Detail Panel Wrapper (right side) */
   .me-agent-detail-panel-wrapper {
     width: 0;
+    height: 100%;
     overflow: hidden;
     transition: width 0.3s ease;
   }
@@ -792,19 +793,483 @@ export const styles = `
   /* Offer Detail */
   .me-agent-offer-detail {
     flex: 1;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    background: white;
+    height: 100%;
+    overflow: hidden;
   }
 
-  .me-agent-offer-detail-image {
+  .me-agent-offer-detail-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    min-height: 0;
+  }
+
+  /* Image Carousel */
+  .me-agent-image-carousel {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    overflow-x: auto;
+  }
+
+  .me-agent-carousel-image {
+    flex-shrink: 0;
+    width: 280px;
+    height: 280px;
+    background-size: cover;
+    background-position: center;
+    background-color: #f3f4f6;
+    border-radius: 12px;
+  }
+
+  .me-agent-carousel-image.active {
+    border: 2px solid #0f0f0f;
+  }
+
+  /* Product Info */
+  .me-agent-detail-info {
+    margin-bottom: 24px;
+  }
+
+  .me-agent-detail-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #0f0f0f;
+    margin: 0 0 12px 0;
+  }
+
+  .me-agent-detail-pricing {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    margin-bottom: 12px;
+  }
+
+  .me-agent-detail-price {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f0f0f;
+  }
+
+  .me-agent-detail-original-price {
+    font-size: 18px;
+    color: #9ca3af;
+    text-decoration: line-through;
+  }
+
+  .me-agent-detail-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: #000000;
+    color: white;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 16px;
+  }
+
+  .me-agent-detail-shipping {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0 0 20px 0;
+  }
+
+  /* Section Label */
+  .me-agent-section-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f0f0f;
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  /* Variant Section */
+  .me-agent-variant-section {
+    margin-bottom: 20px;
+  }
+
+  .me-agent-variant-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .me-agent-variant-card {
+    background: none;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    cursor: pointer;
+    padding: 0;
+    overflow: hidden;
+    transition: all 0.2s ease;
+  }
+
+  .me-agent-variant-card:hover:not(.disabled) {
+    border-color: #0f0f0f;
+  }
+
+  .me-agent-variant-card.active {
+    border-color: #0f0f0f;
+    box-shadow: 0 0 0 1px #0f0f0f;
+  }
+
+  .me-agent-variant-card.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .me-agent-variant-image {
+    position: relative;
     width: 100%;
-    height: 300px;
+    padding-top: 100%;
     background-size: cover;
     background-position: center;
     background-color: #f3f4f6;
   }
 
-  .me-agent-offer-detail-content {
-    padding: 24px;
+  .me-agent-variant-discount {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    right: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 4px 8px;
+    background: #000000;
+    color: white;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  /* Quantity Section */
+  .me-agent-quantity-section {
+    margin-bottom: 20px;
+  }
+
+  .me-agent-quantity-selector {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    max-width: 200px;
+  }
+
+  .me-agent-quantity-btn {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #e5e7eb;
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+
+  .me-agent-quantity-btn:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+  }
+
+  .me-agent-quantity-input {
+    flex: 1;
+    height: 40px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  .me-agent-quantity-input:focus {
+    outline: none;
+    border-color: #0f0f0f;
+  }
+
+  /* Tabs */
+  .me-agent-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .me-agent-tab {
+    padding: 12px 24px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: #6b7280;
+    transition: all 0.2s ease;
+  }
+
+  .me-agent-tab.active {
+    color: #0f0f0f;
+    border-bottom-color: #0f0f0f;
+  }
+
+  .me-agent-tab-content {
+    min-height: 200px;
+  }
+
+  .me-agent-tab-pane {
+    display: none;
+  }
+
+  .me-agent-tab-pane.active {
+    display: block;
+  }
+
+  .me-agent-description-text {
+    font-size: 14px;
+    color: #4b5563;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* Reviews */
+  .me-agent-reviews {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .me-agent-reviews-summary {
+    display: flex;
+    gap: 32px;
+    align-items: flex-start;
+  }
+
+  .me-agent-reviews-bars {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .me-agent-rating-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .me-agent-stars-small {
+    display: flex;
+    gap: 2px;
+    color: #d1d5db;
+  }
+
+  .me-agent-stars-small span.filled {
+    color: #f59e0b;
+  }
+
+  .me-agent-rating-bar {
+    flex: 1;
+    height: 6px;
+    background: #e5e7eb;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .me-agent-rating-fill {
+    height: 100%;
+    background: #f59e0b;
+  }
+
+  .me-agent-rating-count {
+    font-size: 14px;
+    color: #6b7280;
+    min-width: 30px;
+    text-align: right;
+  }
+
+  .me-agent-reviews-score {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .me-agent-score-number {
+    font-size: 48px;
+    font-weight: 700;
+    color: #0f0f0f;
+    line-height: 1;
+  }
+
+  .me-agent-score-number span {
+    font-size: 24px;
+    color: #9ca3af;
+  }
+
+  .me-agent-stars-large {
+    display: flex;
+    gap: 4px;
+    font-size: 20px;
+    color: #d1d5db;
+  }
+
+  .me-agent-stars-large span.filled {
+    color: #f59e0b;
+  }
+
+  .me-agent-review-count {
+    font-size: 14px;
+    color: #6b7280;
+  }
+
+  .me-agent-reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .me-agent-review-item {
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+  }
+
+  .me-agent-review-header {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .me-agent-reviewer-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .me-agent-reviewer-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f0f0f;
+    margin-bottom: 4px;
+  }
+
+  .me-agent-review-stars {
+    display: flex;
+    gap: 2px;
+    font-size: 14px;
+    color: #d1d5db;
+  }
+
+  .me-agent-review-stars span.filled {
+    color: #f59e0b;
+  }
+
+  .me-agent-review-text {
+    font-size: 14px;
+    color: #4b5563;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* Redemption Info */
+  .me-agent-redemption-info {
+    margin-top: 24px;
+    padding: 16px;
+    background: #f9fafb;
+    border-radius: 12px;
+    font-size: 14px;
+    color: #4b5563;
+    line-height: 1.6;
+  }
+
+  .me-agent-redemption-info p {
+    margin: 0;
+  }
+
+  /* Bottom Actions */
+  .me-agent-detail-actions {
+    position: sticky;
+    bottom: 0;
+    background: white;
+    padding: 16px 20px;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .me-agent-redeem-button {
+    flex: 1;
+    padding: 14px 24px;
+    background: #000000;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .me-agent-redeem-button:hover {
+    background: #1f1f1f;
+  }
+
+  .me-agent-secondary-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .me-agent-action-button {
+    padding: 14px 20px;
+    background: white;
+    color: #0f0f0f;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .me-agent-action-button:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+  }
+
+  .me-agent-action-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #0f0f0f;
+  }
+
+  .me-agent-action-icon:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+  }
+
+  .me-agent-action-icon.liked {
+    color: #ef4444;
   }
 
   .me-agent-offer-detail-header {

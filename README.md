@@ -54,14 +54,46 @@ MeAgent.init({
 
 ## Configuration Options
 
-| Option         | Type             | Required | Default        | Description                                           |
-| -------------- | ---------------- | -------- | -------------- | ----------------------------------------------------- |
-| `emailAddress` | string           | No       | -              | User's email address for authentication               |
-| `brandId`      | string           | No       | -              | Your brand identifier                                 |
-| `userId`       | string           | No       | auto-generated | Unique user identifier                                |
-| `position`     | string           | No       | 'bottom-right' | Widget position: 'bottom-right' or 'bottom-left'      |
-| `environment`  | Environment      | No       | DEV            | Environment: DEV, STAGING, or PROD                    |
-| `network`      | SupportedNetwork | No       | SEPOLIA        | Blockchain network: SEPOLIA, HEDERA, BASE, or POLYGON |
+| Option         | Type             | Required | Default        | Description                                                   |
+| -------------- | ---------------- | -------- | -------------- | ------------------------------------------------------------- |
+| `emailAddress` | string           | No       | -              | User's email address for authentication                       |
+| `brandId`      | string           | No       | -              | Your brand identifier                                         |
+| `userId`       | string           | No       | auto-generated | Unique user identifier                                        |
+| `position`     | string           | No       | 'bottom-right' | Widget position: 'bottom-right' or 'bottom-left'              |
+| `environment`  | Environment      | No       | DEV            | Environment: DEV, STAGING, or PROD                            |
+| `network`      | SupportedNetwork | No       | SEPOLIA        | Blockchain network: SEPOLIA, HEDERA, BASE, or POLYGON         |
+| `onAddToCart`  | function         | No       | -              | Callback when user clicks "Add to Cart" on offer details      |
+| `onShare`      | function         | No       | -              | Callback when user clicks share button on offer details       |
+| `onLikeUnlike` | function         | No       | -              | Callback when user clicks like/unlike button on offer details |
+| `likedOffers`  | object           | No       | {}             | Initial liked state for offers (map of offer IDs to booleans) |
+
+### Callback Functions
+
+The SDK supports optional callbacks for e-commerce actions on the offer details page:
+
+```javascript
+MeAgent.init({
+  // ... other config
+  onAddToCart: (offer) => {
+    console.log("Add to cart clicked:", offer);
+    // Your add to cart logic here
+  },
+  onShare: (offer) => {
+    console.log("Share clicked:", offer);
+    // Your share logic here
+  },
+  onLikeUnlike: (offer, isLiked) => {
+    console.log(`Offer ${isLiked ? "liked" : "unliked"}:`, offer);
+    // Your like/unlike logic here
+  },
+  likedOffers: {
+    "offer-id-1": true,
+    "offer-id-2": false,
+  },
+});
+```
+
+**Note:** Action buttons (Add to Cart, Like, Share) will only appear on the offer details page if their respective callback functions are provided.
 
 ## Environments
 

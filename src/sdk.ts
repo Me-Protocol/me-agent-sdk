@@ -83,6 +83,7 @@ export class MeAgentSDK {
         () => this.toggleChat(),
         this.apiClient,
         sessionId,
+        this.config,
         this.redeemManager || undefined
       );
 

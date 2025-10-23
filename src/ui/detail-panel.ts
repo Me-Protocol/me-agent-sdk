@@ -4,6 +4,7 @@ import {
   OfferVariant,
   RewardBalance,
   SwapAmountResponse,
+  MeAgentConfig,
 } from "../types";
 import { RedeemManager } from "../redeem/manager";
 import { OTPView } from "./components/redemption/otp-view";
@@ -33,14 +34,19 @@ export class DetailPanel {
   private selectedVariant: OfferVariant | null = null;
   private selectedReward: RewardBalance | null = null;
   private swapAmount: SwapAmountResponse | null = null;
+  private config: MeAgentConfig;
+  private likedOffers: Record<string, boolean> = {};
 
   constructor(
     onClose: () => void,
     onOfferClick: (offerCode: string) => void,
+    config: MeAgentConfig,
     redeemManager?: RedeemManager
   ) {
     this.onClose = onClose;
     this.onOfferClick = onOfferClick;
+    this.config = config;
+    this.likedOffers = config.likedOffers || {};
     this.redeemManager = redeemManager || null;
     this.element = this.create();
   }
@@ -171,112 +177,194 @@ export class DetailPanel {
       this.selectedVariant = detail.offerVariants[0];
     }
 
-    const mainImage =
-      detail.coverImage || "https://via.placeholder.com/600x400?text=No+Image";
-    const brandLogo =
-      detail.brand.logo || "https://via.placeholder.com/60x60?text=Logo";
+    const finalPrice = this.calculateFinalPrice(detail);
+    const discountPercentage =
+      detail.redemptionMethod.discountPercentage || "20";
+    const isLiked = this.likedOffers[detail.id] || false;
+
+    // Prepare images for carousel
+    const images =
+      detail.offerImages?.length > 0
+        ? detail.offerImages.map((img) => img.url)
+        : [
+            detail.coverImage ||
+              "https://via.placeholder.com/600x400?text=No+Image",
+          ];
 
     // Render variants if available
-    const variantsHtml = this.renderVariantsSelector(detail.offerVariants);
+    const variantsHtml = this.renderVariantSelector(detail.offerVariants);
+
+    // Action buttons
+    const hasCallbacks = !!(
+      this.config.onAddToCart ||
+      this.config.onShare ||
+      this.config.onLikeUnlike
+    );
+    const actionButtonsHtml = hasCallbacks
+      ? `
+      ${
+        this.config.onAddToCart
+          ? '<button class="me-agent-action-button me-agent-add-to-cart">Add To Cart</button>'
+          : ""
+      }
+      ${
+        this.config.onLikeUnlike
+          ? `<button class="me-agent-action-icon ${
+              isLiked ? "liked" : ""
+            }" data-action="like">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="${
+          isLiked ? "currentColor" : "none"
+        }" stroke="currentColor" stroke-width="2">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+        </svg>
+      </button>`
+          : ""
+      }
+      ${
+        this.config.onShare
+          ? `<button class="me-agent-action-icon" data-action="share">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+          <polyline points="16 6 12 2 8 6"></polyline>
+          <line x1="12" y1="2" x2="12" y2="15"></line>
+        </svg>
+      </button>`
+          : ""
+      }
+    `
+      : "";
 
     this.element.innerHTML = `
       ${this.renderHeader("Product details")}
       <div class="me-agent-offer-detail">
-        <div class="me-agent-offer-detail-image" style="background-image: url('${mainImage}')"></div>
-        
-        <div class="me-agent-offer-detail-content">
-          <div class="me-agent-offer-detail-header">
-            <img src="${brandLogo}" alt="${
-      detail.brand.name
-    }" class="me-agent-offer-brand-logo" />
-            <div>
-              <h3 class="me-agent-offer-detail-name">${detail.name}</h3>
-              <p class="me-agent-offer-detail-brand">${detail.brand.name}</p>
-            </div>
+        <div class="me-agent-offer-detail-scroll">
+          <!-- Image Carousel -->
+          <div class="me-agent-image-carousel">
+            ${images
+              .map(
+                (img, i) => `
+              <div class="me-agent-carousel-image ${
+                i === 0 ? "active" : ""
+              }" style="background-image: url('${img}')"></div>
+            `
+              )
+              .join("")}
           </div>
 
-          ${variantsHtml}
-
-          <div class="me-agent-offer-detail-pricing">
-            <div class="me-agent-offer-detail-discount">${
-              detail.redemptionMethod.discountPercentage ||
-              detail.redemptionMethod.discountAmount
-            }${detail.redemptionMethod.discountPercentage ? "%" : "$"} OFF</div>
-            <div class="me-agent-offer-detail-price">
-              <span class="me-agent-offer-detail-original">$${
+          <!-- Product Info -->
+          <div class="me-agent-detail-info">
+            <h3 class="me-agent-detail-title">${detail.name}${
+      this.selectedVariant ? ` - ${this.selectedVariant.variant.name}` : ""
+    }</h3>
+            
+            <div class="me-agent-detail-pricing">
+              <span class="me-agent-detail-price">$${finalPrice}</span>
+              <span class="me-agent-detail-original-price">$${
                 detail.originalPrice
               }</span>
-              <span class="me-agent-offer-detail-final">$${this.calculateFinalPrice(
-                detail
-              )}</span>
+            </div>
+
+            <div class="me-agent-detail-badge">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+              </svg>
+              ${discountPercentage}% Off With Coupon
+            </div>
+
+            <p class="me-agent-detail-shipping">Ships To Texas, United State Of America</p>
+
+            ${variantsHtml}
+
+            <!-- Quantity Selector -->
+            <div class="me-agent-quantity-section">
+              <label class="me-agent-section-label">Quantity</label>
+              <div class="me-agent-quantity-selector">
+                <button class="me-agent-quantity-btn" data-action="decrease">−</button>
+                <input type="number" class="me-agent-quantity-input" value="0" min="0" />
+                <button class="me-agent-quantity-btn" data-action="increase">+</button>
+              </div>
+            </div>
+
+            <!-- Description & Reviews Tabs -->
+            <div class="me-agent-tabs">
+              <button class="me-agent-tab active" data-tab="description">Description</button>
+              <button class="me-agent-tab" data-tab="reviews">Reviews</button>
+            </div>
+
+            <div class="me-agent-tab-content">
+              <div class="me-agent-tab-pane active" data-pane="description">
+                <p class="me-agent-description-text">${
+                  detail.description || "No description available"
+                }</p>
+              </div>
+              <div class="me-agent-tab-pane" data-pane="reviews">
+                ${this.renderReviews()}
+              </div>
             </div>
           </div>
 
-          <div class="me-agent-offer-detail-description">
-            <h4>Description</h4>
-            <p>${detail.description || "No description available"}</p>
+          <!-- Redemption Info -->
+          <div class="me-agent-redemption-info">
+            <p>Redeem this offer to get a unique coupon code, then enter the code on checkout and the discount will be applied to your total before payment.</p>
           </div>
+        </div>
 
-          <div class="me-agent-offer-detail-code">
-            <strong>Offer Code:</strong> ${detail.offerCode}
-          </div>
-
-          <button class="me-agent-offer-claim-button">Claim Offer</button>
+        <!-- Bottom Actions -->
+        <div class="me-agent-detail-actions">
+          <button class="me-agent-redeem-button">Redeem Offer</button>
+          ${
+            hasCallbacks
+              ? `<div class="me-agent-secondary-actions">${actionButtonsHtml}</div>`
+              : ""
+          }
         </div>
       </div>
     `;
 
-    // Add event listeners
-    const backBtn = this.element.querySelector(".me-agent-offers-back");
-    backBtn?.addEventListener("click", () => this.showGrid(this.offers));
-
-    const closeBtn = this.element.querySelector(".me-agent-offers-close");
-    closeBtn?.addEventListener("click", this.onClose);
-
-    const claimBtn = this.element.querySelector(".me-agent-offer-claim-button");
-    claimBtn?.addEventListener("click", () => this.handleClaimOffer());
-
-    // Setup variant selection listeners
-    this.setupVariantListeners();
+    this.setupDetailListeners();
   }
 
   /**
-   * Render variants selector
+   * Render variant selector with images
    */
-  private renderVariantsSelector(offerVariants?: OfferVariant[]): string {
+  private renderVariantSelector(offerVariants?: OfferVariant[]): string {
     if (!offerVariants || offerVariants.length === 0) {
       return "";
     }
 
     return `
-      <div class="me-agent-variants-selector">
-        <div class="me-agent-variants-list-horizontal">
+      <div class="me-agent-variant-section">
+        <label class="me-agent-section-label">Variant</label>
+        <div class="me-agent-variant-grid">
           ${offerVariants
             .map((offerVariant, index) => {
               const variant = offerVariant.variant;
-              const options = variant.options || [];
-              const optionsText = options.map((opt) => opt.value).join(" / ");
+              const image =
+                variant.productImages?.[0]?.url ||
+                "https://via.placeholder.com/80x80";
+              const discountPct = offerVariant.discountPercentage || "0";
               const isOutOfStock = offerVariant.inventory <= 0;
 
               return `
               <button 
-                class="me-agent-variant-chip ${index === 0 ? "active" : ""} ${
-                isOutOfStock ? "out-of-stock" : ""
+                class="me-agent-variant-card ${index === 0 ? "active" : ""} ${
+                isOutOfStock ? "disabled" : ""
               }" 
                 data-variant-index="${index}"
                 ${isOutOfStock ? "disabled" : ""}
               >
-                <span class="me-agent-variant-chip-name">${variant.name}</span>
-                ${
-                  optionsText
-                    ? `<span class="me-agent-variant-chip-options">${optionsText}</span>`
-                    : ""
-                }
-                ${
-                  isOutOfStock
-                    ? '<span class="me-agent-variant-chip-stock">Out of Stock</span>'
-                    : ""
-                }
+                <div class="me-agent-variant-image" style="background-image: url('${image}')">
+                  ${
+                    !isOutOfStock
+                      ? `<span class="me-agent-variant-discount">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                    </svg>
+                    ${discountPct}% Off
+                  </span>`
+                      : ""
+                  }
+                </div>
               </button>
             `;
             })
@@ -284,6 +372,214 @@ export class DetailPanel {
         </div>
       </div>
     `;
+  }
+
+  /**
+   * Render dummy reviews section
+   */
+  private renderReviews(): string {
+    const dummyReviews = [
+      {
+        name: "John Doe",
+        rating: 4,
+        text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat",
+      },
+      {
+        name: "Jane Smith",
+        rating: 5,
+        text: "Great product! Highly recommend. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+      },
+      {
+        name: "Bob Johnson",
+        rating: 4,
+        text: "Good quality and fast shipping. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+      },
+    ];
+
+    const ratings = [
+      { stars: 5, count: 20 },
+      { stars: 4, count: 50 },
+      { stars: 3, count: 20 },
+      { stars: 2, count: 6 },
+      { stars: 1, count: 4 },
+    ];
+
+    const totalReviews = ratings.reduce((sum, r) => sum + r.count, 0);
+    const avgRating = (
+      ratings.reduce((sum, r) => sum + r.stars * r.count, 0) / totalReviews
+    ).toFixed(1);
+
+    return `
+      <div class="me-agent-reviews">
+        <div class="me-agent-reviews-summary">
+          <div class="me-agent-reviews-bars">
+            ${ratings
+              .map(
+                (r) => `
+              <div class="me-agent-rating-row">
+                <div class="me-agent-stars-small">
+                  ${Array(5)
+                    .fill(0)
+                    .map(
+                      (_, i) =>
+                        `<span class="${i < r.stars ? "filled" : ""}">★</span>`
+                    )
+                    .join("")}
+                </div>
+                <div class="me-agent-rating-bar">
+                  <div class="me-agent-rating-fill" style="width: ${
+                    (r.count / totalReviews) * 100
+                  }%"></div>
+                </div>
+                <span class="me-agent-rating-count">${r.count}</span>
+              </div>
+            `
+              )
+              .join("")}
+          </div>
+          <div class="me-agent-reviews-score">
+            <div class="me-agent-score-number">${avgRating} <span>/ 5</span></div>
+            <div class="me-agent-stars-large">
+              ${Array(5)
+                .fill(0)
+                .map(
+                  (_, i) =>
+                    `<span class="${
+                      i < Math.floor(parseFloat(avgRating)) ? "filled" : ""
+                    }">★</span>`
+                )
+                .join("")}
+            </div>
+            <div class="me-agent-review-count">${totalReviews} Reviews</div>
+          </div>
+        </div>
+
+        <div class="me-agent-reviews-list">
+          ${dummyReviews
+            .map(
+              (review) => `
+            <div class="me-agent-review-item">
+              <div class="me-agent-review-header">
+                <div class="me-agent-reviewer-avatar"></div>
+                <div>
+                  <div class="me-agent-reviewer-name">${review.name}</div>
+                  <div class="me-agent-review-stars">
+                    ${Array(5)
+                      .fill(0)
+                      .map(
+                        (_, i) =>
+                          `<span class="${
+                            i < review.rating ? "filled" : ""
+                          }">★</span>`
+                      )
+                      .join("")}
+                  </div>
+                </div>
+              </div>
+              <p class="me-agent-review-text">${review.text}</p>
+            </div>
+          `
+            )
+            .join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Setup detail page event listeners
+   */
+  private setupDetailListeners(): void {
+    // Back button
+    const backBtn = this.element.querySelector(".me-agent-offers-back");
+    backBtn?.addEventListener("click", () => this.showGrid(this.offers));
+
+    // Close button
+    const closeBtn = this.element.querySelector(".me-agent-offers-close");
+    closeBtn?.addEventListener("click", this.onClose);
+
+    // Redeem button
+    const redeemBtn = this.element.querySelector(".me-agent-redeem-button");
+    redeemBtn?.addEventListener("click", () => this.handleClaimOffer());
+
+    // Quantity controls
+    const quantityInput = this.element.querySelector(
+      ".me-agent-quantity-input"
+    ) as HTMLInputElement;
+    const decreaseBtn = this.element.querySelector('[data-action="decrease"]');
+    const increaseBtn = this.element.querySelector('[data-action="increase"]');
+
+    decreaseBtn?.addEventListener("click", () => {
+      const val = parseInt(quantityInput.value || "0");
+      if (val > 0) quantityInput.value = String(val - 1);
+    });
+
+    increaseBtn?.addEventListener("click", () => {
+      const val = parseInt(quantityInput.value || "0");
+      quantityInput.value = String(val + 1);
+    });
+
+    // Tab switching
+    const tabs = this.element.querySelectorAll(".me-agent-tab");
+    const panes = this.element.querySelectorAll(".me-agent-tab-pane");
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const tabName = tab.getAttribute("data-tab");
+        tabs.forEach((t) => t.classList.remove("active"));
+        panes.forEach((p) => p.classList.remove("active"));
+        tab.classList.add("active");
+        const activePane = this.element.querySelector(
+          `[data-pane="${tabName}"]`
+        );
+        activePane?.classList.add("active");
+      });
+    });
+
+    // Variant selection
+    const variantCards = this.element.querySelectorAll(
+      ".me-agent-variant-card"
+    );
+    variantCards.forEach((card, index) => {
+      card.addEventListener("click", () => {
+        variantCards.forEach((c) => c.classList.remove("active"));
+        card.classList.add("active");
+        if (this.currentOfferDetail?.offerVariants) {
+          this.selectedVariant = this.currentOfferDetail.offerVariants[index];
+        }
+      });
+    });
+
+    // Action buttons
+    if (this.config.onAddToCart && this.currentOfferDetail) {
+      const addToCartBtn = this.element.querySelector(".me-agent-add-to-cart");
+      addToCartBtn?.addEventListener("click", () => {
+        if (this.currentOfferDetail && this.config.onAddToCart) {
+          this.config.onAddToCart(this.currentOfferDetail);
+        }
+      });
+    }
+
+    if (this.config.onShare && this.currentOfferDetail) {
+      const shareBtn = this.element.querySelector('[data-action="share"]');
+      shareBtn?.addEventListener("click", () => {
+        if (this.currentOfferDetail && this.config.onShare) {
+          this.config.onShare(this.currentOfferDetail);
+        }
+      });
+    }
+
+    if (this.config.onLikeUnlike && this.currentOfferDetail) {
+      const likeBtn = this.element.querySelector('[data-action="like"]');
+      likeBtn?.addEventListener("click", () => {
+        if (this.currentOfferDetail && this.config.onLikeUnlike) {
+          const isLiked = !this.likedOffers[this.currentOfferDetail.id];
+          this.likedOffers[this.currentOfferDetail.id] = isLiked;
+          likeBtn.classList.toggle("liked", isLiked);
+          this.config.onLikeUnlike(this.currentOfferDetail, isLiked);
+        }
+      });
+    }
   }
 
   /**

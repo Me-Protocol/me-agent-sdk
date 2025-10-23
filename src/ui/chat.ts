@@ -1,4 +1,4 @@
-import { Message, QuickAction, Offer } from "../types";
+import { Message, QuickAction, Offer, MeAgentConfig } from "../types";
 import { MessageComponent } from "./components/message";
 import { QuickActionsComponent } from "./components/quick-actions";
 import { OfferPreviewCard } from "./components/offer-preview";
@@ -33,6 +33,7 @@ export class ChatPopup {
   private sessionId: string = "";
   private apiClient: APIClient;
   private redeemManager: RedeemManager | null = null;
+  private config: MeAgentConfig;
 
   constructor(
     position: "bottom-right" | "bottom-left",
@@ -40,6 +41,7 @@ export class ChatPopup {
     onClose: () => void,
     apiClient: APIClient,
     sessionId: string,
+    config: MeAgentConfig,
     redeemManager?: RedeemManager
   ) {
     this.position = position;
@@ -47,6 +49,7 @@ export class ChatPopup {
     this.onClose = onClose;
     this.apiClient = apiClient;
     this.sessionId = sessionId;
+    this.config = config;
     this.redeemManager = redeemManager || null;
     this.element = this.create();
     this.messagesContainer = this.element.querySelector(".me-agent-messages")!;
@@ -60,6 +63,7 @@ export class ChatPopup {
     this.detailPanel = new DetailPanel(
       () => this.hideDetailPanel(),
       (offerCode) => this.handleOfferClick(offerCode),
+      config,
       this.redeemManager || undefined
     );
 
