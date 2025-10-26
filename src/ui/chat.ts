@@ -200,8 +200,8 @@ export class ChatPopup {
       },
       {
         id: "offers",
-        label: "Browse offers",
-        value: "Browse offers",
+        label: "Earn a reward",
+        value: "Earn a reward",
         icon: "offers",
       },
       { id: "rewards", label: "My rewards", value: "My rewards", icon: "tags" },
@@ -430,6 +430,49 @@ export class ChatPopup {
     } else {
       // Fallback: append to messages container if no assistant message found
       this.messagesContainer.appendChild(previewCard);
+    }
+
+    this.scrollToBottom();
+  }
+
+  /**
+   * Show ways to earn quick actions
+   */
+  showWaysToEarnActions(): void {
+    const actions: QuickAction[] = [
+      {
+        id: "sign_up_brand",
+        label: "Sign up for a brand",
+        value: "Sign up for a brand",
+        icon: "user",
+      },
+      {
+        id: "purchase_brand",
+        label: "Purchase from a brand",
+        value: "Purchase from a brand",
+        icon: "money",
+      },
+    ];
+
+    const quickActionsElement = QuickActionsComponent.create(
+      actions,
+      (action) => {
+        // Send the action label as a message
+        this.onSendMessage(action.label);
+      }
+    );
+
+    // Find the last assistant message and append the quick actions
+    const messages = this.messagesContainer.querySelectorAll(
+      ".me-agent-message.assistant"
+    );
+    const lastMessage = messages[messages.length - 1] as HTMLElement;
+
+    if (lastMessage) {
+      MessageComponent.appendToMessage(lastMessage, quickActionsElement);
+    } else {
+      // Fallback: append to messages container if no assistant message found
+      this.messagesContainer.appendChild(quickActionsElement);
     }
 
     this.scrollToBottom();

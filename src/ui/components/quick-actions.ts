@@ -4,6 +4,8 @@ import {
   getTagIcon,
   getGiftIcon,
   getSparklesIcon,
+  getUserIcon,
+  getMoneyIcon,
 } from "../icons";
 
 /**
@@ -35,6 +37,18 @@ export class QuickActionsComponent {
         }),
       suggestions: () =>
         getSparklesIcon({
+          width: 18,
+          height: 18,
+          className: "me-agent-quick-action-icon",
+        }),
+      user: () =>
+        getUserIcon({
+          width: 18,
+          height: 18,
+          className: "me-agent-quick-action-icon",
+        }),
+      money: () =>
+        getMoneyIcon({
           width: 18,
           height: 18,
           className: "me-agent-quick-action-icon",

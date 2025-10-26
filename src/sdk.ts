@@ -153,6 +153,8 @@ export class MeAgentSDK {
     };
     let isFirstChunk = true;
     let detectedOffers: Offer[] = [];
+    let showWaysToEarnActions = false;
+    let hasFinalMessage = false; // Track if we've received a final message
 
     try {
       await this.apiClient.sendMessage(
@@ -170,6 +172,14 @@ export class MeAgentSDK {
                 rawData.content.parts[0].functionResponse.response?.matches ||
                 [];
               detectedOffers = this.parseOffers(matches);
+            }
+
+            // Check for ways_to_earn function call
+            if (
+              rawData.content?.parts?.[0]?.functionCall?.name === "ways_to_earn"
+            ) {
+              console.log("[SDK] Detected ways_to_earn function call");
+              showWaysToEarnActions = true;
             }
           }
 
@@ -190,8 +200,16 @@ export class MeAgentSDK {
               this.stateManager.updateLastMessage(assistantMessage.content);
               this.chat?.updateLastMessage(assistantMessage.content);
             } else if (rawData?.content?.parts?.[0]?.text) {
-              // Final complete message - replace to ensure accuracy
-              assistantMessage.content = chunk;
+              // Final complete message
+              if (hasFinalMessage) {
+                // We already have a final message, so this is additional text
+                // after a function call - append it with spacing
+                assistantMessage.content += "\n\n" + chunk;
+              } else {
+                // First final message - replace to ensure accuracy
+                assistantMessage.content = chunk;
+                hasFinalMessage = true;
+              }
               this.stateManager.updateLastMessage(assistantMessage.content);
               this.chat?.updateLastMessage(assistantMessage.content);
             }
@@ -206,6 +224,12 @@ export class MeAgentSDK {
           // Show offer preview if offers were found
           if (detectedOffers.length > 0) {
             this.chat?.showOfferPreview(detectedOffers);
+          }
+
+          // Show ways to earn quick actions if function was called
+          if (showWaysToEarnActions) {
+            console.log("[SDK] Showing ways to earn actions");
+            this.chat?.showWaysToEarnActions();
           }
         },
         (error: Error) => {

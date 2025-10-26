@@ -144,6 +144,9 @@ export class APIClient {
                   // If partial=false, this is the final complete message
                   // We should replace, not append
                   onChunk(text, parsed);
+                } else if (parsed.content?.parts?.[0]?.functionCall) {
+                  // Function call - pass along but no text chunk
+                  onChunk("", parsed);
                 } else if (parsed.content?.parts?.[0]?.functionResponse) {
                   // Function response - pass along but no text chunk
                   onChunk("", parsed);

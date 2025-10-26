@@ -323,3 +323,41 @@ export function getArrowRightIcon(options: IconOptions = {}): string {
   </svg>
 `.trim();
 }
+
+/**
+ * User Icon (for "Sign up for a brand" action)
+ */
+export function getUserIcon(options: IconOptions = {}): string {
+  const {
+    width = 20,
+    height = 20,
+    color = "#999999",
+    className = "",
+  } = options;
+
+  return `
+  <svg width="${width}" height="${height}" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}">
+    <path d="M9.5 2C5.35775 2 2 5.35775 2 9.5C2 13.6422 5.35775 17 9.5 17C13.6422 17 17 13.6422 17 9.5C17 5.35775 13.6422 2 9.5 2Z" stroke="${color}" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M3.70312 14.2605C3.70312 14.2605 5.37488 12.126 9.49988 12.126C13.6249 12.126 15.2974 14.2605 15.2974 14.2605M9.49988 9.50098C10.0966 9.50098 10.6689 9.26392 11.0909 8.84197C11.5128 8.42001 11.7499 7.84771 11.7499 7.25098C11.7499 6.65424 11.5128 6.08194 11.0909 5.65999C10.6689 5.23803 10.0966 5.00098 9.49988 5.00098C8.90314 5.00098 8.33084 5.23803 7.90888 5.65999C7.48693 6.08194 7.24988 6.65424 7.24988 7.25098C7.24988 7.84771 7.48693 8.42001 7.90888 8.84197C8.33084 9.26392 8.90314 9.50098 9.49988 9.50098Z" stroke="${color}" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+`.trim();
+}
+
+/**
+ * Money Icon (for "Purchase from a brand" action)
+ */
+export function getMoneyIcon(options: IconOptions = {}): string {
+  const {
+    width = 20,
+    height = 20,
+    color = "#999999",
+    className = "",
+  } = options;
+
+  return `
+  <svg width="${width}" height="${height}" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}">
+    <path d="M14.75 9.7315C14.501 9.69578 14.2509 9.66901 14 9.65125M5 11.0988C4.744 11.0808 4.494 11.054 4.25 11.0185M11.375 10.375C11.375 10.8723 11.1775 11.3492 10.8258 11.7008C10.4742 12.0525 9.99728 12.25 9.5 12.25C9.00272 12.25 8.52581 12.0525 8.17417 11.7008C7.82254 11.3492 7.625 10.8723 7.625 10.375C7.625 9.87772 7.82254 9.40081 8.17417 9.04917C8.52581 8.69754 9.00272 8.5 9.5 8.5C9.99728 8.5 10.4742 8.69754 10.8258 9.04917C11.1775 9.40081 11.375 9.87772 11.375 10.375Z" stroke="${color}" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M9.5 16C8.501 16.4665 7.18775 16.75 5.75 16.75C4.9505 16.75 4.19 16.6623 3.5 16.5048C2.375 16.2468 2 15.5695 2 14.4145V6.3355C2 5.59675 2.78 5.08975 3.5 5.25475C4.19 5.41225 4.9505 5.5 5.75 5.5C7.18775 5.5 8.501 5.2165 9.5 4.75C10.499 4.2835 11.8122 4 13.25 4C14.0495 4 14.81 4.08775 15.5 4.24525C16.6865 4.5175 17 5.215 17 6.3355V14.4145C17 15.1532 16.22 15.6602 15.5 15.4952C14.81 15.3377 14.0495 15.25 13.25 15.25C11.8122 15.25 10.499 15.5335 9.5 16Z" stroke="${color}" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+`.trim();
+}
