@@ -3,6 +3,9 @@
  */
 
 export const styles = `
+  /* Import Clash Display font */
+  @import url('https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&display=swap');
+
   /* Container for all SDK elements */
   .me-agent-container * {
     box-sizing: border-box;
@@ -704,6 +707,114 @@ export const styles = `
     grid-template-columns: repeat(4, 1fr);
     gap: 16px;
     align-content: start;
+  }
+
+  /* Brands List */
+  .me-agent-brands-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .me-agent-brand-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    background: #FAFAFA;
+    border: 1px solid #F5F5F5;
+    border-radius: 16px;
+    transition: all 0.2s ease;
+  }
+
+  .me-agent-brand-card:hover {
+  }
+
+  .me-agent-brand-logo-container {
+    flex-shrink: 0;
+    width: 64px;
+    height: 64px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #000000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .me-agent-brand-logo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .me-agent-brand-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .me-agent-brand-name {
+    font-family: 'Clash Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: #000000;
+    margin: 0 0 2px 0;
+  }
+
+  .me-agent-brand-conversion {
+    font-size: 14px;
+    color: #6B7280;
+    margin: 0;
+  }
+
+  .me-agent-brand-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+  }
+
+  .me-agent-brand-reward-amount {
+    font-family: 'Clash Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: #000000;
+    text-align: right;
+  }
+
+  .me-agent-brand-reward-symbol {
+    font-size: 12px;
+    color: #000000;
+    font-weight: 500;
+  }
+
+  .me-agent-brand-signup-button {
+    flex-shrink: 0;
+    padding: 8px 12px;
+    background: transparent;
+    color: #000000;
+    border: 1px solid #E6E6E6;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 400;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+  }
+
+  .me-agent-brand-signup-button:hover {
+    background: #F9FAFB;
+    border-color: #D1D5DB;
+  }
+
+  .me-agent-brand-signup-button svg {
+    flex-shrink: 0;
   }
 
   .me-agent-offer-card {
@@ -1855,8 +1966,8 @@ export const styles = `
       left: 16px;
     }
 
-    /* Mobile Offers - Full overlay */
-    .me-agent-chat.has-offers-panel .me-agent-offers-panel-wrapper {
+    /* Mobile Detail Panel - Full overlay */
+    .me-agent-chat.has-detail-panel .me-agent-detail-panel-wrapper {
       position: absolute;
       top: 0;
       left: 0;

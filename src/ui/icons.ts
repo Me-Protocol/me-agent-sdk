@@ -361,3 +361,21 @@ export function getMoneyIcon(options: IconOptions = {}): string {
   </svg>
 `.trim();
 }
+
+/**
+ * External link icon
+ */
+export function getExternalLinkIcon(options: IconOptions = {}): string {
+  const {
+    width = 12,
+    height = 12,
+    color = "#0F0F0F",
+    className = "",
+  } = options;
+
+  return `
+  <svg width="${width}" height="${height}" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}">
+    <path d="M8.25 1.125H10.875V3.75M10.3125 1.6875L7.5 4.5M6.375 1.875H3C2.70163 1.875 2.41548 1.99353 2.2045 2.2045C1.99353 2.41548 1.875 2.70163 1.875 3V9C1.875 9.29837 1.99353 9.58452 2.2045 9.7955C2.41548 10.0065 2.70163 10.125 3 10.125H9C9.29837 10.125 9.58452 10.0065 9.7955 9.7955C10.0065 9.58452 10.125 9.29837 10.125 9V5.625" stroke="${color}" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+`.trim();
+}

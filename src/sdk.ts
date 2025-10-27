@@ -1,4 +1,4 @@
-import { MeAgentConfig, Message, Offer } from "./types";
+import { MeAgentConfig, Message, Offer, Brand } from "./types";
 import { StateManager } from "./state/manager";
 import { APIClient } from "./api/client";
 import { FloatingButton } from "./ui/button";
@@ -153,6 +153,7 @@ export class MeAgentSDK {
     };
     let isFirstChunk = true;
     let detectedOffers: Offer[] = [];
+    let detectedBrands: Brand[] = [];
     let showWaysToEarnActions = false;
     let hasFinalMessage = false; // Track if we've received a final message
 
@@ -172,6 +173,21 @@ export class MeAgentSDK {
                 rawData.content.parts[0].functionResponse.response?.matches ||
                 [];
               detectedOffers = this.parseOffers(matches);
+            }
+
+            // Check for get_signup_earning_brands function response
+            if (
+              rawData.content?.parts?.[0]?.functionResponse?.name ===
+              "get_signup_earning_brands"
+            ) {
+              const brands =
+                rawData.content.parts[0].functionResponse.response?.brands ||
+                [];
+              detectedBrands = this.parseBrands(brands);
+              console.log(
+                "[SDK] Detected signup earning brands:",
+                detectedBrands.length
+              );
             }
 
             // Check for ways_to_earn function call
@@ -226,6 +242,11 @@ export class MeAgentSDK {
             this.chat?.showOfferPreview(detectedOffers);
           }
 
+          // Show brand preview if brands were found
+          if (detectedBrands.length > 0) {
+            this.chat?.showBrandPreview(detectedBrands);
+          }
+
           // Show ways to earn quick actions if function was called
           if (showWaysToEarnActions) {
             console.log("[SDK] Showing ways to earn actions");
@@ -271,6 +292,40 @@ export class MeAgentSDK {
         discountPercentage: match[7] || 0,
         brandName: match[12] || "Unknown Brand",
         image: match[13] || undefined,
+      };
+    });
+  }
+
+  /**
+   * Parse brands from function response
+   */
+  private parseBrands(brands: any[]): Brand[] {
+    return brands.map((brand: any) => {
+      return {
+        id: brand.id || "",
+        name: brand.name || "Unknown Brand",
+        logoUrl: brand.logoUrl || null,
+        description: brand.description || null,
+        websiteUrl: brand.websiteUrl || null,
+        shopifyStoreUrl: brand.shopifyStoreUrl || null,
+        network: brand.network || "sepolia",
+        categoryId: brand.categoryId || "",
+        categoryName: brand.categoryName || "Unknown Category",
+        rewardDetails: brand.rewardDetails || {
+          earningMethodId: "",
+          earningType: "sign_up",
+          isActive: true,
+          rewardExistingCustomers: false,
+          rewardInfo: {
+            id: "",
+            rewardName: "",
+            rewardSymbol: "",
+            rewardImage: "",
+            rewardValueInDollars: "0",
+            rewardOriginalValue: "0",
+          },
+          rules: [],
+        },
       };
     });
   }

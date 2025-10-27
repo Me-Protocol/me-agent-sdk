@@ -1,7 +1,8 @@
-import { Message, QuickAction, Offer, MeAgentConfig } from "../types";
+import { Message, QuickAction, Offer, Brand, MeAgentConfig } from "../types";
 import { MessageComponent } from "./components/message";
 import { QuickActionsComponent } from "./components/quick-actions";
 import { OfferPreviewCard } from "./components/offer-preview";
+import { CardList, CardListItem } from "./components/card-list";
 import { DetailPanel } from "./detail-panel";
 import { RedeemManager } from "../redeem/manager";
 import { APIClient } from "../api/client";
@@ -433,6 +434,60 @@ export class ChatPopup {
     }
 
     this.scrollToBottom();
+  }
+
+  /**
+   * Show brand preview card - appends to the last assistant message
+   */
+  showBrandPreview(brands: Brand[]): void {
+    // Convert brands to CardListItem format
+    const brandItems: CardListItem[] = brands.slice(0, 10).map((brand) => ({
+      id: brand.id,
+      title: brand.name,
+      image:
+        brand.logoUrl ||
+        `https://via.placeholder.com/40x40?text=${brand.name.charAt(0)}`,
+    }));
+
+    // Create card list
+    const brandCard = CardList.create({
+      title: "List of brands that offer sign up rewards",
+      items: brandItems,
+      actionLabel: "View All",
+      onAction: () => this.showBrandsDetail(brands),
+    });
+
+    // Find the last assistant message and append the card to its content wrapper
+    const messages = this.messagesContainer.querySelectorAll(
+      ".me-agent-message.assistant"
+    );
+    const lastMessage = messages[messages.length - 1] as HTMLElement;
+
+    if (lastMessage) {
+      MessageComponent.appendToMessage(lastMessage, brandCard);
+    } else {
+      // Fallback: append to messages container if no assistant message found
+      this.messagesContainer.appendChild(brandCard);
+    }
+
+    this.scrollToBottom();
+  }
+
+  /**
+   * Show brands detail panel with full list
+   */
+  private showBrandsDetail(brands: Brand[]): void {
+    if (this.isMaximized) {
+      this.detailPanel?.showBrandsDetail(brands);
+      this.element.classList.add("has-detail-panel");
+    } else {
+      this.toggleMaximize();
+      // Wait for maximize animation
+      setTimeout(() => {
+        this.detailPanel?.showBrandsDetail(brands);
+        this.element.classList.add("has-detail-panel");
+      }, 300);
+    }
   }
 
   /**

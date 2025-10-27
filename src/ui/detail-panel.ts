@@ -1,5 +1,6 @@
 import {
   Offer,
+  Brand,
   OfferDetail,
   OfferVariant,
   RewardBalance,
@@ -12,7 +13,7 @@ import { RewardSelectionView } from "./components/redemption/reward-selection-vi
 import { AffordabilityErrorView } from "./components/redemption/error-view";
 import { ConfirmationView } from "./components/redemption/confirmation-view";
 import { OnboardingView } from "./components/redemption/onboarding-view";
-import { getCloseIcon, getChevronLeftIcon } from "./icons";
+import { getCloseIcon, getChevronLeftIcon, getExternalLinkIcon } from "./icons";
 
 /**
  * Detail Panel Component - Handles side panel for offers, earnings, redemption, etc.
@@ -22,11 +23,13 @@ export class DetailPanel {
   private currentView:
     | "grid"
     | "detail"
+    | "brands"
     | "otp-verify"
     | "onboarding"
     | "reward-select"
     | "confirm" = "grid";
   private offers: Offer[] = [];
+  private brands: Brand[] = [];
   private onClose: () => void;
   private onOfferClick: (offerCode: string) => void;
   private redeemManager: RedeemManager | null = null;
@@ -89,6 +92,115 @@ export class DetailPanel {
         this.onOfferClick(offers[index].offerCode);
       });
     });
+  }
+
+  /**
+   * Show brands detail list
+   */
+  showBrandsDetail(brands: Brand[]): void {
+    this.brands = brands;
+    this.currentView = "brands";
+
+    const brandCardsHtml = brands
+      .map((brand) => this.createBrandCard(brand))
+      .join("");
+
+    this.element.innerHTML = `
+      <div class="me-agent-offers-header">
+        <h3 class="me-agent-offers-title">Brands</h3>
+        <button class="me-agent-offers-close" aria-label="Close">${getCloseIcon(
+          { width: 20, height: 20 }
+        )}</button>
+      </div>
+      <div class="me-agent-brands-list">
+        ${brandCardsHtml}
+      </div>
+    `;
+
+    // Add event listeners
+    const closeBtn = this.element.querySelector(".me-agent-offers-close");
+    closeBtn?.addEventListener("click", this.onClose);
+
+    // Show the panel
+    this.show();
+  }
+
+  /**
+   * Format number with commas
+   */
+  private formatNumber(num: number): string {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+
+  /**
+   * Create a brand card HTML
+   */
+  private createBrandCard(brand: Brand): string {
+    const logoUrl =
+      brand.logoUrl ||
+      `https://via.placeholder.com/80x80?text=${brand.name.charAt(0)}`;
+
+    // Get reward details
+    const points = brand.rewardDetails?.rules?.[0]?.points || 0;
+    const formattedPoints = this.formatNumber(points);
+    const rewardSymbol = brand.rewardDetails?.rewardInfo?.rewardSymbol || "";
+    const rewardOriginalValue = parseFloat(
+      brand.rewardDetails?.rewardInfo?.rewardOriginalValue || "0"
+    );
+
+    // Create conversion rate display (1 SYMBOL = $X.XX)
+    const conversionRate =
+      rewardOriginalValue > 0
+        ? `1 ${rewardSymbol} = $${rewardOriginalValue.toFixed(2)}`
+        : "";
+
+    // Create callback URL with current origin
+    const currentOrigin =
+      typeof window !== "undefined" ? window.location.origin : "";
+    const callbackUrl = encodeURIComponent(
+      `${currentOrigin}?brand=${brand.id}&action=signup`
+    );
+
+    // Construct signup URL - use shopifyStoreUrl if available, otherwise websiteUrl
+    let signupUrl = "#";
+    if (brand.shopifyStoreUrl) {
+      // For Shopify stores, add https:// if not present and append callback
+      const shopifyUrl = brand.shopifyStoreUrl.startsWith("http")
+        ? brand.shopifyStoreUrl
+        : `https://${brand.shopifyStoreUrl}`;
+      signupUrl = `${shopifyUrl}?return_to=${callbackUrl}`;
+    } else if (brand.websiteUrl) {
+      signupUrl = `${brand.websiteUrl}?return_to=${callbackUrl}`;
+    }
+
+    return `
+      <div class="me-agent-brand-card" data-brand-id="${brand.id}">
+        <div class="me-agent-brand-logo-container">
+          <img src="${logoUrl}" alt="${
+      brand.name
+    }" class="me-agent-brand-logo" />
+        </div>
+        <div class="me-agent-brand-info">
+          <h4 class="me-agent-brand-name">${brand.name}</h4>
+          ${
+            conversionRate
+              ? `<p class="me-agent-brand-conversion">${conversionRate}</p>`
+              : ""
+          }
+        </div>
+        <div class="me-agent-brand-actions">
+          ${
+            points
+              ? `<div class="me-agent-brand-reward-amount">${formattedPoints} <span class="me-agent-brand-reward-symbol">${rewardSymbol}</span></div>`
+              : ""
+          }
+          <a href="${signupUrl}" target="_blank" rel="noopener noreferrer" class="me-agent-brand-signup-button">
+            <span>Sign Up & Earn</span>
+            ${getExternalLinkIcon({ width: 12, height: 12, color: "#0F0F0F" })}
+          </a>
+        </div>
+      </div>
+    `;
   }
 
   /**
