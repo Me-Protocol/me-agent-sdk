@@ -269,8 +269,8 @@ export class MeAgentSDK {
         description: match[4] || "",
         discountType: match[6] || "",
         discountPercentage: match[7] || 0,
-        brandName: match[9] || "Unknown Brand",
-        image: match[10] || undefined,
+        brandName: match[12] || "Unknown Brand",
+        image: match[13] || undefined,
       };
     });
   }
