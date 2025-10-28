@@ -1,60 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MeAgent SDK Demo - Live Demo</title>
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <div class="demo-container">
-    <header class="demo-header">
-      <h1>🤖 MeAgent SDK Demo</h1>
-      <p>Plain HTML Integration Example</p>
-    </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MeAgent SDK Demo - Live Demo</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="demo-container">
+      <header class="demo-header">
+        <h1>🤖 MeAgent SDK Demo</h1>
+        <p>Plain HTML Integration Example</p>
+      </header>
 
-    <main class="demo-content">
-      <section class="demo-section">
-        <h2>Welcome!</h2>
-        <p>
-          This is a live demo showing how to integrate the MeAgent SDK into a plain HTML website.
-          Look for the chat button in the bottom-right corner!
-        </p>
-      </section>
+      <main class="demo-content">
+        <section class="demo-section">
+          <h2>Welcome!</h2>
+          <p>
+            This is a live demo showing how to integrate the MeAgent SDK into a
+            plain HTML website. Look for the chat button in the bottom-right
+            corner!
+          </p>
+        </section>
 
-      <section class="demo-section">
-        <h3>Features</h3>
-        <ul>
-          <li>✨ Easy integration with a single script tag</li>
-          <li>💬 AI-powered chat assistant</li>
-          <li>🎨 Beautiful, modern UI</li>
-          <li>🔒 Secure authentication with Magic Link</li>
-          <li>🎁 Reward redemption system</li>
-          <li>🛍️ Product recommendations</li>
-          <li>📱 Fully responsive design</li>
-        </ul>
-      </section>
+        <section class="demo-section">
+          <h3>Features</h3>
+          <ul>
+            <li>✨ Easy integration with a single script tag</li>
+            <li>💬 AI-powered chat assistant</li>
+            <li>🎨 Beautiful, modern UI</li>
+            <li>🔒 Secure authentication with Magic Link</li>
+            <li>🎁 Reward redemption system</li>
+            <li>🛍️ Product recommendations</li>
+            <li>📱 Fully responsive design</li>
+          </ul>
+        </section>
 
-      <section class="demo-section">
-        <h3>Try It Out</h3>
-        <p>
-          Click the chat button in the bottom-right corner to start a conversation with the AI assistant.
-          You can ask about products, rewards, or get help with anything!
-        </p>
-        <div class="demo-buttons">
-          <a href="https://github.com/codemobii/me-agent-sdk" class="demo-button primary" target="_blank" rel="noopener noreferrer">
-            View on GitHub
-          </a>
-          <a href="https://github.com/codemobii/me-agent-sdk#readme" class="demo-button" target="_blank" rel="noopener noreferrer">
-            Documentation
-          </a>
-        </div>
-      </section>
+        <section class="demo-section">
+          <h3>Try It Out</h3>
+          <p>
+            Click the chat button in the bottom-right corner to start a
+            conversation with the AI assistant. You can ask about products,
+            rewards, or get help with anything!
+          </p>
+          <div class="demo-buttons">
+            <a
+              href="https://github.com/codemobii/me-agent-sdk"
+              class="demo-button primary"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              View on GitHub
+            </a>
+            <a
+              href="https://github.com/codemobii/me-agent-sdk#readme"
+              class="demo-button"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Documentation
+            </a>
+          </div>
+        </section>
 
-      <section class="demo-section">
-        <h3>Quick Start</h3>
-        <p>Add the SDK to your HTML page:</p>
-        <pre><code>&lt;!-- Load the SDK --&gt;
+        <section class="demo-section">
+          <h3>Quick Start</h3>
+          <p>Add the SDK to your HTML page:</p>
+          <pre><code>&lt;!-- Load the SDK --&gt;
 &lt;script src="https://cdn.jsdelivr.net/gh/YOUR_USERNAME/me-agent-sdk@main/dist/me-agent-sdk.min.js"&gt;&lt;/script&gt;
 
 &lt;!-- Initialize --&gt;
@@ -67,58 +79,65 @@
     network: MeAgent.Network.SEPOLIA
   });
 &lt;/script&gt;</code></pre>
-      </section>
-    </main>
+        </section>
+      </main>
 
-    <footer class="demo-footer">
-      <p>© 2025 MeAgent SDK | <a href="https://github.com/codemobii/me-agent-sdk" target="_blank" rel="noopener noreferrer">GitHub</a></p>
-    </footer>
-  </div>
+      <footer class="demo-footer">
+        <p>
+          © 2025 MeAgent SDK |
+          <a
+            href="https://github.com/codemobii/me-agent-sdk"
+            target="_blank"
+            rel="noopener noreferrer"
+            >GitHub</a
+          >
+        </p>
+      </footer>
+    </div>
 
-  <!-- Load the SDK from relative path (works with GitHub Pages) -->
-  <script src="../dist/me-agent-sdk.min.js"></script>
+    <!-- Load the SDK from relative path (works with GitHub Pages) -->
+    <script src="../dist/me-agent-sdk.min.js"></script>
 
-  <!-- Initialize the SDK -->
-  <script>
-    window.addEventListener('DOMContentLoaded', async () => {
-      try {
-        await MeAgent.init({
-          emailAddress: 'colourjim+chillguy@gmail.com',
-          brandId: 'demo-brand',
-          userId: 'demo-user-001',
-          position: 'bottom-right',
-          environment: MeAgent.Environment.DEV,
-          network: MeAgent.Network.SEPOLIA,
-          // Optional callbacks for demo
-          onAddToCart: (offer) => {
-            console.log('Add to cart clicked:', offer);
-            alert(`Added "${offer.name}" to cart!`);
-          },
-          onShare: (offer) => {
-            console.log('Share clicked:', offer);
-            if (navigator.share) {
-              navigator.share({
-                title: offer.name,
-                text: offer.description,
-                url: window.location.href
-              });
-            } else {
-              alert('Share: ' + offer.name);
-            }
-          },
-          onLikeUnlike: (offer, isLiked) => {
-            console.log('Like/Unlike clicked:', offer, isLiked);
-            alert(`${isLiked ? 'Liked' : 'Unliked'}: ${offer.name}`);
-          }
-        });
-        console.log('MeAgent SDK initialized successfully');
-        console.log('Environment:', MeAgent.Environment.DEV);
-        console.log('Network:', MeAgent.Network.SEPOLIA);
-      } catch (error) {
-        console.error('Failed to initialize MeAgent SDK:', error);
-      }
-    });
-  </script>
-</body>
+    <!-- Initialize the SDK -->
+    <script>
+      window.addEventListener("DOMContentLoaded", async () => {
+        try {
+          await MeAgent.init({
+            emailAddress: "colourjim+chillguy@gmail.com",
+            brandId: "demo-brand",
+            userId: "demo-user-001",
+            position: "bottom-right",
+            environment: MeAgent.Environment.DEV,
+            network: MeAgent.Network.SEPOLIA,
+            // Optional callbacks for demo
+            onAddToCart: (offer) => {
+              console.log("Add to cart clicked:", offer);
+              alert(`Added "${offer.name}" to cart!`);
+            },
+            onShare: (offer) => {
+              console.log("Share clicked:", offer);
+              if (navigator.share) {
+                navigator.share({
+                  title: offer.name,
+                  text: offer.description,
+                  url: window.location.href,
+                });
+              } else {
+                alert("Share: " + offer.name);
+              }
+            },
+            onLikeUnlike: (offer, isLiked) => {
+              console.log("Like/Unlike clicked:", offer, isLiked);
+              alert(`${isLiked ? "Liked" : "Unliked"}: ${offer.name}`);
+            },
+          });
+          console.log("MeAgent SDK initialized successfully");
+          console.log("Environment:", MeAgent.Environment.DEV);
+          console.log("Network:", MeAgent.Network.SEPOLIA);
+        } catch (error) {
+          console.error("Failed to initialize MeAgent SDK:", error);
+        }
+      });
+    </script>
+  </body>
 </html>
-
