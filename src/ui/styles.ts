@@ -902,7 +902,6 @@ export const styles = `
   .me-agent-brand-offers-section {
     background: white;
     border-radius: 16px;
-    padding: 20px;
     border: 1px solid #F5F5F5;
   }
 
@@ -911,8 +910,6 @@ export const styles = `
     align-items: center;
     justify-content: space-between;
     margin-bottom: 16px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid #F5F5F5;
   }
 
   .me-agent-brand-offers-info {
@@ -924,9 +921,9 @@ export const styles = `
   }
 
   .me-agent-brand-offers-logo {
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
     background: #F9FAFB;
@@ -934,20 +931,20 @@ export const styles = `
 
   .me-agent-brand-offers-name {
     font-family: 'Clash Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    font-size: 20px;
+    font-size: 24px;
     font-weight: 600;
     color: #000000;
     margin: 0;
   }
 
   .me-agent-brand-earning-amount {
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 500;
-    color: #6B7280;
+    color: #ffffff;
     text-align: right;
     flex-shrink: 0;
     padding: 8px 16px;
-    background: #F9FAFB;
+    background: #000000;
     border-radius: 8px;
   }
 
