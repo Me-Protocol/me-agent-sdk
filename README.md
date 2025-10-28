@@ -39,6 +39,7 @@ AI-powered chatbot widget that can be embedded on any website. Built with TypeSc
 ```
 
 **CDN Options:**
+
 - Latest from main branch: `@main/dist/me-agent-sdk.min.js`
 - Specific version (recommended for production): `@v1.0.0/dist/me-agent-sdk.min.js`
 - Unminified for development: `@main/dist/me-agent-sdk.js`
