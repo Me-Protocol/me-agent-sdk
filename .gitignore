@@ -2,7 +2,7 @@
 node_modules/
 
 # Build output
-dist/
+# dist/ - Commented out so jsDelivr CDN can serve built files
 *.log
 
 # Editor directories and files

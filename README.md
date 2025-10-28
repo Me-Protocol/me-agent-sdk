@@ -23,7 +23,7 @@ AI-powered chatbot widget that can be embedded on any website. Built with TypeSc
 
 ```html
 <!-- Load SDK -->
-<script src="https://cdn.example.com/me-agent-sdk.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/Me-Protocol/me-agent-sdk@main/dist/me-agent-sdk.min.js"></script>
 
 <!-- Initialize -->
 <script>
@@ -37,6 +37,11 @@ AI-powered chatbot widget that can be embedded on any website. Built with TypeSc
   });
 </script>
 ```
+
+**CDN Options:**
+- Latest from main branch: `@main/dist/me-agent-sdk.min.js`
+- Specific version (recommended for production): `@v1.0.0/dist/me-agent-sdk.min.js`
+- Unminified for development: `@main/dist/me-agent-sdk.js`
 
 ### Via npm
 
