@@ -1,4 +1,11 @@
-import { Message, QuickAction, Offer, Brand, MeAgentConfig } from "../types";
+import {
+  Message,
+  QuickAction,
+  Offer,
+  Brand,
+  Category,
+  MeAgentConfig,
+} from "../types";
 import { MessageComponent } from "./components/message";
 import { QuickActionsComponent } from "./components/quick-actions";
 import { OfferPreviewCard } from "./components/offer-preview";
@@ -65,6 +72,7 @@ export class ChatPopup {
       () => this.hideDetailPanel(),
       (offerCode) => this.handleOfferClick(offerCode),
       config,
+      this.apiClient,
       this.redeemManager || undefined
     );
 
@@ -485,6 +493,59 @@ export class ChatPopup {
       // Wait for maximize animation
       setTimeout(() => {
         this.detailPanel?.showBrandsDetail(brands);
+        this.element.classList.add("has-detail-panel");
+      }, 300);
+    }
+  }
+
+  /**
+   * Show category preview with card list
+   */
+  showCategoryPreview(categories: Category[]): void {
+    const categoryItems: CardListItem[] = categories
+      .slice(0, 10)
+      .map((category) => ({
+        id: category.categoryId,
+        title: category.title || category.categoryName,
+        image:
+          category.image ||
+          `https://via.placeholder.com/40x40?text=${(
+            category.title || category.categoryName
+          ).charAt(0)}`,
+      }));
+
+    const categoryCard = CardList.create({
+      title: "List of category that offer purchase rewards",
+      items: categoryItems,
+      actionLabel: "View All",
+      onAction: () => this.showCategoriesDetail(categories),
+    });
+
+    const messages = this.messagesContainer.querySelectorAll(
+      ".me-agent-message.assistant"
+    );
+    const lastMessage = messages[messages.length - 1] as HTMLElement;
+    if (lastMessage) {
+      MessageComponent.appendToMessage(lastMessage, categoryCard);
+    } else {
+      this.messagesContainer.appendChild(categoryCard);
+    }
+
+    this.scrollToBottom();
+  }
+
+  /**
+   * Show categories detail panel with grid
+   */
+  private showCategoriesDetail(categories: Category[]): void {
+    if (this.isMaximized) {
+      this.detailPanel?.showCategoriesDetail(categories);
+      this.element.classList.add("has-detail-panel");
+    } else {
+      this.toggleMaximize();
+      // Wait for maximize animation
+      setTimeout(() => {
+        this.detailPanel?.showCategoriesDetail(categories);
         this.element.classList.add("has-detail-panel");
       }, 300);
     }

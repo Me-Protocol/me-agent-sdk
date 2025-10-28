@@ -1,6 +1,7 @@
 import {
   Offer,
   Brand,
+  Category,
   OfferDetail,
   OfferVariant,
   RewardBalance,
@@ -8,12 +9,25 @@ import {
   MeAgentConfig,
 } from "../types";
 import { RedeemManager } from "../redeem/manager";
+import { APIClient } from "../api/client";
 import { OTPView } from "./components/redemption/otp-view";
 import { RewardSelectionView } from "./components/redemption/reward-selection-view";
 import { AffordabilityErrorView } from "./components/redemption/error-view";
 import { ConfirmationView } from "./components/redemption/confirmation-view";
 import { OnboardingView } from "./components/redemption/onboarding-view";
-import { getCloseIcon, getChevronLeftIcon, getExternalLinkIcon } from "./icons";
+import {
+  getCloseIcon,
+  getChevronLeftIcon,
+  getExternalLinkIcon,
+  getAwardIcon,
+  getShirtIcon,
+  getHeartPulseIcon,
+  getSofaIcon,
+  getTagIcon,
+  getLayoutGridIcon,
+  getLaptopIcon,
+  getBookOpenIcon,
+} from "./icons";
 
 /**
  * Detail Panel Component - Handles side panel for offers, earnings, redemption, etc.
@@ -24,14 +38,17 @@ export class DetailPanel {
     | "grid"
     | "detail"
     | "brands"
+    | "categories"
     | "otp-verify"
     | "onboarding"
     | "reward-select"
     | "confirm" = "grid";
   private offers: Offer[] = [];
   private brands: Brand[] = [];
+  private categories: Category[] = [];
   private onClose: () => void;
   private onOfferClick: (offerCode: string) => void;
+  private apiClient: APIClient;
   private redeemManager: RedeemManager | null = null;
   private currentOfferDetail: OfferDetail | null = null;
   private selectedVariant: OfferVariant | null = null;
@@ -44,11 +61,13 @@ export class DetailPanel {
     onClose: () => void,
     onOfferClick: (offerCode: string) => void,
     config: MeAgentConfig,
+    apiClient: APIClient,
     redeemManager?: RedeemManager
   ) {
     this.onClose = onClose;
     this.onOfferClick = onOfferClick;
     this.config = config;
+    this.apiClient = apiClient;
     this.likedOffers = config.likedOffers || {};
     this.redeemManager = redeemManager || null;
     this.element = this.create();
@@ -198,6 +217,313 @@ export class DetailPanel {
             <span>Sign Up & Earn</span>
             ${getExternalLinkIcon({ width: 12, height: 12, color: "#0F0F0F" })}
           </a>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Show categories detail with 3-column grid
+   */
+  showCategoriesDetail(categories: Category[]): void {
+    this.categories = categories;
+    this.currentView = "categories";
+
+    const categoryCardsHtml = categories
+      .map((category) => this.createCategoryCard(category))
+      .join("");
+
+    this.element.innerHTML = `
+      <div class="me-agent-offers-header">
+        <h3 class="me-agent-offers-title">Categories</h3>
+        <button class="me-agent-offers-close" aria-label="Close">${getCloseIcon(
+          { width: 20, height: 20 }
+        )}</button>
+      </div>
+      <div class="me-agent-categories-grid">
+        ${categoryCardsHtml}
+      </div>
+    `;
+
+    // Add event listeners
+    const closeBtn = this.element.querySelector(".me-agent-offers-close");
+    closeBtn?.addEventListener("click", this.onClose);
+
+    // Add click listeners to category cards
+    const categoryCards = this.element.querySelectorAll(
+      ".me-agent-category-card"
+    );
+    categoryCards.forEach((card) => {
+      card.addEventListener("click", async () => {
+        const categoryId = card.getAttribute("data-category-id");
+        if (categoryId) {
+          await this.handleCategoryClick(categoryId);
+        }
+      });
+    });
+
+    // Show the panel
+    this.show();
+  }
+
+  /**
+   * Handle category card click - fetch brands and offers
+   */
+  private async handleCategoryClick(categoryId: string): Promise<void> {
+    try {
+      // Show loading state
+      this.element.innerHTML = `
+        <div class="me-agent-offers-header">
+          <button class="me-agent-offers-back" aria-label="Back">${getChevronLeftIcon(
+            { width: 20, height: 20 }
+          )}</button>
+          <h3 class="me-agent-offers-title">Loading...</h3>
+          <button class="me-agent-offers-close" aria-label="Close">${getCloseIcon(
+            { width: 20, height: 20 }
+          )}</button>
+        </div>
+        <div class="me-agent-brands-list">
+          <div class="me-agent-loading">Loading brands...</div>
+        </div>
+      `;
+
+      // Fetch brands with purchase earning methods for this category
+      const brands = await this.apiClient.fetchBrandsByCategoryId(categoryId);
+
+      // Fetch offers for each brand in parallel
+      const brandsWithOffers = await Promise.all(
+        brands.map(async (brand: any) => {
+          try {
+            const offers = await this.apiClient.fetchOffersByBrandId(brand.id);
+            return { ...brand, offers };
+          } catch (error) {
+            console.error(
+              `Error fetching offers for brand ${brand.id}:`,
+              error
+            );
+            return { ...brand, offers: [] };
+          }
+        })
+      );
+
+      // Filter out brands with no offers
+      const brandsWithProducts = brandsWithOffers.filter(
+        (brand) => brand.offers && brand.offers.length > 0
+      );
+
+      // Show brands with offers
+      this.showBrandsWithOffers(brandsWithProducts, categoryId);
+    } catch (error) {
+      console.error("Error handling category click:", error);
+      // Show error state
+      this.element.innerHTML = `
+        <div class="me-agent-offers-header">
+          <button class="me-agent-offers-back" aria-label="Back">${getChevronLeftIcon(
+            { width: 20, height: 20 }
+          )}</button>
+          <h3 class="me-agent-offers-title">Error</h3>
+          <button class="me-agent-offers-close" aria-label="Close">${getCloseIcon(
+            { width: 20, height: 20 }
+          )}</button>
+        </div>
+        <div class="me-agent-brands-list">
+          <p>Failed to load brands. Please try again.</p>
+        </div>
+      `;
+    }
+  }
+
+  /**
+   * Show brands with their offers
+   */
+  private showBrandsWithOffers(
+    brandsWithOffers: any[],
+    categoryId: string
+  ): void {
+    const brandsHtml = brandsWithOffers
+      .map((brand) => this.createBrandWithOffersCard(brand))
+      .join("");
+
+    this.element.innerHTML = `
+      <div class="me-agent-offers-header">
+        <button class="me-agent-offers-back" aria-label="Back">${getChevronLeftIcon(
+          { width: 20, height: 20 }
+        )}</button>
+        <h3 class="me-agent-offers-title">Brands & Offers</h3>
+        <button class="me-agent-offers-close" aria-label="Close">${getCloseIcon(
+          { width: 20, height: 20 }
+        )}</button>
+      </div>
+      <div class="me-agent-brands-offers-list">
+        ${
+          brandsHtml ||
+          '<p class="me-agent-empty-state">No brands found with available offers.</p>'
+        }
+      </div>
+    `;
+
+    // Add event listeners
+    const backBtn = this.element.querySelector(".me-agent-offers-back");
+    backBtn?.addEventListener("click", () => {
+      this.showCategoriesDetail(this.categories);
+    });
+
+    const closeBtn = this.element.querySelector(".me-agent-offers-close");
+    closeBtn?.addEventListener("click", this.onClose);
+
+    // Add click listeners to offer cards
+    const offerCards = this.element.querySelectorAll(
+      ".me-agent-brand-offer-card"
+    );
+    offerCards.forEach((card) => {
+      card.addEventListener("click", () => {
+        const productUrl = card.getAttribute("data-product-url");
+        if (productUrl) {
+          // Open product URL in new tab
+          window.open(productUrl, "_blank", "noopener,noreferrer");
+        }
+      });
+    });
+  }
+
+  /**
+   * Create a brand card with horizontal offers
+   */
+  private createBrandWithOffersCard(brand: any): string {
+    const logoUrl =
+      brand.logoUrl ||
+      `https://via.placeholder.com/60x60?text=${brand.name.charAt(0)}`;
+
+    // Calculate earning amount (percentage of purchase)
+    const earningPercentage =
+      brand.rewardDetails?.rules?.[0]?.earningPercentage || 0;
+    const rewardSymbol = brand.rewardDetails?.rewardInfo?.rewardSymbol || "PTS";
+    const rewardOriginalValue = parseFloat(
+      brand.rewardDetails?.rewardInfo?.rewardOriginalValue || "0"
+    );
+
+    // Format earning display
+    const earningDisplay =
+      rewardOriginalValue > 0
+        ? `Earn ${earningPercentage}% back (1 ${rewardSymbol} = $${rewardOriginalValue.toFixed(
+            2
+          )})`
+        : `Earn ${earningPercentage}% back in ${rewardSymbol}`;
+
+    // Create offers HTML
+    const offersHtml = brand.offers
+      .slice(0, 10) // Limit to 10 offers per brand
+      .map((offer: any) => this.createBrandOfferCard(offer))
+      .join("");
+
+    return `
+      <div class="me-agent-brand-offers-section">
+        <div class="me-agent-brand-offers-header">
+          <div class="me-agent-brand-offers-info">
+            <img src="${logoUrl}" alt="${brand.name}" class="me-agent-brand-offers-logo" />
+            <h4 class="me-agent-brand-offers-name">${brand.name}</h4>
+          </div>
+          <div class="me-agent-brand-earning-amount">${earningDisplay}</div>
+        </div>
+        <div class="me-agent-brand-offers-scroll">
+          ${offersHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Create an offer card for brand offers view
+   */
+  private createBrandOfferCard(offer: any): string {
+    const imageUrl =
+      offer.coverImage || "https://via.placeholder.com/200x200?text=No+Image";
+    const discountPercentage = parseFloat(offer.discountPercentage || "0");
+    const originalPrice = parseFloat(offer.originalPrice || "0");
+    const discountedPrice = originalPrice * (1 - discountPercentage / 100);
+
+    // Extract product URL from the offer
+    const productUrl = offer.product?.productUrl || "";
+    const fullProductUrl =
+      productUrl && !productUrl.startsWith("http")
+        ? `https://${productUrl}`
+        : productUrl;
+
+    return `
+      <div class="me-agent-brand-offer-card" data-offer-code="${
+        offer.offerCode
+      }" data-product-url="${fullProductUrl}">
+        <div class="me-agent-brand-offer-image-container">
+          <img src="${imageUrl}" alt="${
+      offer.name
+    }" class="me-agent-brand-offer-image" />
+          ${
+            discountPercentage > 0
+              ? `<div class="me-agent-brand-offer-badge">${discountPercentage.toFixed(
+                  0
+                )}% OFF</div>`
+              : ""
+          }
+        </div>
+        <div class="me-agent-brand-offer-info">
+          <h5 class="me-agent-brand-offer-name">${offer.name}</h5>
+          <div class="me-agent-brand-offer-pricing">
+            ${
+              discountPercentage > 0
+                ? `
+              <span class="me-agent-brand-offer-price">$${discountedPrice.toFixed(
+                2
+              )}</span>
+              <span class="me-agent-brand-offer-original-price">$${originalPrice.toFixed(
+                2
+              )}</span>
+            `
+                : `<span class="me-agent-brand-offer-price">$${originalPrice.toFixed(
+                    2
+                  )}</span>`
+            }
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Create a category card HTML
+   */
+  private createCategoryCard(category: Category): string {
+    const iconMap: Record<string, () => string> = {
+      award: () => getAwardIcon({ width: 16, height: 16, color: "white" }),
+      shirt: () => getShirtIcon({ width: 24, height: 24, color: "white" }),
+      heartPulse: () =>
+        getHeartPulseIcon({ width: 16, height: 16, color: "white" }),
+      sofa: () => getSofaIcon({ width: 16, height: 16, color: "white" }),
+      tag: () => getTagIcon({ width: 16, height: 16, color: "white" }),
+      layoutGrid: () =>
+        getLayoutGridIcon({ width: 16, height: 16, color: "white" }),
+      laptop: () => getLaptopIcon({ width: 16, height: 16, color: "white" }),
+      bookOpen: () =>
+        getBookOpenIcon({ width: 16, height: 16, color: "white" }),
+    };
+
+    const iconSvg =
+      category.icon && iconMap[category.icon] ? iconMap[category.icon]() : "";
+    const title = (category.title || category.categoryName).replace(
+      /\n/g,
+      "<br>"
+    );
+    const brandCountText = `${category.brandCount} ${
+      category.brandCount === 1 ? "Brand" : "Brands"
+    }`;
+
+    return `
+      <div class="me-agent-category-card" data-category-id="${category.categoryId}">
+        <div class="me-agent-category-icon-overlay">
+          ${iconSvg}
+        </div>
+        <div class="me-agent-category-info">
+          <h4 class="me-agent-category-title">${title}</h4>
+          <p class="me-agent-category-brand-count">${brandCountText}</p>
         </div>
       </div>
     `;

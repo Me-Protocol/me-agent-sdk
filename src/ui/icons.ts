@@ -250,25 +250,6 @@ export function getSearchIcon(options: IconOptions = {}): string {
 }
 
 /**
- * Tag Icon (for quick actions)
- */
-export function getTagIcon(options: IconOptions = {}): string {
-  const {
-    width = 20,
-    height = 20,
-    color = "currentColor",
-    className = "",
-  } = options;
-
-  return `
-    <svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}">
-      <path d="M20.59 13.41L13.42 20.58C13.05 20.95 12.55 21.15 12.04 21.15C11.53 21.15 11.03 20.95 10.66 20.58L2 12V2H12L20.59 10.59C21.37 11.37 21.37 12.63 20.59 13.41Z" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="7" cy="7" r="1.5" fill="${color}"/>
-    </svg>
-  `.trim();
-}
-
-/**
  * Sparkles Icon (for AI suggestions)
  */
 export function getSparklesIcon(options: IconOptions = {}): string {
@@ -378,4 +359,108 @@ export function getExternalLinkIcon(options: IconOptions = {}): string {
     <path d="M8.25 1.125H10.875V3.75M10.3125 1.6875L7.5 4.5M6.375 1.875H3C2.70163 1.875 2.41548 1.99353 2.2045 2.2045C1.99353 2.41548 1.875 2.70163 1.875 3V9C1.875 9.29837 1.99353 9.58452 2.2045 9.7955C2.41548 10.0065 2.70163 10.125 3 10.125H9C9.29837 10.125 9.58452 10.0065 9.7955 9.7955C10.0065 9.58452 10.125 9.29837 10.125 9V5.625" stroke="${color}" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>
 `.trim();
+}
+
+/**
+ * Award icon (for Must Haves category)
+ */
+export function getAwardIcon(options: IconOptions = {}): string {
+  const {
+    width = 24,
+    height = 24,
+    color = "currentColor",
+    className = "",
+  } = options;
+  return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}"><circle cx="12" cy="8" r="6" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M15.477 12.89L17 22L12 19L7 22L8.523 12.89" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`.trim();
+}
+
+/**
+ * Shirt icon (for Cosmetics category)
+ */
+export function getShirtIcon(options: IconOptions = {}): string {
+  const {
+    width = 24,
+    height = 24,
+    color = "currentColor",
+    className = "",
+  } = options;
+  return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}"><path d="M20.38 3.46L16 2L13 8H11L9 8C9 6 7 2L2.62 3.46C2.22 3.6 2 4 2 4.42V9.58C2 10.02 2.22 10.42 2.58 10.58L7 12V22H17V12L21.42 10.58C21.78 10.42 22 10.02 22 9.58V4.42C22 4 21.78 3.6 21.38 3.46Z" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`.trim();
+}
+
+/**
+ * Heart pulse icon (for Travel category)
+ */
+export function getHeartPulseIcon(options: IconOptions = {}): string {
+  const {
+    width = 24,
+    height = 24,
+    color = "currentColor",
+    className = "",
+  } = options;
+  return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}"><path d="M19 14C20.49 12.54 22 10.79 22 8.5C22 7.04131 21.4205 5.64236 20.3891 4.61091C19.3576 3.57946 17.9587 3 16.5 3C14.74 3 13.5 3.5 12 5C10.5 3.5 9.26 3 7.5 3C6.04131 3 4.64236 3.57946 3.61091 4.61091C2.57946 5.64236 2 7.04131 2 8.5C2 10.8 3.5 12.55 5 14" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 21L5 14H9L11 9L13 15L15 14H19L12 21Z" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`.trim();
+}
+
+/**
+ * Sofa icon (for Sneakers category)
+ */
+export function getSofaIcon(options: IconOptions = {}): string {
+  const {
+    width = 24,
+    height = 24,
+    color = "currentColor",
+    className = "",
+  } = options;
+  return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}"><path d="M20 9V6C20 4.89543 19.1046 4 18 4H6C4.89543 4 4 4.89543 4 6V9" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 11V16C2 17.1046 2.89543 18 4 18H5" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 11V16C22 17.1046 21.1046 18 20 18H19" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 11C4 9.89543 4.89543 9 6 9H18C19.1046 9 20 9.89543 20 11V16H4V11Z" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 18V20" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 18V20" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`.trim();
+}
+
+/**
+ * Tag icon (for Food & Beverages category)
+ */
+export function getTagIcon(options: IconOptions = {}): string {
+  const {
+    width = 24,
+    height = 24,
+    color = "currentColor",
+    className = "",
+  } = options;
+  return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}"><path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 17L12 22L22 17" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12L12 17L22 12" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`.trim();
+}
+
+/**
+ * Layout grid icon (for Deals & Sports category)
+ */
+export function getLayoutGridIcon(options: IconOptions = {}): string {
+  const {
+    width = 24,
+    height = 24,
+    color = "currentColor",
+    className = "",
+  } = options;
+  return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}"><rect x="3" y="3" width="7" height="7" rx="1" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`.trim();
+}
+
+/**
+ * Laptop icon (for Gadgets & Electronics category)
+ */
+export function getLaptopIcon(options: IconOptions = {}): string {
+  const {
+    width = 24,
+    height = 24,
+    color = "currentColor",
+    className = "",
+  } = options;
+  return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}"><path d="M20 16V7C20 5.89543 19.1046 5 18 5H6C4.89543 5 4 5.89543 4 7V16" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 16H22" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 16L3 19H21L22 16" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`.trim();
+}
+
+/**
+ * Book open icon (for Art & Collectibles category)
+ */
+export function getBookOpenIcon(options: IconOptions = {}): string {
+  const {
+    width = 24,
+    height = 24,
+    color = "currentColor",
+    className = "",
+  } = options;
+  return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}"><path d="M2 3H8C9.06087 3 10.0783 3.42143 10.8284 4.17157C11.5786 4.92172 12 5.93913 12 7V21C12 20.2044 11.6839 19.4413 11.1213 18.8787C10.5587 18.3161 9.79565 18 9 18H2V3Z" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 3H16C14.9391 3 13.9217 3.42143 13.1716 4.17157C12.4214 4.92172 12 5.93913 12 7V21C12 20.2044 12.3161 19.4413 12.8787 18.8787C13.4413 18.3161 14.2044 18 15 18H22V3Z" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`.trim();
 }

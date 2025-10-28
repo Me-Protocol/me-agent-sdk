@@ -296,4 +296,66 @@ export class APIClient {
       throw error;
     }
   }
+
+  /**
+   * Fetch brands by category ID with purchase earning methods
+   */
+  async fetchBrandsByCategoryId(categoryId: string): Promise<any[]> {
+    try {
+      const response = await fetch(
+        `${this.env.API_URL}brands/earning-methods/purchase/categories/${categoryId}/brands`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch brands by category: ${response.statusText}`
+        );
+      }
+
+      const result = await response.json();
+      return result.data || [];
+    } catch (error) {
+      console.error("Error fetching brands by category:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Fetch offers by brand ID
+   */
+  async fetchOffersByBrandId(brandId: string, token?: string): Promise<any[]> {
+    try {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+
+      if (token) {
+        headers["authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(
+        `${this.env.API_V1_URL}store/offer?page=1&limit=50&brandId=${brandId}`,
+        {
+          method: "GET",
+          headers,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch offers: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      return result.data?.offers || [];
+    } catch (error) {
+      console.error("Error fetching offers by brand:", error);
+      throw error;
+    }
+  }
 }

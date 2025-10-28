@@ -1,4 +1,5 @@
-import { MeAgentConfig, Message, Offer, Brand } from "./types";
+import { MeAgentConfig, Message, Offer, Brand, Category } from "./types";
+import { mergeCategoriesWithPresets } from "./constants/categories";
 import { StateManager } from "./state/manager";
 import { APIClient } from "./api/client";
 import { FloatingButton } from "./ui/button";
@@ -154,6 +155,7 @@ export class MeAgentSDK {
     let isFirstChunk = true;
     let detectedOffers: Offer[] = [];
     let detectedBrands: Brand[] = [];
+    let detectedCategories: Category[] = [];
     let showWaysToEarnActions = false;
     let hasFinalMessage = false; // Track if we've received a final message
 
@@ -187,6 +189,21 @@ export class MeAgentSDK {
               console.log(
                 "[SDK] Detected signup earning brands:",
                 detectedBrands.length
+              );
+            }
+
+            // Check for get_category_purchase_earning function response
+            if (
+              rawData.content?.parts?.[0]?.functionResponse?.name ===
+              "get_category_purchase_earning"
+            ) {
+              const categories =
+                rawData.content.parts[0].functionResponse.response
+                  ?.categories || [];
+              detectedCategories = mergeCategoriesWithPresets(categories);
+              console.log(
+                "[SDK] Detected purchase categories:",
+                detectedCategories.length
               );
             }
 
@@ -245,6 +262,11 @@ export class MeAgentSDK {
           // Show brand preview if brands were found
           if (detectedBrands.length > 0) {
             this.chat?.showBrandPreview(detectedBrands);
+          }
+
+          // Show category preview if categories were found
+          if (detectedCategories.length > 0) {
+            this.chat?.showCategoryPreview(detectedCategories);
           }
 
           // Show ways to earn quick actions if function was called

@@ -817,6 +817,254 @@ export const styles = `
     flex-shrink: 0;
   }
 
+  /* Category Grid Styles */
+  .me-agent-categories-grid {
+    overflow-y: auto;
+    padding: 20px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .me-agent-category-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid #F5F5F5;
+    height: 162px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 16px;
+  }
+
+  .me-agent-category-card:hover {
+    transform: scale(1.02);
+  }
+
+  .me-agent-category-image-container {
+    position: relative;
+    width: 100%;
+    padding-top: 100%;
+    overflow: hidden;
+  }
+
+  .me-agent-category-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .me-agent-category-icon-overlay {
+    width: 24px;
+    height: 24px;
+    background: black;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .me-agent-category-info {
+    // padding: 16px;
+  }
+
+  .me-agent-category-title {
+    font-family: 'Clash Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: #000000;
+    margin: 0 0 8px 0;
+    line-height: 1.3;
+  }
+
+  .me-agent-category-brand-count {
+    font-size: 14px;
+    color: #6B7280;
+    margin: 0;
+  }
+
+  /* Brand Offers List Styles */
+  .me-agent-brands-offers-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .me-agent-brand-offers-section {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid #F5F5F5;
+  }
+
+  .me-agent-brand-offers-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #F5F5F5;
+  }
+
+  .me-agent-brand-offers-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .me-agent-brand-offers-logo {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: #F9FAFB;
+  }
+
+  .me-agent-brand-offers-name {
+    font-family: 'Clash Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: #000000;
+    margin: 0;
+  }
+
+  .me-agent-brand-earning-amount {
+    font-size: 14px;
+    font-weight: 500;
+    color: #6B7280;
+    text-align: right;
+    flex-shrink: 0;
+    padding: 8px 16px;
+    background: #F9FAFB;
+    border-radius: 8px;
+  }
+
+  .me-agent-brand-offers-scroll {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 4px 0;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: #E5E7EB #F9FAFB;
+  }
+
+  .me-agent-brand-offers-scroll::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .me-agent-brand-offers-scroll::-webkit-scrollbar-track {
+    background: #F9FAFB;
+    border-radius: 3px;
+  }
+
+  .me-agent-brand-offers-scroll::-webkit-scrollbar-thumb {
+    background: #E5E7EB;
+    border-radius: 3px;
+  }
+
+  .me-agent-brand-offers-scroll::-webkit-scrollbar-thumb:hover {
+    background: #D1D5DB;
+  }
+
+  .me-agent-brand-offer-card {
+    min-width: 200px;
+    max-width: 200px;
+    background: #FAFAFA;
+    border: 1px solid #F5F5F5;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .me-agent-brand-offer-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .me-agent-brand-offer-image-container {
+    position: relative;
+    width: 100%;
+    padding-top: 100%;
+    overflow: hidden;
+    background: white;
+  }
+
+  .me-agent-brand-offer-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .me-agent-brand-offer-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #000000;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .me-agent-brand-offer-info {
+    padding: 12px;
+  }
+
+  .me-agent-brand-offer-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #000000;
+    margin: 0 0 8px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .me-agent-brand-offer-pricing {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .me-agent-brand-offer-price {
+    font-size: 16px;
+    font-weight: 600;
+    color: #000000;
+  }
+
+  .me-agent-brand-offer-original-price {
+    font-size: 14px;
+    color: #9CA3AF;
+    text-decoration: line-through;
+  }
+
+  .me-agent-empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6B7280;
+    font-size: 16px;
+  }
+
   .me-agent-offer-card {
     background: #FAFAFA;
     border-radius: 12px;

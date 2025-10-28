@@ -140,6 +140,19 @@ export interface Brand {
 }
 
 /**
+ * Category type for purchase earning
+ */
+export interface Category {
+  categoryId: string;
+  categoryName: string;
+  brandCount: number;
+  image?: string;
+  title?: string;
+  icon?: string;
+  description?: string;
+}
+
+/**
  * Offer variant type
  */
 export interface OfferVariant {
