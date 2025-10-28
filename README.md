@@ -2,6 +2,11 @@
 
 AI-powered chatbot widget that can be embedded on any website. Built with TypeScript, works with vanilla HTML, React, Vue, Angular, and any other web framework.
 
+[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen?style=for-the-badge)](https://me-protocol.github.io/me-agent-sdk/)
+[![GitHub](https://img.shields.io/badge/github-repo-blue?style=for-the-badge&logo=github)](https://github.com/Me-Protocol/me-agent-sdk)
+
+**[🚀 Try the Live Demo](https://me-protocol.github.io/me-agent-sdk/)** | **[📖 View Documentation](#installation)**
+
 ## Features
 
 - 🚀 **Easy Integration**: Single script tag integration
@@ -156,9 +161,11 @@ The SDK integrates with ME Protocol for:
 npm run build
 ```
 
-### Testing Locally
+### Testing
 
-Open `example/index.html` in your browser to test the SDK.
+**Live Demo**: Visit [https://me-protocol.github.io/me-agent-sdk/](https://me-protocol.github.io/me-agent-sdk/) to see the SDK in action.
+
+**Local Testing**: Open `example/index.html` in your browser to test the SDK locally.
 
 ## License
 
