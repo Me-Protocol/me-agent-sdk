@@ -32,6 +32,8 @@ export interface Offer {
     discountDetails: DiscountDetails[];
     brandName: string;
     image?: string;
+    websiteUrl?: string;
+    productUrl?: string;
 }
 /**
  * Offer variant type

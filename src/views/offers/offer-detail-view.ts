@@ -65,37 +65,38 @@ export class OfferDetailView {
     const discount = currentVariant
       ? parseFloat(currentVariant.discountPercentage)
       : parseFloat(detail.discountPercentage);
+    
+    const variantName = currentVariant?.variant.name || "Default";
+    const redemptionType = detail.redemptionMethod?.type || "";
+    const isFreeShipping = redemptionType === "FREE_SHIPPING";
 
     return `
       <div class="me-agent-detail-info">
-        <h2 class="me-agent-detail-title">${detail.name}</h2>
+        <h2 class="me-agent-detail-title">${detail.name}${variantName !== "Default" ? ` - ${variantName}` : ""}</h2>
         <div class="me-agent-detail-pricing">
-          <div class="me-agent-detail-price">
-            <span class="me-agent-price-label">Price:</span>
-            <span class="me-agent-price-value">$${finalPrice.toFixed(2)}</span>
-          </div>
           ${
-            discount > 0
-              ? `
-            <div class="me-agent-detail-original-price">
-              <span class="me-agent-original-label">Original:</span>
-              <span class="me-agent-original-value">$${originalPrice.toFixed(
-                2
-              )}</span>
-            </div>
-            <div class="me-agent-detail-badge">${Math.round(
-              discount
-            )}% OFF</div>
-          `
-              : ""
+            isFreeShipping
+              ? `<div class="me-agent-price-main">$${originalPrice.toFixed(2)}</div>`
+              : `
+                <div class="me-agent-price-main">$${finalPrice.toFixed(2)}</div>
+                ${
+                  discount > 0
+                    ? `<div class="me-agent-price-original">$${originalPrice.toFixed(2)}</div>`
+                    : ""
+                }
+              `
           }
         </div>
-        <div class="me-agent-detail-shipping">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M14 8.5V11.5C14 11.7652 13.8946 12.0196 13.7071 12.2071C13.5196 12.3946 13.2652 12.5 13 12.5H3C2.73478 12.5 2.48043 12.3946 2.29289 12.2071C2.10536 12.0196 2 11.7652 2 11.5V4.5C2 4.23478 2.10536 3.98043 2.29289 3.79289C2.48043 3.60536 2.73478 3.5 3 3.5H10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span>Free shipping on orders over $50</span>
-        </div>
+        ${
+          discount > 0 || isFreeShipping
+            ? `<div class="me-agent-discount-badge">${
+                isFreeShipping
+                  ? "Free Shipping"
+                  : `${Math.round(discount)}% Off With Coupon`
+              }</div>`
+            : ""
+        }
+        <div class="me-agent-detail-shipping">Ships To Texas, United State Of America</div>
       </div>
     `;
   }
@@ -108,7 +109,7 @@ export class OfferDetailView {
 
     return `
       <div class="me-agent-variant-section">
-        <label class="me-agent-section-label">Select Variant</label>
+        <label class="me-agent-section-label">Variant</label>
         <div class="me-agent-variant-grid">
           ${offerVariants
             .map((variant, index) =>
@@ -128,30 +129,27 @@ export class OfferDetailView {
     isSelected: boolean
   ): string {
     const variantImage = variant.variant.productImages?.[0]?.url || "";
-    const variantPrice = parseFloat(variant.variant.price);
     const discount = parseFloat(variant.discountPercentage);
-    const finalPrice = variantPrice * (1 - discount / 100);
 
     return `
       <div class="me-agent-variant-card ${
         isSelected ? "selected" : ""
       }" data-variant-id="${variant.id}">
-        ${
-          variantImage
-            ? `<img src="${variantImage}" alt="${variant.variant.name}" class="me-agent-variant-image" />`
-            : ""
-        }
-        <div class="me-agent-variant-info">
-          <div class="me-agent-variant-name">${variant.variant.name}</div>
-          <div class="me-agent-variant-price">$${finalPrice.toFixed(2)}</div>
+        <div class="me-agent-variant-image-wrapper">
+          ${
+            variantImage
+              ? `<img src="${variantImage}" alt="${variant.variant.name}" class="me-agent-variant-image" />`
+              : `<div class="me-agent-variant-placeholder"></div>`
+          }
+          ${
+            discount > 0
+              ? `<div class="me-agent-variant-badge">
+                  <span class="me-agent-variant-badge-icon">🔥</span>
+                  <span class="me-agent-variant-badge-text">${Math.round(discount)}% Off</span>
+                </div>`
+              : ""
+          }
         </div>
-        ${
-          discount > 0
-            ? `<div class="me-agent-variant-discount">${Math.round(
-                discount
-              )}% OFF</div>`
-            : ""
-        }
       </div>
     `;
   }

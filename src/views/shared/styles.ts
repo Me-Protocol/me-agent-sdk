@@ -1053,45 +1053,61 @@ export const styles = `
     border-radius: 100px;
   }
 
-  .me-agent-brand-offers-scroll {
-    display: flex;
+  .me-agent-brand-offers-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
     gap: 16px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: 4px 0;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-    scrollbar-color: #E5E7EB #F9FAFB;
+    margin-bottom: 16px;
   }
 
-  .me-agent-brand-offers-scroll::-webkit-scrollbar {
-    height: 6px;
+  .me-agent-brand-all-offers-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    padding: 20px;
   }
 
-  .me-agent-brand-offers-scroll::-webkit-scrollbar-track {
-    background: #F9FAFB;
-    border-radius: 3px;
+  .me-agent-view-all-offers-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+    padding: 12px 20px;
+    background: #F5F5F5;
+    border: none;
+    border-radius: 8px;
+    color: #0F0F0F;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 8px;
   }
 
-  .me-agent-brand-offers-scroll::-webkit-scrollbar-thumb {
-    background: #E5E7EB;
-    border-radius: 3px;
+  .me-agent-view-all-offers-btn:hover {
+    background: #E5E5E5;
   }
 
-  .me-agent-brand-offers-scroll::-webkit-scrollbar-thumb:hover {
-    background: #D1D5DB;
+  .me-agent-view-all-offers-btn:active {
+    transform: scale(0.98);
+  }
+
+  @media (max-width: 768px) {
+    .me-agent-brand-offers-grid,
+    .me-agent-brand-all-offers-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
   }
 
   .me-agent-brand-offer-card {
-    min-width: 150px;
-    max-width: 150px;
+    width: 100%;
     background: #FAFAFA;
     border: 1px solid #F5F5F5;
     border-radius: 12px;
     overflow: hidden;
     cursor: pointer;
     transition: all 0.2s ease;
-    flex-shrink: 0;
   }
 
   .me-agent-brand-offer-card:hover {
@@ -1228,42 +1244,49 @@ export const styles = `
   }
 
   .me-agent-detail-title {
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 16px;
+    font-weight: 400;
     color: #0f0f0f;
-    margin: 0 0 12px 0;
+    margin: 0 0 8px 0;
+    line-height: 1.4;
   }
 
   .me-agent-detail-pricing {
     display: flex;
-    gap: 8px;
-    align-items: baseline;
+    gap: 12px;
+    align-items: center;
     margin-bottom: 12px;
   }
 
-  .me-agent-detail-price {
-    font-size: 20px;
-    font-weight: 700;
+  .me-agent-price-main {
+    font-size: 24px;
+    font-weight: 600;
     color: #0f0f0f;
   }
 
-  .me-agent-detail-original-price {
-    font-size: 18px;
+  .me-agent-price-original {
+    font-size: 20px;
     color: #9ca3af;
     text-decoration: line-through;
+    font-weight: 400;
   }
 
-  .me-agent-detail-badge {
+  .me-agent-discount-badge {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 12px;
-    background: #000000;
+    padding: 6px 12px;
+    background: #0F0F0F;
     color: white;
-    border-radius: 20px;
-    font-size: 13px;
+    border-radius: 100px;
+    font-size: 12px;
     font-weight: 500;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
+  }
+
+  .me-agent-discount-badge::before {
+    content: '🔥';
+    font-size: 14px;
   }
 
   .me-agent-detail-shipping {
@@ -1287,14 +1310,16 @@ export const styles = `
   }
 
   .me-agent-variant-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    display: flex;
     gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 4px;
   }
 
   .me-agent-variant-card {
+    flex-shrink: 0;
     background: none;
-    border: 2px solid #e5e7eb;
+    border: 2px solid transparent;
     border-radius: 12px;
     cursor: pointer;
     padding: 0;
@@ -1302,44 +1327,56 @@ export const styles = `
     transition: all 0.2s ease;
   }
 
-  .me-agent-variant-card:hover:not(.disabled) {
+  .me-agent-variant-card:hover {
+    border-color: #d1d5db;
+  }
+
+  .me-agent-variant-card.selected {
     border-color: #0f0f0f;
   }
 
-  .me-agent-variant-card.active {
-    border-color: #0f0f0f;
-    box-shadow: 0 0 0 1px #0f0f0f;
-  }
-
-  .me-agent-variant-card.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+  .me-agent-variant-image-wrapper {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    border-radius: 10px;
+    overflow: hidden;
   }
 
   .me-agent-variant-image {
-    position: relative;
     width: 100%;
-    padding-top: 100%;
-    background-size: cover;
-    background-position: center;
+    height: 100%;
+    object-fit: cover;
     background-color: #f3f4f6;
   }
 
-  .me-agent-variant-discount {
+  .me-agent-variant-placeholder {
+    width: 100%;
+    height: 100%;
+    background: #f3f4f6;
+  }
+
+  .me-agent-variant-badge {
     position: absolute;
-    bottom: 8px;
-    left: 8px;
-    right: 8px;
+    bottom: 4px;
+    left: 4px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 4px;
-    padding: 4px 8px;
-    background: #000000;
+    gap: 2px;
+    padding: 2px 6px;
+    background: rgba(0, 0, 0, 0.85);
     color: white;
-    border-radius: 12px;
-    font-size: 11px;
+    border-radius: 4px;
+    font-size: 10px;
     font-weight: 500;
+  }
+
+  .me-agent-variant-badge-icon {
+    font-size: 10px;
+  }
+
+  .me-agent-variant-badge-text {
+    font-size: 10px;
   }
 
   /* Quantity Section */
@@ -1391,26 +1428,33 @@ export const styles = `
   /* Tabs */
   .me-agent-tabs {
     display: flex;
-    gap: 8px;
+    gap: 12px;
     margin-bottom: 20px;
-    border-bottom: 1px solid #e5e7eb;
   }
 
   .me-agent-tab {
-    padding: 12px 24px;
+    padding: 10px 24px;
     background: none;
     border: none;
-    border-bottom: 2px solid transparent;
+    border-radius: 100px;
     cursor: pointer;
     font-size: 14px;
     font-weight: 500;
-    color: #6b7280;
+    color: #0f0f0f;
     transition: all 0.2s ease;
   }
 
+  .me-agent-tab:hover {
+    background: #f3f4f6;
+  }
+
   .me-agent-tab.active {
-    color: #0f0f0f;
-    border-bottom-color: #0f0f0f;
+    background: #0f0f0f;
+    color: white;
+  }
+
+  .me-agent-tab.active:hover {
+    background: #1a1a1a;
   }
 
   .me-agent-tab-content {

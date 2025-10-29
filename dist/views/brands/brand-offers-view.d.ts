@@ -19,6 +19,10 @@ export declare class BrandOffersView {
      */
     private renderOfferCard;
     /**
+     * Render all offers for a single brand in a grid
+     */
+    renderBrandOffersGrid(offers: any[]): string;
+    /**
      * Render empty state
      */
     private renderEmptyState;

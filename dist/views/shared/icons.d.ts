@@ -25,6 +25,10 @@ export declare function getSendIcon(options?: IconOptions): string;
  */
 export declare function getChevronLeftIcon(options?: IconOptions): string;
 /**
+ * Chevron/Arrow Right Icon (for forward navigation)
+ */
+export declare function getChevronRightIcon(options?: IconOptions): string;
+/**
  * Maximize/Expand Icon (for expanding the chat window)
  */
 export declare function getMaximizeIcon(options?: IconOptions): string;

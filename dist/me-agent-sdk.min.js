@@ -1189,6 +1189,17 @@
   `.trim();
     }
     /**
+     * Chevron/Arrow Right Icon (for forward navigation)
+     */
+    function getChevronRightIcon(options = {}) {
+        const { width = 16, height = 16, color = "#0F0F0F", className = "", } = options;
+        return `
+    <svg width="${width}" height="${height}" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}">
+      <path d="M6 12L10 8L6 4" stroke="${color}" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `.trim();
+    }
+    /**
      * Maximize/Expand Icon (for expanding the chat window)
      */
     function getMaximizeIcon(options = {}) {
@@ -1928,36 +1939,35 @@
          * Render product information section
          */
         renderProductInfo(detail, currentVariant, finalPrice) {
+            var _a;
             const originalPrice = currentVariant
                 ? parseFloat(currentVariant.variant.price)
                 : parseFloat(detail.originalPrice);
             const discount = currentVariant
                 ? parseFloat(currentVariant.discountPercentage)
                 : parseFloat(detail.discountPercentage);
+            const variantName = (currentVariant === null || currentVariant === void 0 ? void 0 : currentVariant.variant.name) || "Default";
+            const redemptionType = ((_a = detail.redemptionMethod) === null || _a === void 0 ? void 0 : _a.type) || "";
+            const isFreeShipping = redemptionType === "FREE_SHIPPING";
             return `
       <div class="me-agent-detail-info">
-        <h2 class="me-agent-detail-title">${detail.name}</h2>
+        <h2 class="me-agent-detail-title">${detail.name}${variantName !== "Default" ? ` - ${variantName}` : ""}</h2>
         <div class="me-agent-detail-pricing">
-          <div class="me-agent-detail-price">
-            <span class="me-agent-price-label">Price:</span>
-            <span class="me-agent-price-value">$${finalPrice.toFixed(2)}</span>
-          </div>
-          ${discount > 0
-            ? `
-            <div class="me-agent-detail-original-price">
-              <span class="me-agent-original-label">Original:</span>
-              <span class="me-agent-original-value">$${originalPrice.toFixed(2)}</span>
-            </div>
-            <div class="me-agent-detail-badge">${Math.round(discount)}% OFF</div>
-          `
+          ${isFreeShipping
+            ? `<div class="me-agent-price-main">$${originalPrice.toFixed(2)}</div>`
+            : `
+                <div class="me-agent-price-main">$${finalPrice.toFixed(2)}</div>
+                ${discount > 0
+                ? `<div class="me-agent-price-original">$${originalPrice.toFixed(2)}</div>`
+                : ""}
+              `}
+        </div>
+        ${discount > 0 || isFreeShipping
+            ? `<div class="me-agent-discount-badge">${isFreeShipping
+                ? "Free Shipping"
+                : `${Math.round(discount)}% Off With Coupon`}</div>`
             : ""}
-        </div>
-        <div class="me-agent-detail-shipping">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M14 8.5V11.5C14 11.7652 13.8946 12.0196 13.7071 12.2071C13.5196 12.3946 13.2652 12.5 13 12.5H3C2.73478 12.5 2.48043 12.3946 2.29289 12.2071C2.10536 12.0196 2 11.7652 2 11.5V4.5C2 4.23478 2.10536 3.98043 2.29289 3.79289C2.48043 3.60536 2.73478 3.5 3 3.5H10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span>Free shipping on orders over $50</span>
-        </div>
+        <div class="me-agent-detail-shipping">Ships To Texas, United State Of America</div>
       </div>
     `;
         }
@@ -1969,7 +1979,7 @@
                 return "";
             return `
       <div class="me-agent-variant-section">
-        <label class="me-agent-section-label">Select Variant</label>
+        <label class="me-agent-section-label">Variant</label>
         <div class="me-agent-variant-grid">
           ${offerVariants
             .map((variant, index) => this.renderVariantCard(variant, index === 0))
@@ -1984,21 +1994,20 @@
         renderVariantCard(variant, isSelected) {
             var _a, _b;
             const variantImage = ((_b = (_a = variant.variant.productImages) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.url) || "";
-            const variantPrice = parseFloat(variant.variant.price);
             const discount = parseFloat(variant.discountPercentage);
-            const finalPrice = variantPrice * (1 - discount / 100);
             return `
       <div class="me-agent-variant-card ${isSelected ? "selected" : ""}" data-variant-id="${variant.id}">
-        ${variantImage
+        <div class="me-agent-variant-image-wrapper">
+          ${variantImage
             ? `<img src="${variantImage}" alt="${variant.variant.name}" class="me-agent-variant-image" />`
+            : `<div class="me-agent-variant-placeholder"></div>`}
+          ${discount > 0
+            ? `<div class="me-agent-variant-badge">
+                  <span class="me-agent-variant-badge-icon">🔥</span>
+                  <span class="me-agent-variant-badge-text">${Math.round(discount)}% Off</span>
+                </div>`
             : ""}
-        <div class="me-agent-variant-info">
-          <div class="me-agent-variant-name">${variant.variant.name}</div>
-          <div class="me-agent-variant-price">$${finalPrice.toFixed(2)}</div>
         </div>
-        ${discount > 0
-            ? `<div class="me-agent-variant-discount">${Math.round(discount)}% OFF</div>`
-            : ""}
       </div>
     `;
         }
@@ -2279,8 +2288,10 @@
             const earningInfo = rule
                 ? `Earn ${rule.earningPercentage}% back in ${brand.rewardDetails.rewardInfo.rewardSymbol}`
                 : "Earn rewards";
+            const displayedOffers = offers.slice(0, 4);
+            const hasMore = offers.length > 4;
             return `
-      <div class="me-agent-brand-offers-section">
+      <div class="me-agent-brand-offers-section" data-brand-id="${brand.id}">
         <div class="me-agent-brand-offers-header">
           <div class="me-agent-brand-offers-info">
             <img 
@@ -2293,9 +2304,17 @@
           </div>
           <div class="me-agent-brand-earning-amount">${earningInfo}</div>
         </div>
-        <div class="me-agent-brand-offers-scroll">
-          ${offers.map((offer) => this.renderOfferCard(offer)).join("")}
+        <div class="me-agent-brand-offers-grid">
+          ${displayedOffers
+            .map((offer) => this.renderOfferCard(offer))
+            .join("")}
         </div>
+        ${hasMore
+            ? `<button class="me-agent-view-all-offers-btn" data-brand-name="${brand.name}">
+                View All
+                ${getChevronRightIcon({ width: 16, height: 16 })}
+              </button>`
+            : ""}
       </div>
     `;
         }
@@ -2303,15 +2322,24 @@
          * Render a single offer card
          */
         renderOfferCard(offer) {
+            var _a;
             const price = parseFloat(offer.price || offer.originalPrice || "0");
             const discountedPrice = calculateOfferDiscount(price, offer.discountType || "", offer.discountDetails || []);
             const discountBadge = formatDiscount(offer.discountType || "", offer.discountDetails || []);
             const hasDiscount = typeof discountedPrice === "number" && discountedPrice < price;
             const finalPrice = typeof discountedPrice === "number" ? discountedPrice : price;
+            // Get product URL from nested product object and ensure it has a protocol
+            let productUrl = ((_a = offer.product) === null || _a === void 0 ? void 0 : _a.productUrl) || "#";
+            // Add https:// if the URL doesn't start with http:// or https://
+            if (productUrl !== "#" &&
+                !productUrl.startsWith("http://") &&
+                !productUrl.startsWith("https://")) {
+                productUrl = `https://${productUrl}`;
+            }
             return `
       <div 
         class="me-agent-brand-offer-card" 
-        data-product-url="${offer.productUrl || "#"}"
+        data-product-url="${productUrl}"
       >
         <div class="me-agent-brand-offer-image-container">
           <img 
@@ -2334,6 +2362,16 @@
             : ""}
           </div>
         </div>
+      </div>
+    `;
+        }
+        /**
+         * Render all offers for a single brand in a grid
+         */
+        renderBrandOffersGrid(offers) {
+            return `
+      <div class="me-agent-brand-all-offers-grid">
+        ${offers.map((offer) => this.renderOfferCard(offer)).join("")}
       </div>
     `;
         }
@@ -2423,6 +2461,7 @@
             this.currentOfferDetail = null;
             this.selectedVariant = null;
             this.quantity = 1;
+            this.currentBrandsWithOffers = [];
             // Initialize views
             this.offerGridView = new OfferGridView();
             this.offerDetailView = new OfferDetailView();
@@ -2554,9 +2593,19 @@
                     this.attachCategoryGridListeners();
                     break;
                 case "brand-offers":
+                    this.currentBrandsWithOffers = viewState.data;
                     this.content.innerHTML = this.brandOffersView.render(viewState.data);
                     this.attachBrandOffersListeners();
                     break;
+                case "single-brand-offers":
+                    this.content.innerHTML = this.brandOffersView.renderBrandOffersGrid(viewState.data.offers);
+                    this.attachSingleBrandOffersListeners();
+                    break;
+                case "offer-detail":
+                    // Re-fetch offer detail as it needs dynamic data
+                    const { offerCode, sessionId } = viewState.data;
+                    this.showOfferDetail(offerCode, sessionId);
+                    return; // Avoid duplicate header update
             }
             this.currentView = viewState.type;
             this.updateHeader(viewState.title);
@@ -2687,7 +2736,8 @@
                     if (signal.aborted) {
                         return;
                     }
-                    // Render brands with offers
+                    // Store and render brands with offers
+                    this.currentBrandsWithOffers = brandsWithOffers;
                     this.content.innerHTML = this.brandOffersView.render(brandsWithOffers);
                     this.currentView = "brand-offers";
                     this.viewStack.push({
@@ -2781,6 +2831,42 @@
             });
         }
         /**
+         * Show all offers for a single brand
+         */
+        showSingleBrandOffers(brandId, brandName) {
+            // Find the brand from stored data
+            const brandData = this.currentBrandsWithOffers.find((item) => item.brand.id === brandId);
+            if (!brandData) {
+                console.error("Brand not found:", brandId);
+                return;
+            }
+            // Render all offers for this brand
+            this.content.innerHTML = this.brandOffersView.renderBrandOffersGrid(brandData.offers);
+            this.currentView = "single-brand-offers";
+            this.viewStack.push({
+                type: "single-brand-offers",
+                title: brandName,
+                data: { brandId, brandName, offers: brandData.offers },
+            });
+            this.updateHeader(brandName);
+            this.attachSingleBrandOffersListeners();
+        }
+        /**
+         * Attach event listeners for single brand offers grid
+         */
+        attachSingleBrandOffersListeners() {
+            // Offer cards - navigate to product URL
+            const offerCards = this.content.querySelectorAll(".me-agent-brand-offer-card");
+            offerCards.forEach((card) => {
+                card.addEventListener("click", () => {
+                    const productUrl = card.getAttribute("data-product-url");
+                    if (productUrl && productUrl !== "#") {
+                        window.open(productUrl, "_blank");
+                    }
+                });
+            });
+        }
+        /**
          * Attach event listeners for brand offers
          */
         attachBrandOffersListeners() {
@@ -2791,6 +2877,18 @@
                     const productUrl = card.getAttribute("data-product-url");
                     if (productUrl && productUrl !== "#") {
                         window.open(productUrl, "_blank");
+                    }
+                });
+            });
+            // View All buttons
+            const viewAllButtons = this.content.querySelectorAll(".me-agent-view-all-offers-btn");
+            viewAllButtons.forEach((button) => {
+                button.addEventListener("click", () => {
+                    const brandSection = button.closest(".me-agent-brand-offers-section");
+                    const brandId = brandSection === null || brandSection === void 0 ? void 0 : brandSection.getAttribute("data-brand-id");
+                    const brandName = button.getAttribute("data-brand-name") || "Brand";
+                    if (brandId) {
+                        this.showSingleBrandOffers(brandId, brandName);
                     }
                 });
             });
@@ -4583,45 +4681,61 @@
     border-radius: 100px;
   }
 
-  .me-agent-brand-offers-scroll {
-    display: flex;
+  .me-agent-brand-offers-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
     gap: 16px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: 4px 0;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-    scrollbar-color: #E5E7EB #F9FAFB;
+    margin-bottom: 16px;
   }
 
-  .me-agent-brand-offers-scroll::-webkit-scrollbar {
-    height: 6px;
+  .me-agent-brand-all-offers-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    padding: 20px;
   }
 
-  .me-agent-brand-offers-scroll::-webkit-scrollbar-track {
-    background: #F9FAFB;
-    border-radius: 3px;
+  .me-agent-view-all-offers-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+    padding: 12px 20px;
+    background: #F5F5F5;
+    border: none;
+    border-radius: 8px;
+    color: #0F0F0F;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 8px;
   }
 
-  .me-agent-brand-offers-scroll::-webkit-scrollbar-thumb {
-    background: #E5E7EB;
-    border-radius: 3px;
+  .me-agent-view-all-offers-btn:hover {
+    background: #E5E5E5;
   }
 
-  .me-agent-brand-offers-scroll::-webkit-scrollbar-thumb:hover {
-    background: #D1D5DB;
+  .me-agent-view-all-offers-btn:active {
+    transform: scale(0.98);
+  }
+
+  @media (max-width: 768px) {
+    .me-agent-brand-offers-grid,
+    .me-agent-brand-all-offers-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
   }
 
   .me-agent-brand-offer-card {
-    min-width: 150px;
-    max-width: 150px;
+    width: 100%;
     background: #FAFAFA;
     border: 1px solid #F5F5F5;
     border-radius: 12px;
     overflow: hidden;
     cursor: pointer;
     transition: all 0.2s ease;
-    flex-shrink: 0;
   }
 
   .me-agent-brand-offer-card:hover {
@@ -4758,42 +4872,49 @@
   }
 
   .me-agent-detail-title {
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 16px;
+    font-weight: 400;
     color: #0f0f0f;
-    margin: 0 0 12px 0;
+    margin: 0 0 8px 0;
+    line-height: 1.4;
   }
 
   .me-agent-detail-pricing {
     display: flex;
-    gap: 8px;
-    align-items: baseline;
+    gap: 12px;
+    align-items: center;
     margin-bottom: 12px;
   }
 
-  .me-agent-detail-price {
-    font-size: 20px;
-    font-weight: 700;
+  .me-agent-price-main {
+    font-size: 24px;
+    font-weight: 600;
     color: #0f0f0f;
   }
 
-  .me-agent-detail-original-price {
-    font-size: 18px;
+  .me-agent-price-original {
+    font-size: 20px;
     color: #9ca3af;
     text-decoration: line-through;
+    font-weight: 400;
   }
 
-  .me-agent-detail-badge {
+  .me-agent-discount-badge {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 12px;
-    background: #000000;
+    padding: 6px 12px;
+    background: #0F0F0F;
     color: white;
-    border-radius: 20px;
-    font-size: 13px;
+    border-radius: 100px;
+    font-size: 12px;
     font-weight: 500;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
+  }
+
+  .me-agent-discount-badge::before {
+    content: '🔥';
+    font-size: 14px;
   }
 
   .me-agent-detail-shipping {
@@ -4817,14 +4938,16 @@
   }
 
   .me-agent-variant-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    display: flex;
     gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 4px;
   }
 
   .me-agent-variant-card {
+    flex-shrink: 0;
     background: none;
-    border: 2px solid #e5e7eb;
+    border: 2px solid transparent;
     border-radius: 12px;
     cursor: pointer;
     padding: 0;
@@ -4832,44 +4955,56 @@
     transition: all 0.2s ease;
   }
 
-  .me-agent-variant-card:hover:not(.disabled) {
+  .me-agent-variant-card:hover {
+    border-color: #d1d5db;
+  }
+
+  .me-agent-variant-card.selected {
     border-color: #0f0f0f;
   }
 
-  .me-agent-variant-card.active {
-    border-color: #0f0f0f;
-    box-shadow: 0 0 0 1px #0f0f0f;
-  }
-
-  .me-agent-variant-card.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+  .me-agent-variant-image-wrapper {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    border-radius: 10px;
+    overflow: hidden;
   }
 
   .me-agent-variant-image {
-    position: relative;
     width: 100%;
-    padding-top: 100%;
-    background-size: cover;
-    background-position: center;
+    height: 100%;
+    object-fit: cover;
     background-color: #f3f4f6;
   }
 
-  .me-agent-variant-discount {
+  .me-agent-variant-placeholder {
+    width: 100%;
+    height: 100%;
+    background: #f3f4f6;
+  }
+
+  .me-agent-variant-badge {
     position: absolute;
-    bottom: 8px;
-    left: 8px;
-    right: 8px;
+    bottom: 4px;
+    left: 4px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 4px;
-    padding: 4px 8px;
-    background: #000000;
+    gap: 2px;
+    padding: 2px 6px;
+    background: rgba(0, 0, 0, 0.85);
     color: white;
-    border-radius: 12px;
-    font-size: 11px;
+    border-radius: 4px;
+    font-size: 10px;
     font-weight: 500;
+  }
+
+  .me-agent-variant-badge-icon {
+    font-size: 10px;
+  }
+
+  .me-agent-variant-badge-text {
+    font-size: 10px;
   }
 
   /* Quantity Section */
@@ -4921,26 +5056,33 @@
   /* Tabs */
   .me-agent-tabs {
     display: flex;
-    gap: 8px;
+    gap: 12px;
     margin-bottom: 20px;
-    border-bottom: 1px solid #e5e7eb;
   }
 
   .me-agent-tab {
-    padding: 12px 24px;
+    padding: 10px 24px;
     background: none;
     border: none;
-    border-bottom: 2px solid transparent;
+    border-radius: 100px;
     cursor: pointer;
     font-size: 14px;
     font-weight: 500;
-    color: #6b7280;
+    color: #0f0f0f;
     transition: all 0.2s ease;
   }
 
+  .me-agent-tab:hover {
+    background: #f3f4f6;
+  }
+
   .me-agent-tab.active {
-    color: #0f0f0f;
-    border-bottom-color: #0f0f0f;
+    background: #0f0f0f;
+    color: white;
+  }
+
+  .me-agent-tab.active:hover {
+    background: #1a1a1a;
   }
 
   .me-agent-tab-content {

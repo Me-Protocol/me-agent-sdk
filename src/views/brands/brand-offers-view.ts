@@ -7,6 +7,7 @@ import {
   calculateOfferDiscount,
   formatDiscount,
 } from "../../core/utils/discount";
+import { getChevronRightIcon } from "../shared/icons";
 
 export class BrandOffersView {
   /**
@@ -36,8 +37,11 @@ export class BrandOffersView {
       ? `Earn ${rule.earningPercentage}% back in ${brand.rewardDetails.rewardInfo.rewardSymbol}`
       : "Earn rewards";
 
+    const displayedOffers = offers.slice(0, 4);
+    const hasMore = offers.length > 4;
+
     return `
-      <div class="me-agent-brand-offers-section">
+      <div class="me-agent-brand-offers-section" data-brand-id="${brand.id}">
         <div class="me-agent-brand-offers-header">
           <div class="me-agent-brand-offers-info">
             <img 
@@ -52,9 +56,21 @@ export class BrandOffersView {
           </div>
           <div class="me-agent-brand-earning-amount">${earningInfo}</div>
         </div>
-        <div class="me-agent-brand-offers-scroll">
-          ${offers.map((offer) => this.renderOfferCard(offer)).join("")}
+        <div class="me-agent-brand-offers-grid">
+          ${displayedOffers
+            .map((offer) => this.renderOfferCard(offer))
+            .join("")}
         </div>
+        ${
+          hasMore
+            ? `<button class="me-agent-view-all-offers-btn" data-brand-name="${
+                brand.name
+              }">
+                View All
+                ${getChevronRightIcon({ width: 16, height: 16 })}
+              </button>`
+            : ""
+        }
       </div>
     `;
   }
@@ -80,10 +96,22 @@ export class BrandOffersView {
     const finalPrice =
       typeof discountedPrice === "number" ? discountedPrice : price;
 
+    // Get product URL from nested product object and ensure it has a protocol
+    let productUrl = offer.product?.productUrl || "#";
+
+    // Add https:// if the URL doesn't start with http:// or https://
+    if (
+      productUrl !== "#" &&
+      !productUrl.startsWith("http://") &&
+      !productUrl.startsWith("https://")
+    ) {
+      productUrl = `https://${productUrl}`;
+    }
+
     return `
       <div 
         class="me-agent-brand-offer-card" 
-        data-product-url="${offer.productUrl || "#"}"
+        data-product-url="${productUrl}"
       >
         <div class="me-agent-brand-offer-image-container">
           <img 
@@ -116,6 +144,17 @@ export class BrandOffersView {
             }
           </div>
         </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Render all offers for a single brand in a grid
+   */
+  renderBrandOffersGrid(offers: any[]): string {
+    return `
+      <div class="me-agent-brand-all-offers-grid">
+        ${offers.map((offer) => this.renderOfferCard(offer)).join("")}
       </div>
     `;
   }

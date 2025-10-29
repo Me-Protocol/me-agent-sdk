@@ -81,6 +81,24 @@ export function getChevronLeftIcon(options: IconOptions = {}): string {
 }
 
 /**
+ * Chevron/Arrow Right Icon (for forward navigation)
+ */
+export function getChevronRightIcon(options: IconOptions = {}): string {
+  const {
+    width = 16,
+    height = 16,
+    color = "#0F0F0F",
+    className = "",
+  } = options;
+
+  return `
+    <svg width="${width}" height="${height}" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}">
+      <path d="M6 12L10 8L6 4" stroke="${color}" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `.trim();
+}
+
+/**
  * Maximize/Expand Icon (for expanding the chat window)
  */
 export function getMaximizeIcon(options: IconOptions = {}): string {

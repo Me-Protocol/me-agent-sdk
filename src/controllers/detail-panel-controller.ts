@@ -48,6 +48,7 @@ export class DetailPanelController {
   private currentOfferDetail: OfferDetail | null = null;
   private selectedVariant: OfferVariant | null = null;
   private quantity: number = 1;
+  private currentBrandsWithOffers: Array<{ brand: any; offers: any[] }> = [];
 
   // Views
   private offerGridView: OfferGridView;
@@ -219,9 +220,23 @@ export class DetailPanelController {
         break;
 
       case "brand-offers":
+        this.currentBrandsWithOffers = viewState.data;
         this.content.innerHTML = this.brandOffersView.render(viewState.data);
         this.attachBrandOffersListeners();
         break;
+
+      case "single-brand-offers":
+        this.content.innerHTML = this.brandOffersView.renderBrandOffersGrid(
+          viewState.data.offers
+        );
+        this.attachSingleBrandOffersListeners();
+        break;
+
+      case "offer-detail":
+        // Re-fetch offer detail as it needs dynamic data
+        const { offerCode, sessionId } = viewState.data;
+        this.showOfferDetail(offerCode, sessionId);
+        return; // Avoid duplicate header update
     }
 
     this.currentView = viewState.type;
@@ -380,7 +395,8 @@ export class DetailPanelController {
         return;
       }
 
-      // Render brands with offers
+      // Store and render brands with offers
+      this.currentBrandsWithOffers = brandsWithOffers;
       this.content.innerHTML = this.brandOffersView.render(brandsWithOffers);
       this.currentView = "brand-offers";
       this.viewStack.push({
@@ -488,6 +504,52 @@ export class DetailPanelController {
   }
 
   /**
+   * Show all offers for a single brand
+   */
+  showSingleBrandOffers(brandId: string, brandName: string): void {
+    // Find the brand from stored data
+    const brandData = this.currentBrandsWithOffers.find(
+      (item) => item.brand.id === brandId
+    );
+
+    if (!brandData) {
+      console.error("Brand not found:", brandId);
+      return;
+    }
+
+    // Render all offers for this brand
+    this.content.innerHTML = this.brandOffersView.renderBrandOffersGrid(
+      brandData.offers
+    );
+    this.currentView = "single-brand-offers";
+    this.viewStack.push({
+      type: "single-brand-offers",
+      title: brandName,
+      data: { brandId, brandName, offers: brandData.offers },
+    });
+    this.updateHeader(brandName);
+    this.attachSingleBrandOffersListeners();
+  }
+
+  /**
+   * Attach event listeners for single brand offers grid
+   */
+  private attachSingleBrandOffersListeners(): void {
+    // Offer cards - navigate to product URL
+    const offerCards = this.content.querySelectorAll(
+      ".me-agent-brand-offer-card"
+    );
+    offerCards.forEach((card) => {
+      card.addEventListener("click", () => {
+        const productUrl = card.getAttribute("data-product-url");
+        if (productUrl && productUrl !== "#") {
+          window.open(productUrl, "_blank");
+        }
+      });
+    });
+  }
+
+  /**
    * Attach event listeners for brand offers
    */
   private attachBrandOffersListeners(): void {
@@ -500,6 +562,22 @@ export class DetailPanelController {
         const productUrl = card.getAttribute("data-product-url");
         if (productUrl && productUrl !== "#") {
           window.open(productUrl, "_blank");
+        }
+      });
+    });
+
+    // View All buttons
+    const viewAllButtons = this.content.querySelectorAll(
+      ".me-agent-view-all-offers-btn"
+    );
+    viewAllButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const brandSection = button.closest(".me-agent-brand-offers-section");
+        const brandId = brandSection?.getAttribute("data-brand-id");
+        const brandName = button.getAttribute("data-brand-name") || "Brand";
+
+        if (brandId) {
+          this.showSingleBrandOffers(brandId, brandName);
         }
       });
     });

@@ -25,6 +25,7 @@ export declare class DetailPanelController {
     private currentOfferDetail;
     private selectedVariant;
     private quantity;
+    private currentBrandsWithOffers;
     private offerGridView;
     private offerDetailView;
     private brandListView;
@@ -95,6 +96,14 @@ export declare class DetailPanelController {
      * Attach event listeners for category grid
      */
     private attachCategoryGridListeners;
+    /**
+     * Show all offers for a single brand
+     */
+    showSingleBrandOffers(brandId: string, brandName: string): void;
+    /**
+     * Attach event listeners for single brand offers grid
+     */
+    private attachSingleBrandOffersListeners;
     /**
      * Attach event listeners for brand offers
      */
