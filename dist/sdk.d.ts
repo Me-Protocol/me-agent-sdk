@@ -5,12 +5,14 @@ import { MeAgentConfig } from "./types";
 export declare class MeAgentSDK {
     private config;
     private env;
-    private stateManager;
+    private sessionService;
+    private messageParser;
+    private redemptionService;
     private apiClient;
-    private redeemManager;
     private button;
     private chat;
     private initialized;
+    private isOpen;
     constructor(config: MeAgentConfig);
     /**
      * Validate configuration
@@ -28,18 +30,6 @@ export declare class MeAgentSDK {
      * Send a message
      */
     private sendMessage;
-    /**
-     * Parse offers from function response
-     */
-    private parseOffers;
-    /**
-     * Parse brands from function response
-     */
-    private parseBrands;
-    /**
-     * Generate a unique ID
-     */
-    private generateId;
     /**
      * Destroy the SDK
      */

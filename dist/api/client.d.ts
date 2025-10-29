@@ -1,5 +1,5 @@
 import { MeAgentConfig, OfferDetail, MELoginResponse, SwapAmountPayload, SwapAmountResponse } from "../types";
-import { EnvConfig } from "../config/env";
+import { EnvConfig } from "../core/config/env";
 /**
  * API Client - Handles communication with backend
  */

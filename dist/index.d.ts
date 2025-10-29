@@ -1,5 +1,4 @@
-import { MeAgentConfig } from './types';
-import { SupportedNetwork, Environment } from './config/env';
+import { MeAgentConfig, SupportedNetwork, Environment } from "./types";
 /**
  * Global MeAgent namespace
  */
@@ -11,5 +10,4 @@ export interface MeAgentGlobal {
 }
 declare const MeAgent: MeAgentGlobal;
 export default MeAgent;
-export { MeAgentConfig } from './types';
-export { SupportedNetwork, Environment } from './config/env';
+export { MeAgentConfig, SupportedNetwork, Environment } from "./types";

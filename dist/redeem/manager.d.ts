@@ -1,4 +1,4 @@
-import { MagicConfig } from "../auth/magic";
+import { MagicConfig } from "../data/auth/magic-client";
 import { APIClient } from "../api/client";
 import { OfferDetail, RewardBalance, SwapAmountResponse } from "../types";
 /**

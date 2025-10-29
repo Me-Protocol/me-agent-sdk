@@ -1,0 +1,514 @@
+# ME Agent SDK - Development Rules
+
+## Architecture Overview
+
+This SDK follows a **Layer-Based Architecture** pattern with clear separation of concerns:
+
+```
+src/
+├── types/           # TypeScript interfaces and types (organized by domain)
+├── core/            # Foundation utilities, constants, configurations
+├── data/            # Data access layer (API clients, state, auth)
+├── services/        # Business logic layer
+├── controllers/     # Orchestration layer (connects services to views)
+├── views/           # Presentation layer (UI rendering and components)
+└── index.ts         # Public API entry point
+```
+
+## Layer Responsibilities
+
+### 1. Types Layer (`src/types/`)
+
+- **Purpose**: Domain-specific TypeScript interfaces and types
+- **Files**: `config.ts`, `message.ts`, `offer.ts`, `brand.ts`, `redemption.ts`
+- **Rule**: Types are organized by domain, NOT by layer
+- **Export**: All types re-exported from `types/index.ts`
+
+### 2. Core Layer (`src/core/`)
+
+- **Purpose**: Foundation code used across all layers
+- **Contains**:
+  - `config/env.ts` - Environment configurations
+  - `constants/` - Preset data (categories, etc.)
+  - `utils/` - Utility functions (formatters, helpers)
+- **Rule**: No dependencies on other layers (except types)
+
+### 3. Data Layer (`src/data/`)
+
+- **Purpose**: Data access and external communication
+- **Structure**:
+  ```
+  data/
+  ├── api/           # API clients (domain-specific)
+  ├── auth/          # Authentication clients
+  └── state/         # State management
+  ```
+- **Key Concepts**:
+  - `BaseAPI` class for shared API logic
+  - Domain-specific API clients (e.g., `OfferAPI`, `BrandAPI`)
+  - `APIClient` facade that composes all APIs
+  - Public getters for accessing underlying APIs
+- **Rule**: Data layer only fetches/stores data, no business logic
+
+### 4. Services Layer (`src/services/`)
+
+- **Purpose**: Business logic and data transformation
+- **Examples**:
+  - `OfferService` - Offer-related business logic
+  - `BrandService` - Brand-related business logic
+  - `MessageParser` - Parse AI response data
+  - `SessionService` - Session management logic
+  - `RedemptionService` - Redemption flow orchestration
+- **Rule**: Services consume data layer, transform data, but don't handle UI
+
+### 5. Controllers Layer (`src/controllers/`)
+
+- **Purpose**: Orchestrate interactions between services and views
+- **Pattern**: MVC-style controllers
+- **Example**: `DetailPanelController`
+  - Manages view state and navigation
+  - Calls services to fetch data
+  - Delegates rendering to view classes
+  - Handles user interactions via event listeners
+- **Rule**: Controllers manage state, views are stateless renderers
+
+### 6. Views Layer (`src/views/`)
+
+- **Purpose**: UI rendering and DOM manipulation
+- **Structure**:
+  ```
+  views/
+  ├── shared/        # Shared utilities (icons, styles)
+  ├── components/    # Interactive DOM components
+  ├── offers/        # Offer-related views
+  ├── brands/        # Brand-related views
+  ├── categories/    # Category-related views
+  └── redemption/    # Redemption-related views
+  ```
+- **Key Concepts**:
+  - **Pure Views**: Classes that render HTML strings (e.g., `OfferGridView`, `BrandListView`)
+  - **Components**: Interactive DOM elements with lifecycle (e.g., `ChatPopup`, `DetailPanel`)
+  - **Shared**: Icons and styles centralized in `shared/`
+- **Rule**: Views render, components manage DOM lifecycle, neither contains business logic
+
+## File Naming Conventions
+
+- **Views**: `*-view.ts` (e.g., `offer-grid-view.ts`, `brand-list-view.ts`)
+- **Controllers**: `*-controller.ts` (e.g., `detail-panel-controller.ts`)
+- **Services**: `*-service.ts` (e.g., `offer-service.ts`, `brand-service.ts`)
+- **API Clients**: `*-api.ts` (e.g., `offer-api.ts`, `brand-api.ts`)
+- **Components**: Use descriptive names (e.g., `chat.ts`, `button.ts`, `message.ts`)
+- **Types**: Use domain names (e.g., `offer.ts`, `brand.ts`, `message.ts`)
+
+## Design Patterns
+
+### 1. Controller Pattern (MVC)
+
+Controllers orchestrate between services and views:
+
+```typescript
+export class DetailPanelController {
+  // Services (injected)
+  constructor(
+    private config: MeAgentConfig,
+    private offerService: OfferService,
+    private brandService: BrandService,
+    private onClose: () => void
+  ) {
+    // Initialize views (stateless)
+    this.offerGridView = new OfferGridView();
+    this.offerDetailView = new OfferDetailView();
+    // ...
+  }
+
+  // Public methods to show different views
+  async showOfferDetail(offerCode: string, sessionId: string): Promise<void> {
+    // 1. Fetch data via service
+    const detail = await this.offerService.getOfferDetail(offerCode, sessionId);
+
+    // 2. Render via view
+    this.content.innerHTML = this.offerDetailView.render(detail, ...);
+
+    // 3. Attach event listeners
+    this.attachOfferDetailListeners();
+  }
+}
+```
+
+### 2. View State Management
+
+Controllers maintain view state stack for navigation:
+
+```typescript
+interface ViewState {
+  type: string;      // View identifier
+  title: string;     // Header title
+  data: any;         // View data for restoration
+}
+
+private viewStack: ViewState[] = [];
+
+// When showing a view, push to stack
+showCategoryGrid(categories: Category[]): void {
+  this.viewStack = [{
+    type: "category-grid",
+    title: "Purchase Earning Categories",
+    data: categories,
+  }];
+  // Render...
+}
+
+// When navigating back, restore previous view
+goBack(): void {
+  this.viewStack.pop();
+  const previousView = this.viewStack[this.viewStack.length - 1];
+  this.restoreView(previousView);
+}
+```
+
+### 3. Pure View Pattern
+
+Views are stateless classes that render HTML:
+
+```typescript
+export class OfferGridView {
+  render(offers: Offer[]): string {
+    return `
+      <div class="me-agent-offers-container">
+        <div class="me-agent-offers-grid">
+          ${offers.map((offer) => this.renderOfferCard(offer)).join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  private renderOfferCard(offer: Offer): string {
+    // Return HTML string
+  }
+}
+```
+
+**Rules**:
+
+- Views never contain state
+- Views never call APIs directly
+- Views only return HTML strings
+- Views never attach event listeners (that's the controller's job)
+
+### 4. Service Pattern
+
+Services encapsulate business logic:
+
+```typescript
+export class OfferService {
+  constructor(private offerAPI: OfferAPI) {}
+
+  async getOfferDetail(
+    offerCode: string,
+    sessionId: string
+  ): Promise<OfferDetail> {
+    // Business logic here (transformations, validations, etc.)
+    return this.offerAPI.fetchOfferDetails(offerCode, sessionId);
+  }
+}
+```
+
+**Rules**:
+
+- Services consume API clients
+- Services transform/validate data
+- Services don't know about UI/DOM
+
+### 5. Request Cancellation Pattern
+
+Controllers use AbortController to cancel pending async requests:
+
+```typescript
+export class DetailPanelController {
+  private currentAbortController: AbortController | null = null;
+
+  private cancelCurrentRequest(): void {
+    if (this.currentAbortController) {
+      this.currentAbortController.abort();
+      this.currentAbortController = null;
+    }
+  }
+
+  async showOfferDetail(offerCode: string, sessionId: string): Promise<void> {
+    // Cancel any existing request
+    this.cancelCurrentRequest();
+
+    // Create new AbortController
+    this.currentAbortController = new AbortController();
+    const signal = this.currentAbortController.signal;
+
+    try {
+      // Show loading with cancel button
+      this.content.innerHTML = this.offerGridView.renderLoading(true);
+      this.attachCancelLoadingListener();
+
+      // Fetch data
+      const detail = await this.offerService.getOfferDetail(
+        offerCode,
+        sessionId
+      );
+
+      // Check if request was aborted
+      if (signal.aborted) {
+        return;
+      }
+
+      // Render data...
+      this.currentAbortController = null;
+    } catch (error) {
+      if (signal.aborted) {
+        return;
+      }
+      // Handle error...
+      this.currentAbortController = null;
+    }
+  }
+
+  private attachCancelLoadingListener(): void {
+    const cancelBtn = this.content.querySelector(
+      ".me-agent-cancel-loading-btn"
+    );
+    if (cancelBtn) {
+      cancelBtn.addEventListener("click", () => {
+        this.cancelCurrentRequest();
+        // Restore current view (top of stack) without popping
+        const currentView = this.viewStack[this.viewStack.length - 1];
+        if (currentView) {
+          this.restoreView(currentView);
+        }
+      });
+    }
+  }
+
+  goBack(): void {
+    // Cancel any pending requests when navigating back
+    this.cancelCurrentRequest();
+    // ... restore previous view
+  }
+}
+```
+
+**Rules**:
+
+- Cancel requests when navigating back or closing
+- Check `signal.aborted` after async operations
+- Show cancel button during long-running requests
+- Cancel button restores current view (doesn't pop stack)
+- Don't show errors if request was aborted
+- Clear AbortController after completion
+
+## Header Management in Detail Panel
+
+The `DetailPanelController` manages a **single fixed header** for all views:
+
+- **Format**:
+  - Root view: `{title}` with close button
+  - Nested view: `< {title}` with close button
+- **Behavior**:
+  - Back button shows when `viewStack.length > 1`
+  - Back button includes chevron icon + title
+  - Standalone title shows when at root level
+  - Close button always visible on the right
+- **Rule**: Views must NOT render their own headers
+
+```typescript
+// ❌ WRONG - Don't include headers in views
+render(): string {
+  return `
+    <div class="me-agent-detail-header">...</div>
+    <div class="content">...</div>
+  `;
+}
+
+// ✅ CORRECT - Just render content
+render(): string {
+  return `
+    <div class="content">...</div>
+  `;
+}
+```
+
+## Icon Usage
+
+**All icons must use the centralized icon system** in `src/views/shared/icons.ts`:
+
+```typescript
+// ❌ WRONG - Hardcoded SVG
+innerHTML = `<svg width="20"...`;
+
+// ✅ CORRECT - Use icon function
+import { getChevronLeftIcon, getCloseIcon } from "../shared/icons";
+innerHTML = getChevronLeftIcon({ width: 20, height: 20 });
+```
+
+**Adding New Icons**:
+
+1. Add function to `src/views/shared/icons.ts`
+2. Follow existing naming convention: `get{Name}Icon`
+3. Accept `IconOptions` parameter
+4. Return SVG string
+
+## Styling Conventions
+
+- **All styles** in `src/views/shared/styles.ts`
+- **Class naming**: `me-agent-{component}-{element}` (BEM-like)
+- **Responsive**: Mobile-first approach with `@media` queries
+- **CSS Variables**: Use for colors, spacing, etc. (if applicable)
+
+Examples:
+
+- `.me-agent-detail-panel` - Main container
+- `.me-agent-detail-header` - Header section
+- `.me-agent-offer-card` - Individual offer card
+- `.me-agent-back-button` - Back button in header
+
+## Adding New Features
+
+### Adding a New View:
+
+1. **Create view file** in appropriate subfolder (`src/views/{domain}/`)
+
+   ```typescript
+   // src/views/{domain}/{name}-view.ts
+   export class {Name}View {
+     render(data: DataType): string {
+       return `<div>...</div>`;
+     }
+   }
+   ```
+
+2. **Add controller method** (if using DetailPanel)
+
+   ```typescript
+   // src/controllers/detail-panel-controller.ts
+   show{Name}(data: DataType): void {
+     this.content.innerHTML = this.{name}View.render(data);
+     this.viewStack = [{
+       type: "{name}",
+       title: "{Title}",
+       data: data,
+     }];
+     this.updateHeader("{Title}");
+     this.attach{Name}Listeners();
+     this.show();
+   }
+   ```
+
+3. **Add styles** to `src/views/shared/styles.ts`
+
+4. **Update `restoreView()`** if view needs back navigation
+
+### Adding a New Service:
+
+1. **Create service file** in `src/services/`
+
+   ```typescript
+   export class {Name}Service {
+     constructor(private {name}API: {Name}API) {}
+
+     async get{Data}(): Promise<DataType> {
+       // Business logic
+       return this.{name}API.fetch{Data}();
+     }
+   }
+   ```
+
+2. **Inject into controller/component** that needs it
+
+### Adding a New API Client:
+
+1. **Create API file** in `src/data/api/`
+
+   ```typescript
+   export class {Name}API extends BaseAPI {
+     async fetch{Data}(): Promise<DataType> {
+       return this.fetchWithRetry(`${this.config.apiUrl}/endpoint`);
+     }
+   }
+   ```
+
+2. **Add to APIClient facade** in `src/data/api/api-client.ts`
+
+   ```typescript
+   export class APIClient {
+     private _{name}API: {Name}API;
+
+     constructor(config: MeAgentConfig, env: EnvConfig) {
+       this._{name}API = new {Name}API(config, env);
+     }
+
+     get {name}API(): {Name}API {
+       return this._{name}API;
+     }
+   }
+   ```
+
+## TypeScript Best Practices
+
+- **Explicit types**: Avoid `any`, use specific interfaces
+- **Type exports**: Export all types from `src/types/index.ts`
+- **Domain organization**: Group types by domain, not by layer
+- **Null safety**: Use `| null` or `?` for optional fields
+- **Type imports**: Import types from `../types` or `../../types`
+
+## Common Pitfalls to Avoid
+
+1. ❌ **Don't mix layers**
+
+   - Views shouldn't call API directly
+   - Services shouldn't manipulate DOM
+   - API clients shouldn't contain business logic
+
+2. ❌ **Don't create duplicate headers**
+
+   - DetailPanel views should NOT include headers
+   - Let the controller manage the single fixed header
+
+3. ❌ **Don't hardcode SVG icons**
+
+   - Always use icon functions from `src/views/shared/icons.ts`
+
+4. ❌ **Don't bypass the APIClient facade**
+
+   - Use `apiClient.offerAPI` not `new OfferAPI()`
+
+5. ❌ **Don't put state in views**
+
+   - Views render, controllers manage state
+
+6. ❌ **Don't create docs unless explicitly requested**
+   - Keep the codebase lean
+
+## Testing Guidelines
+
+- Test services independently with mocked API clients
+- Test views by checking rendered HTML
+- Test controllers by verifying service calls and DOM updates
+- Integration tests should go through the main `MeAgentSDK` class
+
+## Questions?
+
+When implementing new features, ask:
+
+1. **Which layer does this belong to?** (Types, Core, Data, Services, Controllers, Views)
+2. **Is this business logic or UI?** (Service vs View/Component)
+3. **Does this need state?** (Controller vs Pure View)
+4. **Can I reuse existing services/views?** (Don't duplicate)
+5. **Does this follow naming conventions?** (Check existing patterns)
+
+## Summary
+
+**Golden Rules**:
+
+- Keep layers separate and focused
+- Controllers orchestrate, Services contain logic, Views render
+- One header per detail panel (managed by controller)
+- All icons from centralized system
+- All styles in one place
+- State in controllers, not views
+- Explicit types, avoid `any`

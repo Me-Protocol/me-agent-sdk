@@ -1,4 +1,4 @@
-import { RedeemManager } from "../../../redeem/manager";
+import { RedemptionService } from "../../../services/redemption-service";
 /**
  * Loading View Component
  * Shows a loading state while user is being authenticated to ME Protocol
@@ -11,5 +11,5 @@ export declare class OnboardingView {
     /**
      * Start login process
      */
-    static startOnboarding(element: HTMLElement, redeemManager: RedeemManager, onSuccess: () => void, onError: (error: string) => void): Promise<void>;
+    static startOnboarding(element: HTMLElement, redemptionService: RedemptionService, onSuccess: () => void, onError: (error: string) => void): Promise<void>;
 }

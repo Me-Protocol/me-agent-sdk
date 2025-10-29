@@ -1,6 +1,6 @@
 import { Offer, Brand, Category, OfferDetail, MeAgentConfig } from "../types";
-import { RedeemManager } from "../redeem/manager";
-import { APIClient } from "../api/client";
+import { RedemptionService } from "../services/redemption-service";
+import { APIClient } from "../data/api/api-client";
 /**
  * Detail Panel Component - Handles side panel for offers, earnings, redemption, etc.
  */
@@ -13,14 +13,14 @@ export declare class DetailPanel {
     private onClose;
     private onOfferClick;
     private apiClient;
-    private redeemManager;
+    private redemptionService;
     private currentOfferDetail;
     private selectedVariant;
     private selectedReward;
     private swapAmount;
     private config;
     private likedOffers;
-    constructor(onClose: () => void, onOfferClick: (offerCode: string) => void, config: MeAgentConfig, apiClient: APIClient, redeemManager?: RedeemManager);
+    constructor(onClose: () => void, onOfferClick: (offerCode: string) => void, config: MeAgentConfig, apiClient: APIClient, redemptionService?: RedemptionService);
     /**
      * Create the offers panel element
      */

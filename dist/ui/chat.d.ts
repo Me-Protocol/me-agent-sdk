@@ -1,6 +1,6 @@
 import { Message, Offer, Brand, Category, MeAgentConfig } from "../types";
-import { RedeemManager } from "../redeem/manager";
-import { APIClient } from "../api/client";
+import { RedemptionService } from "../services/redemption-service";
+import { APIClient } from "../data/api/api-client";
 /**
  * Chat Popup Component
  */
@@ -19,9 +19,9 @@ export declare class ChatPopup {
     private currentOffers;
     private sessionId;
     private apiClient;
-    private redeemManager;
+    private redemptionService;
     private config;
-    constructor(position: "bottom-right" | "bottom-left", onSendMessage: (message: string) => void, onClose: () => void, apiClient: APIClient, sessionId: string, config: MeAgentConfig, redeemManager?: RedeemManager);
+    constructor(position: "bottom-right" | "bottom-left", onSendMessage: (message: string) => void, onClose: () => void, apiClient: APIClient, sessionId: string, config: MeAgentConfig, redemptionService?: RedemptionService);
     /**
      * Create the chat popup element
      */

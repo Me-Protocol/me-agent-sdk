@@ -1,6 +1,5 @@
-import { MeAgentSDK } from './sdk';
-import { MeAgentConfig } from './types';
-import { SupportedNetwork, Environment } from './config/env';
+import { MeAgentSDK } from "./sdk";
+import { MeAgentConfig, SupportedNetwork, Environment } from "./types";
 
 /**
  * Global MeAgent namespace
@@ -19,7 +18,9 @@ let sdkInstance: MeAgentSDK | null = null;
  */
 async function init(config: MeAgentConfig): Promise<void> {
   if (sdkInstance) {
-    console.warn('MeAgent: Instance already exists. Destroying previous instance.');
+    console.warn(
+      "MeAgent: Instance already exists. Destroying previous instance."
+    );
     destroy();
   }
 
@@ -46,11 +47,9 @@ const MeAgent: MeAgentGlobal = {
 };
 
 // For UMD build - attach to window
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   (window as any).MeAgent = MeAgent;
 }
 
 export default MeAgent;
-export { MeAgentConfig } from './types';
-export { SupportedNetwork, Environment } from './config/env';
-
+export { MeAgentConfig, SupportedNetwork, Environment } from "./types";

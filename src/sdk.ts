@@ -1,12 +1,24 @@
-import { MeAgentConfig, Message, Offer, Brand, Category } from "./types";
-import { mergeCategoriesWithPresets } from "./constants/categories";
-import { StateManager } from "./state/manager";
-import { APIClient } from "./api/client";
-import { FloatingButton } from "./ui/button";
-import { ChatPopup } from "./ui/chat";
-import { injectStyles } from "./ui/styles";
-import { RedeemManager } from "./redeem/manager";
-import { getEnv, SupportedNetwork, Environment, EnvConfig } from "./config/env";
+import {
+  MeAgentConfig,
+  Message,
+  Offer,
+  Brand,
+  Category,
+  EnvConfig,
+} from "./types";
+import { mergeCategoriesWithPresets } from "./core/constants/categories";
+import { SessionService } from "./services/session-service";
+import { MessageParser } from "./services/message-parser";
+import { RedemptionService } from "./services/redemption-service";
+import { APIClient } from "./data/api/api-client";
+import { SessionAPI } from "./data/api/session-api";
+import { ChatAPI } from "./data/api/chat-api";
+import { AuthAPI } from "./data/api/auth-api";
+import { RewardAPI } from "./data/api/reward-api";
+import { FloatingButton } from "./views/components/button";
+import { ChatPopup } from "./views/components/chat";
+import { injectStyles } from "./views/shared/styles";
+import { getEnv, SupportedNetwork, Environment } from "./core/config/env";
 
 /**
  * Main SDK Class
@@ -14,12 +26,14 @@ import { getEnv, SupportedNetwork, Environment, EnvConfig } from "./config/env";
 export class MeAgentSDK {
   private config: MeAgentConfig;
   private env: EnvConfig;
-  private stateManager: StateManager;
+  private sessionService: SessionService;
+  private messageParser: MessageParser;
+  private redemptionService: RedemptionService | null = null;
   private apiClient: APIClient;
-  private redeemManager: RedeemManager | null = null;
   private button: FloatingButton | null = null;
   private chat: ChatPopup | null = null;
   private initialized = false;
+  private isOpen: boolean = false;
 
   constructor(config: MeAgentConfig) {
     this.validateConfig(config);
@@ -33,12 +47,22 @@ export class MeAgentSDK {
     // Get environment configuration based on environment and network
     this.env = getEnv(this.config.environment, this.config.network);
 
-    this.stateManager = new StateManager();
+    // Initialize API client
     this.apiClient = new APIClient(this.config, this.env);
 
-    // Initialize RedeemManager with network-specific configuration
-    this.redeemManager = new RedeemManager(
-      this.apiClient,
+    // Initialize services
+    const sessionAPI = new SessionAPI(this.config, this.env);
+    const chatAPI = new ChatAPI(this.config, this.env);
+    const authAPI = new AuthAPI(this.config, this.env);
+    const rewardAPI = new RewardAPI(this.config, this.env);
+
+    this.sessionService = new SessionService(sessionAPI, chatAPI);
+    this.messageParser = new MessageParser();
+
+    // Initialize RedemptionService with network-specific configuration
+    this.redemptionService = new RedemptionService(
+      authAPI,
+      rewardAPI,
       {
         apiKey: this.env.MAGIC_PUBLISHABLE_API_KEY,
         chainId: this.env.CHAIN_ID,
@@ -69,8 +93,7 @@ export class MeAgentSDK {
       injectStyles();
 
       // Create session
-      const sessionId = await this.apiClient.createSession();
-      this.stateManager.setSessionId(sessionId);
+      const sessionId = await this.sessionService.getOrCreateSession();
 
       // Initialize UI components
       this.button = new FloatingButton(
@@ -85,7 +108,7 @@ export class MeAgentSDK {
         this.apiClient,
         sessionId,
         this.config,
-        this.redeemManager || undefined
+        this.redemptionService || undefined
       );
 
       // Mount components
@@ -94,17 +117,6 @@ export class MeAgentSDK {
 
       // Show welcome message
       this.chat.showWelcome();
-
-      // Subscribe to state changes
-      this.stateManager.subscribe((state) => {
-        if (state.isOpen) {
-          this.chat?.show();
-          this.button?.hide();
-        } else {
-          this.chat?.hide();
-          this.button?.show();
-        }
-      });
 
       this.initialized = true;
     } catch (error) {
@@ -117,102 +129,74 @@ export class MeAgentSDK {
    * Toggle chat open/closed
    */
   private toggleChat(): void {
-    this.stateManager.toggleChat();
+    this.isOpen = !this.isOpen;
+    if (this.isOpen) {
+      this.chat?.show();
+      this.button?.hide();
+    } else {
+      this.chat?.hide();
+      this.button?.show();
+    }
   }
 
   /**
    * Send a message
    */
   private async sendMessage(content: string): Promise<void> {
-    const state = this.stateManager.getState();
+    const sessionId = this.sessionService.getSessionId();
 
-    if (!state.sessionId) {
+    if (!sessionId) {
       console.error("MeAgent SDK: No active session");
       return;
     }
 
     // Add user message
-    const userMessage: Message = {
-      id: this.generateId(),
-      role: "user",
-      content,
-      timestamp: Date.now(),
-    };
-    this.stateManager.addMessage(userMessage);
+    const userMessage = this.sessionService.createMessage("user", content);
+    this.sessionService.addMessage(userMessage);
     this.chat?.addMessage(userMessage);
 
     // Show loading
-    this.stateManager.setLoading(true);
     this.chat?.setLoading(true);
     this.chat?.showLoading();
 
-    let assistantMessage: Message = {
-      id: this.generateId(),
-      role: "assistant",
-      content: "",
-      timestamp: Date.now(),
-    };
+    let assistantMessage = this.sessionService.createMessage("assistant", "");
     let isFirstChunk = true;
-    let detectedOffers: Offer[] = [];
-    let detectedBrands: Brand[] = [];
-    let detectedCategories: Category[] = [];
-    let showWaysToEarnActions = false;
-    let hasFinalMessage = false; // Track if we've received a final message
+    let parsedData = {
+      offers: [] as Offer[],
+      brands: [] as Brand[],
+      categories: [] as Category[],
+      showWaysToEarn: false,
+    };
+    let hasFinalMessage = false;
 
     try {
       await this.apiClient.sendMessage(
-        state.sessionId,
+        sessionId,
         content,
         (chunk: string, rawData?: any) => {
-          // Check for function calls and responses
+          // Parse function calls and responses using MessageParser
           if (rawData) {
-            // Check for query_offers function response
-            if (
-              rawData.content?.parts?.[0]?.functionResponse?.name ===
-              "query_offers"
-            ) {
-              const matches =
-                rawData.content.parts[0].functionResponse.response?.matches ||
-                [];
-              detectedOffers = this.parseOffers(matches);
+            const parsed = this.messageParser.parseMessageData(rawData);
+            if (parsed.offers.length > 0) {
+              parsedData.offers = parsed.offers;
             }
-
-            // Check for get_signup_earning_brands function response
-            if (
-              rawData.content?.parts?.[0]?.functionResponse?.name ===
-              "get_signup_earning_brands"
-            ) {
-              const brands =
-                rawData.content.parts[0].functionResponse.response?.brands ||
-                [];
-              detectedBrands = this.parseBrands(brands);
+            if (parsed.brands.length > 0) {
+              parsedData.brands = parsed.brands;
               console.log(
                 "[SDK] Detected signup earning brands:",
-                detectedBrands.length
+                parsed.brands.length
               );
             }
-
-            // Check for get_category_purchase_earning function response
-            if (
-              rawData.content?.parts?.[0]?.functionResponse?.name ===
-              "get_category_purchase_earning"
-            ) {
-              const categories =
-                rawData.content.parts[0].functionResponse.response
-                  ?.categories || [];
-              detectedCategories = mergeCategoriesWithPresets(categories);
+            if (parsed.categories.length > 0) {
+              parsedData.categories = parsed.categories;
               console.log(
                 "[SDK] Detected purchase categories:",
-                detectedCategories.length
+                parsed.categories.length
               );
             }
-
-            // Check for ways_to_earn function call
-            if (
-              rawData.content?.parts?.[0]?.functionCall?.name === "ways_to_earn"
-            ) {
+            if (parsed.showWaysToEarn) {
+              parsedData.showWaysToEarn = true;
               console.log("[SDK] Detected ways_to_earn function call");
-              showWaysToEarnActions = true;
             }
           }
 
@@ -220,7 +204,7 @@ export class MeAgentSDK {
           if (isFirstChunk) {
             this.chat?.removeLoading();
             assistantMessage.content = chunk || "";
-            this.stateManager.addMessage(assistantMessage);
+            this.sessionService.addMessage(assistantMessage);
             this.chat?.addMessage(assistantMessage);
             isFirstChunk = false;
           } else if (chunk) {
@@ -230,7 +214,7 @@ export class MeAgentSDK {
             if (isPartial) {
               // Streaming chunk (delta) - append it for real-time display
               assistantMessage.content += chunk;
-              this.stateManager.updateLastMessage(assistantMessage.content);
+              this.sessionService.updateLastMessage(assistantMessage.content);
               this.chat?.updateLastMessage(assistantMessage.content);
             } else if (rawData?.content?.parts?.[0]?.text) {
               // Final complete message
@@ -243,34 +227,33 @@ export class MeAgentSDK {
                 assistantMessage.content = chunk;
                 hasFinalMessage = true;
               }
-              this.stateManager.updateLastMessage(assistantMessage.content);
+              this.sessionService.updateLastMessage(assistantMessage.content);
               this.chat?.updateLastMessage(assistantMessage.content);
             }
           }
         },
         () => {
           // On complete
-          this.stateManager.setLoading(false);
           this.chat?.setLoading(false);
           this.chat?.removeLoading();
 
           // Show offer preview if offers were found
-          if (detectedOffers.length > 0) {
-            this.chat?.showOfferPreview(detectedOffers);
+          if (parsedData.offers.length > 0) {
+            this.chat?.showOfferPreview(parsedData.offers);
           }
 
           // Show brand preview if brands were found
-          if (detectedBrands.length > 0) {
-            this.chat?.showBrandPreview(detectedBrands);
+          if (parsedData.brands.length > 0) {
+            this.chat?.showBrandPreview(parsedData.brands);
           }
 
           // Show category preview if categories were found
-          if (detectedCategories.length > 0) {
-            this.chat?.showCategoryPreview(detectedCategories);
+          if (parsedData.categories.length > 0) {
+            this.chat?.showCategoryPreview(parsedData.categories);
           }
 
           // Show ways to earn quick actions if function was called
-          if (showWaysToEarnActions) {
+          if (parsedData.showWaysToEarn) {
             console.log("[SDK] Showing ways to earn actions");
             this.chat?.showWaysToEarnActions();
           }
@@ -278,85 +261,21 @@ export class MeAgentSDK {
         (error: Error) => {
           // On error
           console.error("MeAgent SDK: Error sending message", error);
-          this.stateManager.setLoading(false);
           this.chat?.setLoading(false);
           this.chat?.removeLoading();
 
-          const errorMessage: Message = {
-            id: this.generateId(),
-            role: "assistant",
-            content: "Sorry, something went wrong. Please try again.",
-            timestamp: Date.now(),
-          };
-          this.stateManager.addMessage(errorMessage);
+          const errorMessage = this.sessionService.createMessage(
+            "assistant",
+            "Sorry, something went wrong. Please try again."
+          );
+          this.sessionService.addMessage(errorMessage);
           this.chat?.addMessage(errorMessage);
         }
       );
     } catch (error) {
       console.error("MeAgent SDK: Error in sendMessage", error);
-      this.stateManager.setLoading(false);
       this.chat?.setLoading(false);
     }
-  }
-
-  /**
-   * Parse offers from function response
-   */
-  private parseOffers(matches: any[]): Offer[] {
-    return matches.map((match: any[]) => {
-      return {
-        id: match[0] || "",
-        name: match[1] || "Unnamed Offer",
-        offerCode: match[2] || "",
-        price: match[3] || 0,
-        description: match[4] || "",
-        discountType: match[6] || "",
-        discountPercentage: match[7] || 0,
-        brandName: match[12] || "Unknown Brand",
-        image: match[13] || undefined,
-      };
-    });
-  }
-
-  /**
-   * Parse brands from function response
-   */
-  private parseBrands(brands: any[]): Brand[] {
-    return brands.map((brand: any) => {
-      return {
-        id: brand.id || "",
-        name: brand.name || "Unknown Brand",
-        logoUrl: brand.logoUrl || null,
-        description: brand.description || null,
-        websiteUrl: brand.websiteUrl || null,
-        shopifyStoreUrl: brand.shopifyStoreUrl || null,
-        network: brand.network || "sepolia",
-        categoryId: brand.categoryId || "",
-        categoryName: brand.categoryName || "Unknown Category",
-        rewardDetails: brand.rewardDetails || {
-          earningMethodId: "",
-          earningType: "sign_up",
-          isActive: true,
-          rewardExistingCustomers: false,
-          rewardInfo: {
-            id: "",
-            rewardName: "",
-            rewardSymbol: "",
-            rewardImage: "",
-            rewardValueInDollars: "0",
-            rewardOriginalValue: "0",
-          },
-          rules: [],
-        },
-      };
-    });
-  }
-
-  /**
-   * Generate a unique ID
-   */
-  private generateId(): string {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 
   /**

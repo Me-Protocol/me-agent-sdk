@@ -36,6 +36,130 @@
         return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
     };
 
+    /**
+     * Formatting Utilities
+     * Pure helper functions for formatting numbers, currency, etc.
+     */
+    /**
+     * Format a number with thousand separators
+     * @example formatNumber(3000) => "3,000"
+     */
+    function formatNumber(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+    /**
+     * Generate a unique ID
+     * @example generateId() => "1234567890-abc123def"
+     */
+    function generateId() {
+        return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    }
+    /**
+     * Generate a UUID v4
+     */
+    function generateUUID() {
+        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+            const r = (Math.random() * 16) | 0;
+            const v = c === "x" ? r : (r & 0x3) | 0x8;
+            return v.toString(16);
+        });
+    }
+
+    /**
+     * Session Service
+     * Business logic for session and message management
+     */
+    /**
+     * Session Service
+     * Handles session creation and message management
+     */
+    class SessionService {
+        constructor(sessionAPI, chatAPI) {
+            this.sessionAPI = sessionAPI;
+            this.chatAPI = chatAPI;
+            this.sessionId = null;
+            this.messages = [];
+        }
+        /**
+         * Initialize or get existing session
+         */
+        getOrCreateSession() {
+            return __awaiter(this, void 0, void 0, function* () {
+                if (!this.sessionId) {
+                    this.sessionId = yield this.sessionAPI.createSession();
+                }
+                return this.sessionId;
+            });
+        }
+        /**
+         * Get current session ID
+         */
+        getSessionId() {
+            return this.sessionId;
+        }
+        /**
+         * Send a message in the current session
+         */
+        sendMessage(content, onChunk, onComplete, onError) {
+            return __awaiter(this, void 0, void 0, function* () {
+                const sessionId = yield this.getOrCreateSession();
+                // Add user message to history
+                const userMessage = this.createMessage("user", content);
+                this.messages.push(userMessage);
+                // Send via API
+                yield this.chatAPI.sendMessage(sessionId, content, onChunk, onComplete, onError);
+            });
+        }
+        /**
+         * Add a message to history
+         */
+        addMessage(message) {
+            this.messages.push(message);
+        }
+        /**
+         * Update the last message content
+         */
+        updateLastMessage(content) {
+            if (this.messages.length > 0) {
+                this.messages[this.messages.length - 1].content = content;
+            }
+        }
+        /**
+         * Get all messages
+         */
+        getMessages() {
+            return [...this.messages];
+        }
+        /**
+         * Get chat state
+         */
+        getChatState() {
+            return {
+                isOpen: false,
+                messages: this.getMessages(),
+                sessionId: this.sessionId,
+                isLoading: false,
+            };
+        }
+        /**
+         * Clear all messages
+         */
+        clearMessages() {
+            this.messages = [];
+        }
+        /**
+         * Create a message object
+         */
+        createMessage(role, content) {
+            return {
+                id: generateId(),
+                role,
+                content,
+                timestamp: Date.now(),
+            };
+        }
+    }
+
     const PRESET_CATEGORIES = [
         {
             id: 1,
@@ -127,99 +251,516 @@
     }
 
     /**
-     * State Manager - Handles chat state management
+     * Message Parser Service
+     * Extracts structured data from AI agent responses
      */
-    class StateManager {
-        constructor() {
-            this.state = {
-                isOpen: false,
-                messages: [],
-                sessionId: null,
-                isLoading: false,
-            };
-            this.listeners = new Set();
-        }
+    /**
+     * Message Parser Service
+     * Handles parsing of AI agent responses and function calls/responses
+     */
+    class MessageParser {
         /**
-         * Get current state
+         * Parse raw AI response data into structured format
          */
-        getState() {
-            return Object.assign({}, this.state);
-        }
-        /**
-         * Update state and notify listeners
-         */
-        setState(updates) {
-            this.state = Object.assign(Object.assign({}, this.state), updates);
-            this.notifyListeners();
-        }
-        /**
-         * Subscribe to state changes
-         */
-        subscribe(listener) {
-            this.listeners.add(listener);
-            // Return unsubscribe function
-            return () => {
-                this.listeners.delete(listener);
-            };
-        }
-        /**
-         * Notify all listeners of state change
-         */
-        notifyListeners() {
-            this.listeners.forEach((listener) => listener(this.state));
-        }
-        /**
-         * Add a message to the chat
-         */
-        addMessage(message) {
-            this.setState({
-                messages: [...this.state.messages, message],
-            });
-        }
-        /**
-         * Update the last message (for streaming)
-         */
-        updateLastMessage(content) {
-            const messages = [...this.state.messages];
-            if (messages.length > 0) {
-                messages[messages.length - 1] = Object.assign(Object.assign({}, messages[messages.length - 1]), { content });
-                this.setState({ messages });
+        parseMessageData(rawData) {
+            var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+            let offers = [];
+            let brands = [];
+            let categories = [];
+            let showWaysToEarn = false;
+            const functionResponse = (_c = (_b = (_a = rawData.content) === null || _a === void 0 ? void 0 : _a.parts) === null || _b === void 0 ? void 0 : _b[0]) === null || _c === void 0 ? void 0 : _c.functionResponse;
+            const functionCall = (_f = (_e = (_d = rawData.content) === null || _d === void 0 ? void 0 : _d.parts) === null || _e === void 0 ? void 0 : _e[0]) === null || _f === void 0 ? void 0 : _f.functionCall;
+            if (functionResponse) {
+                if (functionResponse.name === "query_offers") {
+                    const matches = ((_g = functionResponse.response) === null || _g === void 0 ? void 0 : _g.matches) || [];
+                    offers = this.parseOffers(matches);
+                }
+                else if (functionResponse.name === "get_signup_earning_brands") {
+                    const rawBrands = ((_h = functionResponse.response) === null || _h === void 0 ? void 0 : _h.brands) || [];
+                    brands = this.parseBrands(rawBrands);
+                }
+                else if (functionResponse.name === "get_category_purchase_earning") {
+                    const rawCategories = ((_j = functionResponse.response) === null || _j === void 0 ? void 0 : _j.categories) || [];
+                    categories = mergeCategoriesWithPresets(rawCategories);
+                }
             }
+            else if ((functionCall === null || functionCall === void 0 ? void 0 : functionCall.name) === "ways_to_earn") {
+                showWaysToEarn = true;
+            }
+            return { offers, brands, categories, showWaysToEarn };
         }
         /**
-         * Set session ID
+         * Parse offers from query_offers function response
+         * New format:
+         * [0] = id, [1] = name, [2] = offerCode, [3] = price, [4] = description,
+         * [5] = available methods, [6] = discountType, [7] = discountDetails array,
+         * [8] = variant title, [9] = null, [10] = null, [11] = brandName, [12] = image
          */
-        setSessionId(sessionId) {
-            this.setState({ sessionId });
+        parseOffers(matches) {
+            return matches.map((match) => ({
+                id: match[0] || "",
+                name: match[1] || "Unnamed Offer",
+                offerCode: match[2] || "",
+                price: match[3] || 0,
+                description: match[4] || "",
+                discountType: match[6] || "",
+                discountDetails: match[7] || [],
+                brandName: match[11] || "Unknown Brand",
+                image: match[12] || undefined,
+            }));
         }
         /**
-         * Toggle chat open/closed
+         * Parse brands from get_signup_earning_brands function response
          */
-        toggleChat() {
-            this.setState({ isOpen: !this.state.isOpen });
-        }
-        /**
-         * Set loading state
-         */
-        setLoading(isLoading) {
-            this.setState({ isLoading });
-        }
-        /**
-         * Clear all messages
-         */
-        clearMessages() {
-            this.setState({ messages: [] });
+        parseBrands(brands) {
+            return brands.map((brand) => ({
+                id: brand.id || "",
+                name: brand.name || "Unknown Brand",
+                logoUrl: brand.logoUrl || null,
+                description: brand.description || null,
+                websiteUrl: brand.websiteUrl || null,
+                shopifyStoreUrl: brand.shopifyStoreUrl || null,
+                network: brand.network || "sepolia",
+                categoryId: brand.categoryId || "",
+                categoryName: brand.categoryName || "Unknown Category",
+                rewardDetails: brand.rewardDetails || {
+                    earningMethodId: "",
+                    earningType: "sign_up",
+                    isActive: true,
+                    rewardExistingCustomers: false,
+                    rewardInfo: {
+                        id: "",
+                        rewardName: "",
+                        rewardSymbol: "",
+                        rewardImage: "",
+                        rewardValueInDollars: "0",
+                        rewardOriginalValue: "0",
+                    },
+                    rules: [],
+                },
+            }));
         }
     }
 
     /**
-     * API Client - Handles communication with backend
+     * Magic Link Client Wrapper
+     * Handles authentication and wallet operations
      */
-    class APIClient {
+    class MagicClient {
+        constructor(config) {
+            this.magic = null;
+            this.initialized = false;
+            this.config = config;
+        }
+        /**
+         * Initialize Magic SDK
+         * Loads the Magic SDK from CDN if not already loaded
+         */
+        init() {
+            return __awaiter(this, void 0, void 0, function* () {
+                if (this.initialized) {
+                    return;
+                }
+                // Load Magic SDK from CDN if not already loaded
+                if (!window.Magic) {
+                    yield this.loadMagicSDK();
+                }
+                // Initialize Magic instance with network configuration
+                this.magic = new window.Magic(this.config.apiKey, {
+                    network: {
+                        rpcUrl: this.config.rpcUrl,
+                        chainId: parseInt(this.config.chainId),
+                    },
+                });
+                this.initialized = true;
+            });
+        }
+        /**
+         * Load Magic SDK from CDN
+         */
+        loadMagicSDK() {
+            return new Promise((resolve, reject) => {
+                // Check if already loaded
+                if (window.Magic) {
+                    resolve();
+                    return;
+                }
+                const script = document.createElement("script");
+                script.src = "https://auth.magic.link/sdk";
+                script.async = true;
+                script.onload = () => {
+                    // Wait a bit for Magic to be available
+                    setTimeout(() => resolve(), 100);
+                };
+                script.onerror = () => reject(new Error("Failed to load Magic SDK"));
+                document.head.appendChild(script);
+            });
+        }
+        /**
+         * Check if user is logged in
+         */
+        isLoggedIn() {
+            return __awaiter(this, void 0, void 0, function* () {
+                if (!this.initialized) {
+                    yield this.init();
+                }
+                try {
+                    return yield this.magic.user.isLoggedIn();
+                }
+                catch (error) {
+                    console.error("Error checking Magic login status:", error);
+                    return false;
+                }
+            });
+        }
+        /**
+         * Get user metadata (including wallet address)
+         */
+        getUserMetadata() {
+            return __awaiter(this, void 0, void 0, function* () {
+                var _a, _b;
+                if (!this.initialized) {
+                    yield this.init();
+                }
+                try {
+                    // Magic SDK uses getInfo() method, not getMetadata()
+                    const metadata = yield this.magic.user.getInfo();
+                    // Extract wallet address from the wallets object
+                    const publicAddress = (_b = (_a = metadata === null || metadata === void 0 ? void 0 : metadata.wallets) === null || _a === void 0 ? void 0 : _a.ethereum) === null || _b === void 0 ? void 0 : _b.publicAddress;
+                    if (!publicAddress) {
+                        console.error("Failed to extract wallet address from metadata:", metadata);
+                        throw new Error("Magic returned invalid user metadata - no Ethereum wallet address found");
+                    }
+                    return {
+                        publicAddress,
+                        email: metadata.email || null,
+                    };
+                }
+                catch (error) {
+                    console.error("Error getting Magic user metadata:", error);
+                    throw error;
+                }
+            });
+        }
+        /**
+         * Login with email OTP
+         */
+        loginWithEmailOTP(email) {
+            return __awaiter(this, void 0, void 0, function* () {
+                if (!this.initialized) {
+                    yield this.init();
+                }
+                try {
+                    // Magic SDK v11+ uses loginWithEmailOTP directly on auth
+                    const didToken = yield this.magic.auth.loginWithEmailOTP({
+                        email,
+                        showUI: true, // Show Magic's UI for OTP entry
+                    });
+                    return didToken;
+                }
+                catch (error) {
+                    console.error("Error logging in with Magic:", error);
+                    throw error;
+                }
+            });
+        }
+        /**
+         * Logout
+         */
+        logout() {
+            return __awaiter(this, void 0, void 0, function* () {
+                if (!this.initialized) {
+                    return;
+                }
+                try {
+                    yield this.magic.user.logout();
+                }
+                catch (error) {
+                    console.error("Error logging out from Magic:", error);
+                    throw error;
+                }
+            });
+        }
+        /**
+         * Get wallet address (shortcut method)
+         */
+        getWalletAddress() {
+            return __awaiter(this, void 0, void 0, function* () {
+                const metadata = yield this.getUserMetadata();
+                return metadata.publicAddress;
+            });
+        }
+    }
+
+    /**
+     * Redemption Service
+     * Handles the complete offer redemption flow
+     */
+    class RedemptionService {
+        constructor(authAPI, rewardAPI, magicConfig, openRewardDiamond) {
+            this.magicClient = null;
+            this.walletAddress = null;
+            this.balances = [];
+            this.meProtocolLoggedIn = false;
+            this.currentEmail = null;
+            this.meProtocolToken = null;
+            this.authAPI = authAPI;
+            this.rewardAPI = rewardAPI;
+            this.magicClient = new MagicClient(magicConfig);
+            this.openRewardDiamond = openRewardDiamond;
+        }
+        /**
+         * Get email from stored or config
+         */
+        getEmail() {
+            return this.currentEmail || this.authAPI.getUserEmail() || null;
+        }
+        /**
+         * Set email (for OTP flow)
+         */
+        setEmail(email) {
+            this.currentEmail = email;
+        }
+        /**
+         * Check if Magic is configured
+         */
+        isMagicConfigured() {
+            return this.magicClient !== null;
+        }
+        /**
+         * Check if user is authenticated
+         */
+        isAuthenticated() {
+            return __awaiter(this, void 0, void 0, function* () {
+                if (!this.magicClient) {
+                    return false;
+                }
+                try {
+                    return yield this.magicClient.isLoggedIn();
+                }
+                catch (error) {
+                    console.error("Error checking authentication:", error);
+                    return false;
+                }
+            });
+        }
+        /**
+         * Get wallet address (with force refresh option)
+         */
+        getWalletAddress() {
+            return __awaiter(this, arguments, void 0, function* (forceRefresh = false) {
+                // Use cached value unless force refresh is requested
+                if (this.walletAddress && !forceRefresh) {
+                    return this.walletAddress;
+                }
+                if (!this.magicClient) {
+                    throw new Error("Magic is not configured");
+                }
+                try {
+                    // First verify user is logged in
+                    const isLoggedIn = yield this.magicClient.isLoggedIn();
+                    if (!isLoggedIn) {
+                        throw new Error("User is not logged in to Magic");
+                    }
+                    // Retry logic for fetching wallet address (Magic might need a moment)
+                    let retries = 3;
+                    let lastError = null;
+                    while (retries > 0) {
+                        try {
+                            // Fetch wallet address from Magic
+                            this.walletAddress = yield this.magicClient.getWalletAddress();
+                            if (this.walletAddress) {
+                                return this.walletAddress;
+                            }
+                            // If null, wait and retry
+                            console.warn("Wallet address is null, retrying...");
+                            yield new Promise((resolve) => setTimeout(resolve, 1000));
+                            retries--;
+                        }
+                        catch (err) {
+                            lastError = err;
+                            console.warn(`Error on attempt ${4 - retries}:`, err);
+                            yield new Promise((resolve) => setTimeout(resolve, 1000));
+                            retries--;
+                        }
+                    }
+                    // All retries failed
+                    throw new Error(`Failed to retrieve wallet address from Magic after 3 attempts. Last error: ${(lastError === null || lastError === void 0 ? void 0 : lastError.message) || "Unknown"}`);
+                }
+                catch (error) {
+                    console.error("Error getting wallet address:", error);
+                    throw error;
+                }
+            });
+        }
+        /**
+         * Clear cached wallet address (useful after logout or re-authentication)
+         */
+        clearWalletAddressCache() {
+            this.walletAddress = null;
+        }
+        /**
+         * Send OTP to email
+         */
+        sendOTP(email) {
+            return __awaiter(this, void 0, void 0, function* () {
+                if (!this.magicClient) {
+                    throw new Error("Magic is not configured");
+                }
+                try {
+                    this.currentEmail = email; // Store email for later use
+                    yield this.magicClient.loginWithEmailOTP(email);
+                }
+                catch (error) {
+                    console.error("Error sending OTP:", error);
+                    throw error;
+                }
+            });
+        }
+        /**
+         * Login to ME Protocol (creates account if new user)
+         */
+        loginToMEProtocol() {
+            return __awaiter(this, void 0, void 0, function* () {
+                try {
+                    const email = this.getEmail();
+                    if (!email) {
+                        throw new Error("Email not available");
+                    }
+                    // Force refresh wallet address to ensure we have the latest from Magic
+                    const walletAddress = yield this.getWalletAddress(true);
+                    // Login to ME Protocol (this creates account if new user)
+                    const loginResponse = yield this.authAPI.meProtocolLogin(email, walletAddress);
+                    if (loginResponse.data.user && loginResponse.data.token) {
+                        this.meProtocolLoggedIn = true;
+                        this.meProtocolToken = loginResponse.data.token; // Store the token
+                    }
+                    else {
+                        throw new Error("Login failed");
+                    }
+                }
+                catch (error) {
+                    console.error("Error logging in to ME Protocol:", error);
+                    throw error;
+                }
+            });
+        }
+        /**
+         * Check if user is logged in to ME Protocol
+         */
+        isMEProtocolLoggedIn() {
+            return this.meProtocolLoggedIn;
+        }
+        /**
+         * Fetch user's reward balances
+         */
+        fetchBalances() {
+            return __awaiter(this, void 0, void 0, function* () {
+                try {
+                    const walletAddress = yield this.getWalletAddress();
+                    if (!this.meProtocolToken) {
+                        throw new Error("ME Protocol token not available. Please login first.");
+                    }
+                    const balances = yield this.rewardAPI.fetchRewardBalances(walletAddress, this.meProtocolToken);
+                    this.balances = balances;
+                    return balances;
+                }
+                catch (error) {
+                    console.error("Error fetching balances:", error);
+                    throw error;
+                }
+            });
+        }
+        /**
+         * Calculate swap amount for redemption
+         */
+        calculateSwapAmount(selectedRewardAddress, offerDetail, selectedVariantId) {
+            return __awaiter(this, void 0, void 0, function* () {
+                try {
+                    const walletAddress = yield this.getWalletAddress();
+                    if (!this.meProtocolToken) {
+                        throw new Error("ME Protocol token not available. Please login first.");
+                    }
+                    // Use provided variant ID, or first variant if available
+                    let variantId = selectedVariantId;
+                    if (!variantId &&
+                        offerDetail.offerVariants &&
+                        offerDetail.offerVariants.length > 0) {
+                        variantId = offerDetail.offerVariants[0].id;
+                    }
+                    const payload = {
+                        walletAddress,
+                        inputRewardAddress: selectedRewardAddress, // The reward the user wants to use
+                        outPutRewardAddress: offerDetail.reward.contractAddress, // The reward from the offer
+                        redemptionMethodId: offerDetail.redemptionMethod.id,
+                        offerId: offerDetail.id,
+                        variantId,
+                        brandId: offerDetail.brand.id,
+                    };
+                    const result = yield this.rewardAPI.fetchSwapAmount(payload, this.meProtocolToken);
+                    return result;
+                }
+                catch (error) {
+                    console.error("Error calculating swap amount:", error);
+                    throw error;
+                }
+            });
+        }
+        /**
+         * Update Magic network configuration
+         */
+        updateNetwork(brandNetwork) {
+            return __awaiter(this, void 0, void 0, function* () {
+                if (!this.magicClient) {
+                    return;
+                }
+            });
+        }
+        /**
+         * Check if user can afford the offer with selected reward
+         */
+        canAffordOffer(selectedReward, amountNeeded) {
+            return selectedReward.balance >= amountNeeded;
+        }
+        /**
+         * Get cached balances
+         */
+        getCachedBalances() {
+            return this.balances;
+        }
+        /**
+         * Clear wallet address cache
+         */
+        clearCache() {
+            this.walletAddress = null;
+            this.balances = [];
+        }
+        /**
+         * Logout - REMOVED: Users should stay logged in
+         * Kept for backward compatibility but does nothing
+         */
+        logout() {
+            return __awaiter(this, void 0, void 0, function* () {
+                // Do nothing - users stay logged in with Magic
+            });
+        }
+    }
+
+    /**
+     * Base API Client
+     * Foundation for all domain-specific API clients
+     */
+    class BaseAPI {
         constructor(config, env) {
             this.config = config;
             this.env = env;
-            this.userId = config.userId || this.generateUUID();
+            this.userId = config.userId || generateUUID();
+        }
+        /**
+         * Get user ID
+         */
+        getUserId() {
+            return this.userId;
         }
         /**
          * Get user email from config
@@ -228,31 +769,50 @@
             return this.config.emailAddress;
         }
         /**
-         * Generate a UUID v4
+         * Make a GET request
          */
-        generateUUID() {
-            return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-                const r = (Math.random() * 16) | 0;
-                const v = c === "x" ? r : (r & 0x3) | 0x8;
-                return v.toString(16);
+        get(url_1) {
+            return __awaiter(this, arguments, void 0, function* (url, headers = {}) {
+                const response = yield fetch(url, {
+                    method: "GET",
+                    headers: Object.assign({ "Content-Type": "application/json" }, headers),
+                });
+                if (!response.ok) {
+                    throw new Error(`GET ${url} failed: ${response.statusText}`);
+                }
+                return yield response.json();
             });
         }
         /**
-         * Create a new session
+         * Make a POST request
+         */
+        post(url_1, body_1) {
+            return __awaiter(this, arguments, void 0, function* (url, body, headers = {}) {
+                const response = yield fetch(url, {
+                    method: "POST",
+                    headers: Object.assign({ "Content-Type": "application/json" }, headers),
+                    body: JSON.stringify(body),
+                });
+                if (!response.ok) {
+                    throw new Error(`POST ${url} failed: ${response.statusText}`);
+                }
+                return yield response.json();
+            });
+        }
+    }
+
+    /**
+     * Session API
+     * Handles session creation and management
+     */
+    class SessionAPI extends BaseAPI {
+        /**
+         * Create a new chat session
          */
         createSession() {
             return __awaiter(this, void 0, void 0, function* () {
                 try {
-                    const response = yield fetch(`${this.env.AGENT_BASE_URL}/apps/consumer/users/${this.userId}/sessions`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                    });
-                    if (!response.ok) {
-                        throw new Error(`Failed to create session: ${response.statusText}`);
-                    }
-                    const data = yield response.json();
+                    const data = yield this.post(`${this.env.AGENT_BASE_URL}/apps/consumer/users/${this.userId}/sessions`, {});
                     return data.id;
                 }
                 catch (error) {
@@ -261,12 +821,18 @@
                 }
             });
         }
+    }
+
+    /**
+     * Chat API
+     * Handles chat messages and SSE streaming
+     */
+    class ChatAPI extends BaseAPI {
         /**
-         * Send a message and handle streaming response
+         * Send a message and handle streaming response via SSE
          */
         sendMessage(sessionId, message, onChunk, onComplete, onError) {
             return __awaiter(this, void 0, void 0, function* () {
-                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
                 try {
                     const payload = {
                         appName: "consumer",
@@ -278,73 +844,21 @@
                         },
                         streaming: true,
                     };
-                    const headers = {
-                        "Content-Type": "application/json",
-                    };
+                    const headers = {};
                     // Add email header if provided
                     if (this.config.emailAddress) {
                         headers["x-user-email"] = this.config.emailAddress;
                     }
                     const response = yield fetch(`${this.env.AGENT_BASE_URL}/run_sse`, {
                         method: "POST",
-                        headers,
+                        headers: Object.assign({ "Content-Type": "application/json" }, headers),
                         body: JSON.stringify(payload),
                     });
                     if (!response.ok) {
                         throw new Error(`Failed to send message: ${response.statusText}`);
                     }
                     // Handle SSE streaming response
-                    const reader = (_a = response.body) === null || _a === void 0 ? void 0 : _a.getReader();
-                    const decoder = new TextDecoder();
-                    if (!reader) {
-                        throw new Error("Response body is not readable");
-                    }
-                    let buffer = "";
-                    while (true) {
-                        const { done, value } = yield reader.read();
-                        if (done) {
-                            onComplete();
-                            break;
-                        }
-                        buffer += decoder.decode(value, { stream: true });
-                        const lines = buffer.split("\n");
-                        buffer = lines.pop() || "";
-                        for (const line of lines) {
-                            if (line.startsWith("data: ")) {
-                                const data = line.slice(6).trim();
-                                if (data && data !== "[DONE]") {
-                                    try {
-                                        const parsed = JSON.parse(data);
-                                        // Extract text from content.parts[0].text
-                                        if ((_d = (_c = (_b = parsed.content) === null || _b === void 0 ? void 0 : _b.parts) === null || _c === void 0 ? void 0 : _c[0]) === null || _d === void 0 ? void 0 : _d.text) {
-                                            const text = parsed.content.parts[0].text;
-                                            // If partial=false, this is the final complete message
-                                            // We should replace, not append
-                                            onChunk(text, parsed);
-                                        }
-                                        else if ((_g = (_f = (_e = parsed.content) === null || _e === void 0 ? void 0 : _e.parts) === null || _f === void 0 ? void 0 : _f[0]) === null || _g === void 0 ? void 0 : _g.functionCall) {
-                                            // Function call - pass along but no text chunk
-                                            onChunk("", parsed);
-                                        }
-                                        else if ((_k = (_j = (_h = parsed.content) === null || _h === void 0 ? void 0 : _h.parts) === null || _j === void 0 ? void 0 : _j[0]) === null || _k === void 0 ? void 0 : _k.functionResponse) {
-                                            // Function response - pass along but no text chunk
-                                            onChunk("", parsed);
-                                        }
-                                        else if (parsed.chunk) {
-                                            onChunk(parsed.chunk, parsed);
-                                        }
-                                        else if (parsed.text) {
-                                            onChunk(parsed.text, parsed);
-                                        }
-                                    }
-                                    catch (e) {
-                                        // If not JSON, treat as plain text chunk
-                                        onChunk(data);
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    yield this.handleSSEStream(response, onChunk, onComplete);
                 }
                 catch (error) {
                     console.error("Error sending message:", error);
@@ -353,21 +867,83 @@
             });
         }
         /**
-         * Fetch offer details
+         * Handle Server-Sent Events (SSE) stream
+         */
+        handleSSEStream(response, onChunk, onComplete) {
+            return __awaiter(this, void 0, void 0, function* () {
+                var _a;
+                const reader = (_a = response.body) === null || _a === void 0 ? void 0 : _a.getReader();
+                const decoder = new TextDecoder();
+                if (!reader) {
+                    throw new Error("Response body is not readable");
+                }
+                let buffer = "";
+                while (true) {
+                    const { done, value } = yield reader.read();
+                    if (done) {
+                        onComplete();
+                        break;
+                    }
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split("\n");
+                    buffer = lines.pop() || "";
+                    for (const line of lines) {
+                        if (line.startsWith("data: ")) {
+                            const data = line.slice(6).trim();
+                            if (data && data !== "[DONE]") {
+                                this.processSSEData(data, onChunk);
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        /**
+         * Process individual SSE data chunks
+         */
+        processSSEData(data, onChunk) {
+            var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+            try {
+                const parsed = JSON.parse(data);
+                // Extract text from content.parts[0].text
+                if ((_c = (_b = (_a = parsed.content) === null || _a === void 0 ? void 0 : _a.parts) === null || _b === void 0 ? void 0 : _b[0]) === null || _c === void 0 ? void 0 : _c.text) {
+                    const text = parsed.content.parts[0].text;
+                    onChunk(text, parsed);
+                }
+                else if ((_f = (_e = (_d = parsed.content) === null || _d === void 0 ? void 0 : _d.parts) === null || _e === void 0 ? void 0 : _e[0]) === null || _f === void 0 ? void 0 : _f.functionCall) {
+                    // Function call - pass along but no text chunk
+                    onChunk("", parsed);
+                }
+                else if ((_j = (_h = (_g = parsed.content) === null || _g === void 0 ? void 0 : _g.parts) === null || _h === void 0 ? void 0 : _h[0]) === null || _j === void 0 ? void 0 : _j.functionResponse) {
+                    // Function response - pass along but no text chunk
+                    onChunk("", parsed);
+                }
+                else if (parsed.chunk) {
+                    onChunk(parsed.chunk, parsed);
+                }
+                else if (parsed.text) {
+                    onChunk(parsed.text, parsed);
+                }
+            }
+            catch (e) {
+                // If not JSON, treat as plain text chunk
+                onChunk(data);
+            }
+        }
+    }
+
+    /**
+     * Offer API
+     * Handles offer-related endpoints
+     */
+    class OfferAPI extends BaseAPI {
+        /**
+         * Fetch detailed information about a specific offer
          */
         fetchOfferDetails(offerCode, sessionId) {
             return __awaiter(this, void 0, void 0, function* () {
                 try {
-                    const response = yield fetch(`${this.env.API_V1_URL}store/offer/${offerCode}?sessionId=${sessionId}`, {
-                        method: "GET",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                    });
-                    if (!response.ok) {
-                        throw new Error(`Failed to fetch offer details: ${response.statusText}`);
-                    }
-                    const result = yield response.json();
+                    const result = yield this.get(`${this.env.API_V1_URL}store/offer/${offerCode}?sessionId=${sessionId}`);
                     return result.data;
                 }
                 catch (error) {
@@ -377,22 +953,61 @@
             });
         }
         /**
+         * Fetch offers by brand ID
+         */
+        fetchOffersByBrandId(brandId, token) {
+            return __awaiter(this, void 0, void 0, function* () {
+                var _a;
+                try {
+                    const headers = {};
+                    if (token) {
+                        headers["authorization"] = `Bearer ${token}`;
+                    }
+                    const result = yield this.get(`${this.env.API_V1_URL}store/offer?page=1&limit=50&brandId=${brandId}`, headers);
+                    return ((_a = result.data) === null || _a === void 0 ? void 0 : _a.offers) || [];
+                }
+                catch (error) {
+                    console.error("Error fetching offers by brand:", error);
+                    throw error;
+                }
+            });
+        }
+    }
+
+    /**
+     * Brand API
+     * Handles brand-related endpoints
+     */
+    class BrandAPI extends BaseAPI {
+        /**
+         * Fetch brands by category ID with purchase earning methods
+         */
+        fetchBrandsByCategoryId(categoryId) {
+            return __awaiter(this, void 0, void 0, function* () {
+                try {
+                    const result = yield this.get(`${this.env.API_URL}brands/earning-methods/purchase/categories/${categoryId}/brands`);
+                    return result.data || [];
+                }
+                catch (error) {
+                    console.error("Error fetching brands by category:", error);
+                    throw error;
+                }
+            });
+        }
+    }
+
+    /**
+     * Reward API
+     * Handles reward and redemption endpoints
+     */
+    class RewardAPI extends BaseAPI {
+        /**
          * Fetch user reward balances
          */
         fetchRewardBalances(walletAddress, token) {
             return __awaiter(this, void 0, void 0, function* () {
                 try {
-                    const response = yield fetch(`${this.env.API_URL}reward/sdk/balances?walletAddress=${walletAddress}`, {
-                        method: "GET",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "x-access-token": token,
-                        },
-                    });
-                    if (!response.ok) {
-                        throw new Error(`Failed to fetch reward balances: ${response.statusText}`);
-                    }
-                    const result = yield response.json();
+                    const result = yield this.get(`${this.env.API_URL}reward/sdk/balances?walletAddress=${walletAddress}`, { "x-access-token": token });
                     return result.data || [];
                 }
                 catch (error) {
@@ -407,18 +1022,7 @@
         fetchSwapAmount(payload, token) {
             return __awaiter(this, void 0, void 0, function* () {
                 try {
-                    const response = yield fetch(`${this.env.API_URL}reward/sdk/swap-amount`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "x-access-token": token,
-                        },
-                        body: JSON.stringify(payload),
-                    });
-                    if (!response.ok) {
-                        throw new Error(`Failed to fetch swap amount: ${response.statusText}`);
-                    }
-                    const result = yield response.json();
+                    const result = yield this.post(`${this.env.API_URL}reward/sdk/swap-amount`, payload, { "x-access-token": token });
                     return result.data;
                 }
                 catch (error) {
@@ -427,26 +1031,23 @@
                 }
             });
         }
+    }
+
+    /**
+     * Auth API
+     * Handles authentication endpoints
+     */
+    class AuthAPI extends BaseAPI {
         /**
          * Login to ME Protocol (creates account if new user)
          */
         meProtocolLogin(email, walletAddress) {
             return __awaiter(this, void 0, void 0, function* () {
                 try {
-                    const response = yield fetch(`${this.env.API_URL}auth/sdk/login`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({
-                            walletAddress,
-                            email,
-                        }),
+                    const data = yield this.post(`${this.env.API_URL}auth/sdk/login`, {
+                        walletAddress,
+                        email,
                     });
-                    if (!response.ok) {
-                        throw new Error(`Failed to login: ${response.statusText}`);
-                    }
-                    const data = yield response.json();
                     return data;
                 }
                 catch (error) {
@@ -455,57 +1056,83 @@
                 }
             });
         }
-        /**
-         * Fetch brands by category ID with purchase earning methods
-         */
-        fetchBrandsByCategoryId(categoryId) {
+    }
+
+    /**
+     * Unified API Client
+     * Combines all domain-specific API clients into a single facade
+     */
+    /**
+     * Main API Client - Facade for all domain APIs
+     */
+    class APIClient {
+        constructor(config, env) {
+            // Initialize all domain APIs
+            this._sessionAPI = new SessionAPI(config, env);
+            this._chatAPI = new ChatAPI(config, env);
+            this._offerAPI = new OfferAPI(config, env);
+            this._brandAPI = new BrandAPI(config, env);
+            this._rewardAPI = new RewardAPI(config, env);
+            this._authAPI = new AuthAPI(config, env);
+        }
+        // ===== API Access (for services) =====
+        get brandAPI() {
+            return this._brandAPI;
+        }
+        get offerAPI() {
+            return this._offerAPI;
+        }
+        // ===== User Info =====
+        getUserEmail() {
+            return this._sessionAPI.getUserEmail();
+        }
+        getUserId() {
+            return this._sessionAPI.getUserId();
+        }
+        // ===== Session Management =====
+        createSession() {
             return __awaiter(this, void 0, void 0, function* () {
-                try {
-                    const response = yield fetch(`${this.env.API_URL}brands/earning-methods/purchase/categories/${categoryId}/brands`, {
-                        method: "GET",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                    });
-                    if (!response.ok) {
-                        throw new Error(`Failed to fetch brands by category: ${response.statusText}`);
-                    }
-                    const result = yield response.json();
-                    return result.data || [];
-                }
-                catch (error) {
-                    console.error("Error fetching brands by category:", error);
-                    throw error;
-                }
+                return this._sessionAPI.createSession();
             });
         }
-        /**
-         * Fetch offers by brand ID
-         */
+        // ===== Chat & Messaging =====
+        sendMessage(sessionId, message, onChunk, onComplete, onError) {
+            return __awaiter(this, void 0, void 0, function* () {
+                return this._chatAPI.sendMessage(sessionId, message, onChunk, onComplete, onError);
+            });
+        }
+        // ===== Offers =====
+        fetchOfferDetails(offerCode, sessionId) {
+            return __awaiter(this, void 0, void 0, function* () {
+                return this._offerAPI.fetchOfferDetails(offerCode, sessionId);
+            });
+        }
         fetchOffersByBrandId(brandId, token) {
             return __awaiter(this, void 0, void 0, function* () {
-                var _a;
-                try {
-                    const headers = {
-                        "Content-Type": "application/json",
-                    };
-                    if (token) {
-                        headers["authorization"] = `Bearer ${token}`;
-                    }
-                    const response = yield fetch(`${this.env.API_V1_URL}store/offer?page=1&limit=50&brandId=${brandId}`, {
-                        method: "GET",
-                        headers,
-                    });
-                    if (!response.ok) {
-                        throw new Error(`Failed to fetch offers: ${response.statusText}`);
-                    }
-                    const result = yield response.json();
-                    return ((_a = result.data) === null || _a === void 0 ? void 0 : _a.offers) || [];
-                }
-                catch (error) {
-                    console.error("Error fetching offers by brand:", error);
-                    throw error;
-                }
+                return this._offerAPI.fetchOffersByBrandId(brandId, token);
+            });
+        }
+        // ===== Brands =====
+        fetchBrandsByCategoryId(categoryId) {
+            return __awaiter(this, void 0, void 0, function* () {
+                return this._brandAPI.fetchBrandsByCategoryId(categoryId);
+            });
+        }
+        // ===== Rewards & Redemption =====
+        fetchRewardBalances(walletAddress, token) {
+            return __awaiter(this, void 0, void 0, function* () {
+                return this._rewardAPI.fetchRewardBalances(walletAddress, token);
+            });
+        }
+        fetchSwapAmount(payload, token) {
+            return __awaiter(this, void 0, void 0, function* () {
+                return this._rewardAPI.fetchSwapAmount(payload, token);
+            });
+        }
+        // ===== Authentication =====
+        meProtocolLogin(email, walletAddress) {
+            return __awaiter(this, void 0, void 0, function* () {
+                return this._authAPI.meProtocolLogin(email, walletAddress);
             });
         }
     }
@@ -709,60 +1336,11 @@
 `.trim();
     }
     /**
-     * Award icon (for Must Haves category)
-     */
-    function getAwardIcon(options = {}) {
-        const { width = 24, height = 24, color = "currentColor", className = "", } = options;
-        return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}"><circle cx="12" cy="8" r="6" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M15.477 12.89L17 22L12 19L7 22L8.523 12.89" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`.trim();
-    }
-    /**
-     * Shirt icon (for Cosmetics category)
-     */
-    function getShirtIcon(options = {}) {
-        const { width = 24, height = 24, color = "currentColor", className = "", } = options;
-        return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}"><path d="M20.38 3.46L16 2L13 8H11L9 8C9 6 7 2L2.62 3.46C2.22 3.6 2 4 2 4.42V9.58C2 10.02 2.22 10.42 2.58 10.58L7 12V22H17V12L21.42 10.58C21.78 10.42 22 10.02 22 9.58V4.42C22 4 21.78 3.6 21.38 3.46Z" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`.trim();
-    }
-    /**
-     * Heart pulse icon (for Travel category)
-     */
-    function getHeartPulseIcon(options = {}) {
-        const { width = 24, height = 24, color = "currentColor", className = "", } = options;
-        return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}"><path d="M19 14C20.49 12.54 22 10.79 22 8.5C22 7.04131 21.4205 5.64236 20.3891 4.61091C19.3576 3.57946 17.9587 3 16.5 3C14.74 3 13.5 3.5 12 5C10.5 3.5 9.26 3 7.5 3C6.04131 3 4.64236 3.57946 3.61091 4.61091C2.57946 5.64236 2 7.04131 2 8.5C2 10.8 3.5 12.55 5 14" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 21L5 14H9L11 9L13 15L15 14H19L12 21Z" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`.trim();
-    }
-    /**
-     * Sofa icon (for Sneakers category)
-     */
-    function getSofaIcon(options = {}) {
-        const { width = 24, height = 24, color = "currentColor", className = "", } = options;
-        return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}"><path d="M20 9V6C20 4.89543 19.1046 4 18 4H6C4.89543 4 4 4.89543 4 6V9" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 11V16C2 17.1046 2.89543 18 4 18H5" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 11V16C22 17.1046 21.1046 18 20 18H19" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 11C4 9.89543 4.89543 9 6 9H18C19.1046 9 20 9.89543 20 11V16H4V11Z" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 18V20" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 18V20" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`.trim();
-    }
-    /**
      * Tag icon (for Food & Beverages category)
      */
     function getTagIcon(options = {}) {
         const { width = 24, height = 24, color = "currentColor", className = "", } = options;
         return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}"><path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 17L12 22L22 17" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12L12 17L22 12" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`.trim();
-    }
-    /**
-     * Layout grid icon (for Deals & Sports category)
-     */
-    function getLayoutGridIcon(options = {}) {
-        const { width = 24, height = 24, color = "currentColor", className = "", } = options;
-        return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}"><rect x="3" y="3" width="7" height="7" rx="1" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`.trim();
-    }
-    /**
-     * Laptop icon (for Gadgets & Electronics category)
-     */
-    function getLaptopIcon(options = {}) {
-        const { width = 24, height = 24, color = "currentColor", className = "", } = options;
-        return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}"><path d="M20 16V7C20 5.89543 19.1046 5 18 5H6C4.89543 5 4 5.89543 4 7V16" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 16H22" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 16L3 19H21L22 16" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`.trim();
-    }
-    /**
-     * Book open icon (for Art & Collectibles category)
-     */
-    function getBookOpenIcon(options = {}) {
-        const { width = 24, height = 24, color = "currentColor", className = "", } = options;
-        return `<svg width="${width}" height="${height}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}"><path d="M2 3H8C9.06087 3 10.0783 3.42143 10.8284 4.17157C11.5786 4.92172 12 5.93913 12 7V21C12 20.2044 11.6839 19.4413 11.1213 18.8787C10.5587 18.3161 9.79565 18 9 18H2V3Z" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 3H16C14.9391 3 13.9217 3.42143 13.1716 4.17157C12.4214 4.92172 12 5.93913 12 7V21C12 20.2044 12.3161 19.4413 12.8787 18.8787C13.4413 18.3161 14.2044 18 15 18H22V3Z" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`.trim();
     }
 
     /**
@@ -1149,999 +1727,376 @@
     }
 
     /**
-     * OTP Verification View Component
+     * Offer Types
+     * All types related to offers and products
      */
-    class OTPView {
-        /**
-         * Render OTP verification view
-         */
-        static render(onBack, onClose, onSuccess, redeemManager, autoSendOTP = false) {
-            const configEmail = redeemManager.getEmail() || "";
-            const isEmailPreFilled = !!configEmail;
-            return `
-      <div class="me-agent-offers-header">
-        <button class="me-agent-offers-back" aria-label="Back">
-          ${getChevronLeftIcon({ width: 20, height: 20 })}
-          <span>Back</span>
-        </button>
-        <h3 class="me-agent-offers-title">Verify Email</h3>
-        <button class="me-agent-offers-close" aria-label="Close offers">${getCloseIcon({ width: 20, height: 20 })}</button>
-      </div>
-      <div class="me-agent-otp-container">
-        <p class="me-agent-otp-description">${autoSendOTP
-            ? "Please check your email for the one-time password we just sent."
-            : "We'll send a one-time password to your email to verify your identity."}</p>
-        
-        <div class="me-agent-otp-form" style="${autoSendOTP ? "display: none;" : ""}">
-          <input 
-            type="email" 
-            class="me-agent-otp-email-input" 
-            placeholder="Enter your email address"
-            value="${configEmail}"
-            ${isEmailPreFilled ? "readonly" : ""}
-            required
-          />
-          <button class="me-agent-otp-send-button">Send OTP</button>
-        </div>
+    /**
+     * Redemption method types
+     */
+    var RedemptionMethodType;
+    (function (RedemptionMethodType) {
+        RedemptionMethodType["FIXED_AMOUNT_OFF"] = "FIXED_AMOUNT_OFF";
+        RedemptionMethodType["FIXED_PERCENTAGE_OFF"] = "FIXED_PERCENTAGE_OFF";
+        RedemptionMethodType["VARIABLE_AMOUNT_OFF"] = "VARIABLE_AMOUNT_OFF";
+        RedemptionMethodType["VARIABLE_PERCENTAGE_OFF"] = "VARIABLE_PERCENTAGE_OFF";
+        RedemptionMethodType["FREE_SHIPPING"] = "FREE_SHIPPING";
+    })(RedemptionMethodType || (RedemptionMethodType = {}));
 
-        <div class="me-agent-otp-status" style="display: ${autoSendOTP ? "block" : "none"};">${autoSendOTP
-            ? "OTP sent! Please check your email and complete verification."
-            : ""}</div>
-      </div>
-    `;
-        }
-        /**
-         * Setup event listeners for OTP view
-         */
-        static setupListeners(element, onBack, onClose, onSuccess, redeemManager, autoSendOTP = false) {
-            const backBtn = element.querySelector(".me-agent-offers-back");
-            backBtn === null || backBtn === void 0 ? void 0 : backBtn.addEventListener("click", onBack);
-            const closeBtn = element.querySelector(".me-agent-offers-close");
-            closeBtn === null || closeBtn === void 0 ? void 0 : closeBtn.addEventListener("click", onClose);
-            const emailInput = element.querySelector(".me-agent-otp-email-input");
-            const sendBtn = element.querySelector(".me-agent-otp-send-button");
-            const statusDiv = element.querySelector(".me-agent-otp-status");
-            // If auto-send is enabled, start polling for authentication immediately
-            if (autoSendOTP) {
-                this.startAuthPolling(redeemManager, onSuccess);
-                return;
+    /**
+     * Discount Utility
+     * Calculates discounted prices based on redemption method
+     */
+    /**
+     * Calculate the final discounted price based on redemption method
+     */
+    function getDiscountedPrice(originalPrice, method) {
+        switch (method.type) {
+            case RedemptionMethodType.FREE_SHIPPING:
+                return "Free shipping";
+            case RedemptionMethodType.FIXED_AMOUNT_OFF: {
+                const discount = Math.min(method.discountAmount || 0, method.maxDiscountAmount && method.maxDiscountAmount > 0
+                    ? method.maxDiscountAmount
+                    : Infinity);
+                return originalPrice - discount;
             }
-            // Manual OTP send
-            if (sendBtn) {
-                sendBtn.addEventListener("click", () => __awaiter(this, void 0, void 0, function* () {
-                    const email = emailInput === null || emailInput === void 0 ? void 0 : emailInput.value.trim();
-                    if (!email) {
-                        this.showStatus(statusDiv, "Please enter a valid email address", "error");
-                        return;
-                    }
-                    try {
-                        sendBtn.disabled = true;
-                        sendBtn.textContent = "Sending...";
-                        statusDiv.style.display = "none";
-                        yield redeemManager.sendOTP(email);
-                        this.showStatus(statusDiv, "OTP sent! Please check your email and complete verification.", "success");
-                        // Start polling for authentication
-                        this.startAuthPolling(redeemManager, onSuccess);
-                    }
-                    catch (error) {
-                        console.error("Error sending OTP:", error);
-                        this.showStatus(statusDiv, error.message || "Failed to send OTP. Please try again.", "error");
-                        sendBtn.disabled = false;
-                        sendBtn.textContent = "Send OTP";
-                    }
-                }));
+            case RedemptionMethodType.FIXED_PERCENTAGE_OFF: {
+                const calculatedDiscount = originalPrice * ((method.discountPercentage || 0) / 100);
+                const discount = method.maxDiscountAmount && method.maxDiscountAmount > 0
+                    ? Math.min(calculatedDiscount, method.maxDiscountAmount)
+                    : calculatedDiscount;
+                return originalPrice - discount;
             }
-        }
-        /**
-         * Start polling for authentication status
-         */
-        static startAuthPolling(redeemManager, onSuccess) {
-            const pollInterval = setInterval(() => __awaiter(this, void 0, void 0, function* () {
-                try {
-                    const isAuthenticated = yield redeemManager.isAuthenticated();
-                    if (isAuthenticated) {
-                        clearInterval(pollInterval);
-                        onSuccess();
-                    }
-                }
-                catch (error) {
-                    console.error("Error checking authentication:", error);
-                }
-            }), 2000); // Poll every 2 seconds
-            // Stop polling after 5 minutes
-            setTimeout(() => {
-                clearInterval(pollInterval);
-            }, 300000);
-        }
-        /**
-         * Show status message
-         */
-        static showStatus(element, message, type) {
-            element.textContent = message;
-            element.className = `me-agent-otp-status me-agent-otp-status-${type}`;
-            element.style.display = "block";
-        }
-    }
-
-    /**
-     * Reward Selection View Component
-     */
-    class RewardSelectionView {
-        /**
-         * Render reward selection view
-         */
-        static render(balances) {
-            return `
-      <div class="me-agent-offers-header">
-        <button class="me-agent-offers-back" aria-label="Back">
-          ${getChevronLeftIcon({ width: 20, height: 20 })}
-          <span>Back</span>
-        </button>
-        <h3 class="me-agent-offers-title">Select Reward</h3>
-        <button class="me-agent-offers-close" aria-label="Close offers">${getCloseIcon({ width: 20, height: 20 })}</button>
-      </div>
-      <div class="me-agent-rewards-container">
-        <p class="me-agent-rewards-description">Choose a reward to redeem this offer:</p>
-        
-        <div class="me-agent-rewards-list">
-          ${balances
-            .map((balance, index) => this.renderRewardItem(balance, index))
-            .join("")}
-        </div>
-      </div>
-    `;
-        }
-        /**
-         * Render individual reward item
-         */
-        static renderRewardItem(balance, index) {
-            const imageUrl = balance.reward.image || "https://via.placeholder.com/60x60?text=Reward";
-            return `
-      <div class="me-agent-reward-item" data-index="${index}">
-        <div class="me-agent-reward-image" style="background-image: url('${imageUrl}')"></div>
-        <div class="me-agent-reward-info">
-          <h4 class="me-agent-reward-name">${balance.reward.name}</h4>
-          <p class="me-agent-reward-symbol">${balance.reward.symbol}</p>
-          <p class="me-agent-reward-balance">Balance: ${balance.balance.toLocaleString()}</p>
-        </div>
-        <button class="me-agent-reward-select-button">Select</button>
-      </div>
-    `;
-        }
-        /**
-         * Setup event listeners
-         */
-        static setupListeners(element, balances, onBack, onClose, onSelect) {
-            const backBtn = element.querySelector(".me-agent-offers-back");
-            backBtn === null || backBtn === void 0 ? void 0 : backBtn.addEventListener("click", onBack);
-            const closeBtn = element.querySelector(".me-agent-offers-close");
-            closeBtn === null || closeBtn === void 0 ? void 0 : closeBtn.addEventListener("click", onClose);
-            const selectButtons = element.querySelectorAll(".me-agent-reward-select-button");
-            selectButtons.forEach((btn, index) => {
-                btn.addEventListener("click", () => onSelect(balances[index]));
-            });
-        }
-    }
-
-    /**
-     * Affordability Error View Component
-     */
-    class AffordabilityErrorView {
-        /**
-         * Render error view
-         */
-        static render(reward, amountNeeded) {
-            return `
-      <div class="me-agent-offers-header">
-        <button class="me-agent-offers-back" aria-label="Back">
-          ${getChevronLeftIcon({ width: 20, height: 20 })}
-          <span>Back</span>
-        </button>
-        <h3 class="me-agent-offers-title">Insufficient Balance</h3>
-        <button class="me-agent-offers-close" aria-label="Close offers">${getCloseIcon({ width: 20, height: 20 })}</button>
-      </div>
-      <div class="me-agent-error-container">
-        <div class="me-agent-error-icon">⚠️</div>
-        <h3>Cannot Afford This Offer</h3>
-        <p>You need <strong>${amountNeeded.toFixed(2)} ${reward.reward.symbol}</strong> to redeem this offer.</p>
-        <p>Your current balance: <strong>${reward.balance.toFixed(2)} ${reward.reward.symbol}</strong></p>
-        <p>Please select a different reward or earn more to continue.</p>
-        <button class="me-agent-error-back-button">Select Different Reward</button>
-      </div>
-    `;
-        }
-        /**
-         * Setup event listeners
-         */
-        static setupListeners(element, onBack, onClose) {
-            const backBtn = element.querySelector(".me-agent-offers-back");
-            backBtn === null || backBtn === void 0 ? void 0 : backBtn.addEventListener("click", onBack);
-            const closeBtn = element.querySelector(".me-agent-offers-close");
-            closeBtn === null || closeBtn === void 0 ? void 0 : closeBtn.addEventListener("click", onClose);
-            const errorBackBtn = element.querySelector(".me-agent-error-back-button");
-            errorBackBtn === null || errorBackBtn === void 0 ? void 0 : errorBackBtn.addEventListener("click", onBack);
-        }
-    }
-
-    /**
-     * Confirmation View Component
-     */
-    class ConfirmationView {
-        /**
-         * Render confirmation view
-         */
-        static render(reward, swapAmount, offerDetail) {
-            return `
-      <div class="me-agent-offers-header">
-        <button class="me-agent-offers-back" aria-label="Back">
-          ${getChevronLeftIcon({ width: 20, height: 20 })}
-          <span>Back</span>
-        </button>
-        <h3 class="me-agent-offers-title">Confirm Redemption</h3>
-        <button class="me-agent-offers-close" aria-label="Close offers">${getCloseIcon({ width: 20, height: 20 })}</button>
-      </div>
-      <div class="me-agent-confirm-container">
-        <div class="me-agent-confirm-summary">
-          <h3>Redemption Summary</h3>
-          
-          <div class="me-agent-confirm-item">
-            <span>Offer:</span>
-            <strong>${offerDetail.name}</strong>
-          </div>
-          
-          <div class="me-agent-confirm-item">
-            <span>Reward Used:</span>
-            <strong>${reward.reward.name} (${reward.reward.symbol})</strong>
-          </div>
-          
-          <div class="me-agent-confirm-item">
-            <span>Amount Required:</span>
-            <strong>${swapAmount.amountNeeded.toFixed(2)} ${reward.reward.symbol}</strong>
-          </div>
-          
-          <div class="me-agent-confirm-item">
-            <span>Your Balance After:</span>
-            <strong>${(reward.balance - swapAmount.amountNeeded).toFixed(2)} ${reward.reward.symbol}</strong>
-          </div>
-          
-          <div class="me-agent-confirm-item">
-            <span>You Save:</span>
-            <strong class="me-agent-confirm-savings">$${swapAmount.usdDiscount.toFixed(2)}</strong>
-          </div>
-        </div>
-        
-        <button class="me-agent-confirm-button">Continue to Redemption</button>
-      </div>
-    `;
-        }
-        /**
-         * Setup event listeners
-         */
-        static setupListeners(element, onBack, onClose, onConfirm) {
-            const backBtn = element.querySelector(".me-agent-offers-back");
-            backBtn === null || backBtn === void 0 ? void 0 : backBtn.addEventListener("click", onBack);
-            const closeBtn = element.querySelector(".me-agent-offers-close");
-            closeBtn === null || closeBtn === void 0 ? void 0 : closeBtn.addEventListener("click", onClose);
-            const confirmBtn = element.querySelector(".me-agent-confirm-button");
-            confirmBtn === null || confirmBtn === void 0 ? void 0 : confirmBtn.addEventListener("click", onConfirm);
-        }
-    }
-
-    /**
-     * Loading View Component
-     * Shows a loading state while user is being authenticated to ME Protocol
-     */
-    class OnboardingView {
-        /**
-         * Render loading view
-         */
-        static render() {
-            return `
-      <div class="me-agent-offers-header">
-        <h3 class="me-agent-offers-title">Please wait</h3>
-      </div>
-      <div class="me-agent-onboarding-container">
-        <div class="me-agent-onboarding-spinner"></div>
-        <h3 class="me-agent-onboarding-title">Setting up your account...</h3>
-        <p class="me-agent-onboarding-description">
-          This will only take a moment.
-        </p>
-        <div class="me-agent-onboarding-status">Please wait...</div>
-      </div>
-    `;
-        }
-        /**
-         * Start login process
-         */
-        static startOnboarding(element, redeemManager, onSuccess, onError) {
-            return __awaiter(this, void 0, void 0, function* () {
-                const statusDiv = element.querySelector(".me-agent-onboarding-status");
-                try {
-                    if (statusDiv) {
-                        statusDiv.textContent = "Authenticating...";
-                    }
-                    // Login to ME Protocol (creates account if new user)
-                    yield redeemManager.loginToMEProtocol();
-                    if (statusDiv) {
-                        statusDiv.textContent = "Almost done...";
-                    }
-                    // Small delay to show success
-                    yield new Promise((resolve) => setTimeout(resolve, 500));
-                    onSuccess();
-                }
-                catch (error) {
-                    console.error("Login error:", error);
-                    onError(error.message || "Failed to authenticate. Please try again.");
-                }
-            });
-        }
-    }
-
-    /**
-     * Detail Panel Component - Handles side panel for offers, earnings, redemption, etc.
-     */
-    class DetailPanel {
-        constructor(onClose, onOfferClick, config, apiClient, redeemManager) {
-            this.currentView = "grid";
-            this.offers = [];
-            this.brands = [];
-            this.categories = [];
-            this.redeemManager = null;
-            this.currentOfferDetail = null;
-            this.selectedVariant = null;
-            this.selectedReward = null;
-            this.swapAmount = null;
-            this.likedOffers = {};
-            this.onClose = onClose;
-            this.onOfferClick = onOfferClick;
-            this.config = config;
-            this.apiClient = apiClient;
-            this.likedOffers = config.likedOffers || {};
-            this.redeemManager = redeemManager || null;
-            this.element = this.create();
-        }
-        /**
-         * Create the offers panel element
-         */
-        create() {
-            const panel = document.createElement("div");
-            panel.className = "me-agent-detail-panel";
-            return panel;
-        }
-        /**
-         * Show offers grid
-         */
-        showGrid(offers) {
-            this.offers = offers;
-            this.currentView = "grid";
-            this.element.innerHTML = `
-      <div class="me-agent-offers-header">
-        <h3 class="me-agent-offers-title">Available Offers</h3>
-        <button class="me-agent-offers-close" aria-label="Close offers">${getCloseIcon({ width: 20, height: 20 })}</button>
-      </div>
-      <div class="me-agent-offers-grid">
-        ${offers.map((offer) => this.createOfferCard(offer)).join("")}
-      </div>
-    `;
-            // Add event listeners
-            const closeBtn = this.element.querySelector(".me-agent-offers-close");
-            closeBtn === null || closeBtn === void 0 ? void 0 : closeBtn.addEventListener("click", this.onClose);
-            const cards = this.element.querySelectorAll(".me-agent-offer-card");
-            cards.forEach((card, index) => {
-                card.addEventListener("click", () => {
-                    this.onOfferClick(offers[index].offerCode);
-                });
-            });
-        }
-        /**
-         * Show brands detail list
-         */
-        showBrandsDetail(brands) {
-            this.brands = brands;
-            this.currentView = "brands";
-            const brandCardsHtml = brands
-                .map((brand) => this.createBrandCard(brand))
-                .join("");
-            this.element.innerHTML = `
-      <div class="me-agent-offers-header">
-        <h3 class="me-agent-offers-title">Brands</h3>
-        <button class="me-agent-offers-close" aria-label="Close">${getCloseIcon({ width: 20, height: 20 })}</button>
-      </div>
-      <div class="me-agent-brands-list">
-        ${brandCardsHtml}
-      </div>
-    `;
-            // Add event listeners
-            const closeBtn = this.element.querySelector(".me-agent-offers-close");
-            closeBtn === null || closeBtn === void 0 ? void 0 : closeBtn.addEventListener("click", this.onClose);
-            // Show the panel
-            this.show();
-        }
-        /**
-         * Format number with commas
-         */
-        formatNumber(num) {
-            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        }
-        /**
-         * Create a brand card HTML
-         */
-        createBrandCard(brand) {
-            var _a, _b, _c, _d, _e, _f, _g;
-            const logoUrl = brand.logoUrl ||
-                `https://via.placeholder.com/80x80?text=${brand.name.charAt(0)}`;
-            // Get reward details
-            const points = ((_c = (_b = (_a = brand.rewardDetails) === null || _a === void 0 ? void 0 : _a.rules) === null || _b === void 0 ? void 0 : _b[0]) === null || _c === void 0 ? void 0 : _c.points) || 0;
-            const formattedPoints = this.formatNumber(points);
-            const rewardSymbol = ((_e = (_d = brand.rewardDetails) === null || _d === void 0 ? void 0 : _d.rewardInfo) === null || _e === void 0 ? void 0 : _e.rewardSymbol) || "";
-            const rewardOriginalValue = parseFloat(((_g = (_f = brand.rewardDetails) === null || _f === void 0 ? void 0 : _f.rewardInfo) === null || _g === void 0 ? void 0 : _g.rewardOriginalValue) || "0");
-            // Create conversion rate display (1 SYMBOL = $X.XX)
-            const conversionRate = rewardOriginalValue > 0
-                ? `1 ${rewardSymbol} = $${rewardOriginalValue.toFixed(2)}`
-                : "";
-            // Create callback URL with current origin
-            const currentOrigin = typeof window !== "undefined" ? window.location.origin : "";
-            const callbackUrl = encodeURIComponent(`${currentOrigin}?brand=${brand.id}&action=signup`);
-            // Construct signup URL - use shopifyStoreUrl if available, otherwise websiteUrl
-            let signupUrl = "#";
-            if (brand.shopifyStoreUrl) {
-                // For Shopify stores, add https:// if not present and append callback
-                const shopifyUrl = brand.shopifyStoreUrl.startsWith("http")
-                    ? brand.shopifyStoreUrl
-                    : `https://${brand.shopifyStoreUrl}`;
-                signupUrl = `${shopifyUrl}?return_to=${callbackUrl}`;
+            case RedemptionMethodType.VARIABLE_AMOUNT_OFF:
+                // Variable amount uses discountAmount without max cap
+                return originalPrice - (method.discountAmount || 0);
+            case RedemptionMethodType.VARIABLE_PERCENTAGE_OFF: {
+                const calculatedDiscount = originalPrice * ((method.discountPercentage || 0) / 100);
+                const discount = method.maxDiscountAmount && method.maxDiscountAmount > 0
+                    ? Math.min(calculatedDiscount, method.maxDiscountAmount)
+                    : calculatedDiscount;
+                return originalPrice - discount;
             }
-            else if (brand.websiteUrl) {
-                signupUrl = `${brand.websiteUrl}?return_to=${callbackUrl}`;
-            }
+            default:
+                return originalPrice;
+        }
+    }
+    /**
+     * Calculate discount from offer data (from query_offers response)
+     */
+    function calculateOfferDiscount(originalPrice, discountType, discountDetails) {
+        if (!discountDetails || discountDetails.length === 0) {
+            return originalPrice;
+        }
+        const firstDiscount = discountDetails[0];
+        const method = {
+            type: discountType,
+            discountPercentage: firstDiscount.percentage,
+            discountAmount: firstDiscount.amount,
+        };
+        return getDiscountedPrice(originalPrice, method);
+    }
+    /**
+     * Format discount for display
+     */
+    function formatDiscount(discountType, discountDetails) {
+        if (!discountDetails || discountDetails.length === 0) {
+            return "";
+        }
+        const firstDiscount = discountDetails[0];
+        switch (discountType) {
+            case RedemptionMethodType.FIXED_PERCENTAGE_OFF:
+            case RedemptionMethodType.VARIABLE_PERCENTAGE_OFF:
+                return firstDiscount.percentage ? `${firstDiscount.percentage}% OFF` : "";
+            case RedemptionMethodType.FIXED_AMOUNT_OFF:
+            case RedemptionMethodType.VARIABLE_AMOUNT_OFF:
+                return firstDiscount.amount ? `$${firstDiscount.amount} OFF` : "";
+            case RedemptionMethodType.FREE_SHIPPING:
+                return "FREE SHIPPING";
+            default:
+                return "";
+        }
+    }
+
+    /**
+     * Offer Grid View
+     * Renders a grid of offer cards
+     */
+    class OfferGridView {
+        /**
+         * Render a grid of offers
+         */
+        render(offers) {
             return `
-      <div class="me-agent-brand-card" data-brand-id="${brand.id}">
-        <div class="me-agent-brand-logo-container">
-          <img src="${logoUrl}" alt="${brand.name}" class="me-agent-brand-logo" />
-        </div>
-        <div class="me-agent-brand-info">
-          <h4 class="me-agent-brand-name">${brand.name}</h4>
-          ${conversionRate
-            ? `<p class="me-agent-brand-conversion">${conversionRate}</p>`
-            : ""}
-        </div>
-        <div class="me-agent-brand-actions">
-          ${points
-            ? `<div class="me-agent-brand-reward-amount">${formattedPoints} <span class="me-agent-brand-reward-symbol">${rewardSymbol}</span></div>`
-            : ""}
-          <a href="${signupUrl}" target="_blank" rel="noopener noreferrer" class="me-agent-brand-signup-button">
-            <span>Sign Up & Earn</span>
-            ${getExternalLinkIcon({ width: 12, height: 12, color: "#0F0F0F" })}
-          </a>
+      <div class="me-agent-offers-container">
+        <div class="me-agent-offers-grid">
+          ${offers.map((offer) => this.renderOfferCard(offer)).join("")}
         </div>
       </div>
     `;
         }
         /**
-         * Show categories detail with 3-column grid
+         * Render a single offer card (using same styling as brand offers)
          */
-        showCategoriesDetail(categories) {
-            this.categories = categories;
-            this.currentView = "categories";
-            const categoryCardsHtml = categories
-                .map((category) => this.createCategoryCard(category))
-                .join("");
-            this.element.innerHTML = `
-      <div class="me-agent-offers-header">
-        <h3 class="me-agent-offers-title">Categories</h3>
-        <button class="me-agent-offers-close" aria-label="Close">${getCloseIcon({ width: 20, height: 20 })}</button>
-      </div>
-      <div class="me-agent-categories-grid">
-        ${categoryCardsHtml}
-      </div>
-    `;
-            // Add event listeners
-            const closeBtn = this.element.querySelector(".me-agent-offers-close");
-            closeBtn === null || closeBtn === void 0 ? void 0 : closeBtn.addEventListener("click", this.onClose);
-            // Add click listeners to category cards
-            const categoryCards = this.element.querySelectorAll(".me-agent-category-card");
-            categoryCards.forEach((card) => {
-                card.addEventListener("click", () => __awaiter(this, void 0, void 0, function* () {
-                    const categoryId = card.getAttribute("data-category-id");
-                    if (categoryId) {
-                        yield this.handleCategoryClick(categoryId);
-                    }
-                }));
-            });
-            // Show the panel
-            this.show();
-        }
-        /**
-         * Handle category card click - fetch brands and offers
-         */
-        handleCategoryClick(categoryId) {
-            return __awaiter(this, void 0, void 0, function* () {
-                try {
-                    // Show loading state
-                    this.element.innerHTML = `
-        <div class="me-agent-offers-header">
-          <button class="me-agent-offers-back" aria-label="Back">${getChevronLeftIcon({ width: 20, height: 20 })}</button>
-          <h3 class="me-agent-offers-title">Loading...</h3>
-          <button class="me-agent-offers-close" aria-label="Close">${getCloseIcon({ width: 20, height: 20 })}</button>
-        </div>
-        <div class="me-agent-brands-list">
-          <div class="me-agent-loading">Loading brands...</div>
-        </div>
-      `;
-                    // Fetch brands with purchase earning methods for this category
-                    const brands = yield this.apiClient.fetchBrandsByCategoryId(categoryId);
-                    // Fetch offers for each brand in parallel
-                    const brandsWithOffers = yield Promise.all(brands.map((brand) => __awaiter(this, void 0, void 0, function* () {
-                        try {
-                            const offers = yield this.apiClient.fetchOffersByBrandId(brand.id);
-                            return Object.assign(Object.assign({}, brand), { offers });
-                        }
-                        catch (error) {
-                            console.error(`Error fetching offers for brand ${brand.id}:`, error);
-                            return Object.assign(Object.assign({}, brand), { offers: [] });
-                        }
-                    })));
-                    // Filter out brands with no offers
-                    const brandsWithProducts = brandsWithOffers.filter((brand) => brand.offers && brand.offers.length > 0);
-                    // Show brands with offers
-                    this.showBrandsWithOffers(brandsWithProducts, categoryId);
-                }
-                catch (error) {
-                    console.error("Error handling category click:", error);
-                    // Show error state
-                    this.element.innerHTML = `
-        <div class="me-agent-offers-header">
-          <button class="me-agent-offers-back" aria-label="Back">${getChevronLeftIcon({ width: 20, height: 20 })}</button>
-          <h3 class="me-agent-offers-title">Error</h3>
-          <button class="me-agent-offers-close" aria-label="Close">${getCloseIcon({ width: 20, height: 20 })}</button>
-        </div>
-        <div class="me-agent-brands-list">
-          <p>Failed to load brands. Please try again.</p>
-        </div>
-      `;
-                }
-            });
-        }
-        /**
-         * Show brands with their offers
-         */
-        showBrandsWithOffers(brandsWithOffers, categoryId) {
-            const brandsHtml = brandsWithOffers
-                .map((brand) => this.createBrandWithOffersCard(brand))
-                .join("");
-            this.element.innerHTML = `
-      <div class="me-agent-offers-header">
-        <button class="me-agent-offers-back" aria-label="Back">${getChevronLeftIcon({ width: 20, height: 20 })}</button>
-        <h3 class="me-agent-offers-title">Brands & Offers</h3>
-        <button class="me-agent-offers-close" aria-label="Close">${getCloseIcon({ width: 20, height: 20 })}</button>
-      </div>
-      <div class="me-agent-brands-offers-list">
-        ${brandsHtml ||
-            '<p class="me-agent-empty-state">No brands found with available offers.</p>'}
-      </div>
-    `;
-            // Add event listeners
-            const backBtn = this.element.querySelector(".me-agent-offers-back");
-            backBtn === null || backBtn === void 0 ? void 0 : backBtn.addEventListener("click", () => {
-                this.showCategoriesDetail(this.categories);
-            });
-            const closeBtn = this.element.querySelector(".me-agent-offers-close");
-            closeBtn === null || closeBtn === void 0 ? void 0 : closeBtn.addEventListener("click", this.onClose);
-            // Add click listeners to offer cards
-            const offerCards = this.element.querySelectorAll(".me-agent-brand-offer-card");
-            offerCards.forEach((card) => {
-                card.addEventListener("click", () => {
-                    const productUrl = card.getAttribute("data-product-url");
-                    if (productUrl) {
-                        // Open product URL in new tab
-                        window.open(productUrl, "_blank", "noopener,noreferrer");
-                    }
-                });
-            });
-        }
-        /**
-         * Create a brand card with horizontal offers
-         */
-        createBrandWithOffersCard(brand) {
-            var _a, _b, _c, _d, _e, _f, _g;
-            const logoUrl = brand.logoUrl ||
-                `https://via.placeholder.com/60x60?text=${brand.name.charAt(0)}`;
-            // Calculate earning amount (percentage of purchase)
-            const earningPercentage = ((_c = (_b = (_a = brand.rewardDetails) === null || _a === void 0 ? void 0 : _a.rules) === null || _b === void 0 ? void 0 : _b[0]) === null || _c === void 0 ? void 0 : _c.earningPercentage) || 0;
-            const rewardSymbol = ((_e = (_d = brand.rewardDetails) === null || _d === void 0 ? void 0 : _d.rewardInfo) === null || _e === void 0 ? void 0 : _e.rewardSymbol) || "PTS";
-            const rewardOriginalValue = parseFloat(((_g = (_f = brand.rewardDetails) === null || _f === void 0 ? void 0 : _f.rewardInfo) === null || _g === void 0 ? void 0 : _g.rewardOriginalValue) || "0");
-            // Format earning display
-            const earningDisplay = rewardOriginalValue > 0
-                ? `Earn ${earningPercentage}% back (1 ${rewardSymbol} = $${rewardOriginalValue.toFixed(2)})`
-                : `Earn ${earningPercentage}% back in ${rewardSymbol}`;
-            // Create offers HTML
-            const offersHtml = brand.offers
-                .slice(0, 10) // Limit to 10 offers per brand
-                .map((offer) => this.createBrandOfferCard(offer))
-                .join("");
+        renderOfferCard(offer) {
+            const price = typeof offer.price === "string" ? parseFloat(offer.price) : offer.price;
+            const discountedPrice = calculateOfferDiscount(price, offer.discountType, offer.discountDetails);
+            const discountBadge = formatDiscount(offer.discountType, offer.discountDetails);
+            const hasDiscount = typeof discountedPrice === "number" && discountedPrice < price;
+            const finalPrice = typeof discountedPrice === "number" ? discountedPrice : price;
             return `
-      <div class="me-agent-brand-offers-section">
-        <div class="me-agent-brand-offers-header">
-          <div class="me-agent-brand-offers-info">
-            <img src="${logoUrl}" alt="${brand.name}" class="me-agent-brand-offers-logo" />
-            <h4 class="me-agent-brand-offers-name">${brand.name}</h4>
-          </div>
-          <div class="me-agent-brand-earning-amount">${earningDisplay}</div>
-        </div>
-        <div class="me-agent-brand-offers-scroll">
-          ${offersHtml}
-        </div>
-      </div>
-    `;
-        }
-        /**
-         * Create an offer card for brand offers view
-         */
-        createBrandOfferCard(offer) {
-            var _a;
-            const imageUrl = offer.coverImage || "https://via.placeholder.com/200x200?text=No+Image";
-            const discountPercentage = parseFloat(offer.discountPercentage || "0");
-            const originalPrice = parseFloat(offer.originalPrice || "0");
-            const discountedPrice = originalPrice * (1 - discountPercentage / 100);
-            // Extract product URL from the offer
-            const productUrl = ((_a = offer.product) === null || _a === void 0 ? void 0 : _a.productUrl) || "";
-            const fullProductUrl = productUrl && !productUrl.startsWith("http")
-                ? `https://${productUrl}`
-                : productUrl;
-            return `
-      <div class="me-agent-brand-offer-card" data-offer-code="${offer.offerCode}" data-product-url="${fullProductUrl}">
+      <div class="me-agent-brand-offer-card" data-offer-code="${offer.offerCode}">
         <div class="me-agent-brand-offer-image-container">
-          <img src="${imageUrl}" alt="${offer.name}" class="me-agent-brand-offer-image" />
-          ${discountPercentage > 0
-            ? `<div class="me-agent-brand-offer-badge">${discountPercentage.toFixed(0)}% OFF</div>`
+          <img 
+            src="${offer.image || "https://via.placeholder.com/200x200?text=No+Image"}" 
+            alt="${offer.name}"
+            class="me-agent-brand-offer-image"
+          />
+          ${discountBadge
+            ? `<div class="me-agent-brand-offer-badge">${discountBadge}</div>`
             : ""}
         </div>
         <div class="me-agent-brand-offer-info">
-          <h5 class="me-agent-brand-offer-name">${offer.name}</h5>
+          <h4 class="me-agent-brand-offer-name">${offer.name}</h4>
           <div class="me-agent-brand-offer-pricing">
-            ${discountPercentage > 0
-            ? `
-              <span class="me-agent-brand-offer-price">$${discountedPrice.toFixed(2)}</span>
-              <span class="me-agent-brand-offer-original-price">$${originalPrice.toFixed(2)}</span>
-            `
-            : `<span class="me-agent-brand-offer-price">$${originalPrice.toFixed(2)}</span>`}
+            <span class="me-agent-brand-offer-price">$${finalPrice.toFixed(2)}</span>
+            ${hasDiscount
+            ? `<span class="me-agent-brand-offer-original-price">$${price.toFixed(2)}</span>`
+            : ""}
           </div>
         </div>
       </div>
     `;
         }
         /**
-         * Create a category card HTML
+         * Render loading state
          */
-        createCategoryCard(category) {
-            const iconMap = {
-                award: () => getAwardIcon({ width: 16, height: 16, color: "white" }),
-                shirt: () => getShirtIcon({ width: 24, height: 24, color: "white" }),
-                heartPulse: () => getHeartPulseIcon({ width: 16, height: 16, color: "white" }),
-                sofa: () => getSofaIcon({ width: 16, height: 16, color: "white" }),
-                tag: () => getTagIcon({ width: 16, height: 16, color: "white" }),
-                layoutGrid: () => getLayoutGridIcon({ width: 16, height: 16, color: "white" }),
-                laptop: () => getLaptopIcon({ width: 16, height: 16, color: "white" }),
-                bookOpen: () => getBookOpenIcon({ width: 16, height: 16, color: "white" }),
-            };
-            const iconSvg = category.icon && iconMap[category.icon] ? iconMap[category.icon]() : "";
-            const title = (category.title || category.categoryName).replace(/\n/g, "<br>");
-            const brandCountText = `${category.brandCount} ${category.brandCount === 1 ? "Brand" : "Brands"}`;
+        renderLoading(showCancelButton = false) {
             return `
-      <div class="me-agent-category-card" data-category-id="${category.categoryId}">
-        <div class="me-agent-category-icon-overlay">
-          ${iconSvg}
-        </div>
-        <div class="me-agent-category-info">
-          <h4 class="me-agent-category-title">${title}</h4>
-          <p class="me-agent-category-brand-count">${brandCountText}</p>
-        </div>
+      <div class="me-agent-detail-loading">
+        <div class="me-agent-spinner"></div>
+        ${showCancelButton
+            ? `<button class="me-agent-cancel-loading-btn">Cancel</button>`
+            : ""}
       </div>
     `;
         }
+    }
+
+    /**
+     * Offer Detail View
+     * Renders detailed offer information with variants, reviews, and actions
+     */
+    class OfferDetailView {
         /**
-         * Create an offer card HTML
+         * Render complete offer detail page
          */
-        createOfferCard(offer) {
-            const imageUrl = offer.image || "https://via.placeholder.com/300x200?text=No+Image";
-            const discountedPrice = (offer.price *
-                (1 - offer.discountPercentage / 100)).toFixed(2);
+        render(detail, selectedVariant, quantity, config) {
+            var _a, _b;
+            const currentVariant = selectedVariant || ((_a = detail.offerVariants) === null || _a === void 0 ? void 0 : _a[0]) || null;
+            const variantData = currentVariant === null || currentVariant === void 0 ? void 0 : currentVariant.variant;
+            const finalPrice = this.calculateFinalPrice(detail, currentVariant);
             return `
-      <div class="me-agent-offer-card" data-offer-code="${offer.offerCode}">
-        <div class="me-agent-offer-image-container">
-          <div class="me-agent-offer-image" style="background-image: url('${imageUrl}')"></div>
-          <span class="me-agent-offer-badge">${offer.discountPercentage}% Off</span>
-        </div>
-        <div class="me-agent-offer-info">
-          <h4 class="me-agent-offer-name">${offer.name}</h4>
-          <div class="me-agent-offer-pricing">
-            <span class="me-agent-offer-price">$${discountedPrice}</span>
-            <span class="me-agent-offer-original-price">$${offer.price.toFixed(2)}</span>
-          </div>
-        </div>
+      <div class="me-agent-offer-detail-scroll">
+        ${this.renderImageCarousel(detail, variantData)}
+        ${this.renderProductInfo(detail, currentVariant, finalPrice)}
+        ${this.renderVariantSelector(detail.offerVariants)}
+        ${this.renderQuantitySelector(quantity)}
+        ${this.renderTabs(detail)}
+        ${this.renderRedemptionInfo(detail)}
       </div>
+      ${this.renderActions(detail, (_b = config.likedOffers) === null || _b === void 0 ? void 0 : _b[detail.id])}
     `;
         }
         /**
-         * Show loading state
+         * Render image carousel
          */
-        showLoading(message = "Loading Offer...") {
-            this.element.innerHTML = `
-      <div class="me-agent-offers-header">
-        <h3 class="me-agent-offers-title">${message}</h3>
-        <button class="me-agent-offers-close" aria-label="Close offers">${getCloseIcon({ width: 20, height: 20 })}</button>
-      </div>
-      <div class="me-agent-offers-loading">
-        <div class="me-agent-loading">
-          <div class="me-agent-loading-dot"></div>
-          <div class="me-agent-loading-dot"></div>
-          <div class="me-agent-loading-dot"></div>
-        </div>
-      </div>
-    `;
-            const closeBtn = this.element.querySelector(".me-agent-offers-close");
-            closeBtn === null || closeBtn === void 0 ? void 0 : closeBtn.addEventListener("click", this.onClose);
-        }
-        /**
-         * Render header with back button
-         */
-        renderHeader(backText = "Back") {
-            return `
-      <div class="me-agent-offers-header">
-        <button class="me-agent-offers-back" aria-label="Back">
-          ${getChevronLeftIcon({ width: 20, height: 20 })}
-          <span>${backText}</span>
-        </button>
-        <button class="me-agent-offers-close" aria-label="Close">${getCloseIcon({ width: 20, height: 20 })}</button>
-      </div>
-    `;
-        }
-        /**
-         * Show offer details
-         */
-        showDetail(detail) {
+        renderImageCarousel(detail, variantData) {
             var _a;
-            this.currentView = "detail";
-            this.currentOfferDetail = detail;
-            // Auto-select first variant by default
-            if (detail.offerVariants && detail.offerVariants.length > 0) {
-                this.selectedVariant = detail.offerVariants[0];
-            }
-            const finalPrice = this.calculateFinalPrice(detail);
-            const discountPercentage = detail.redemptionMethod.discountPercentage || "20";
-            const isLiked = this.likedOffers[detail.id] || false;
-            // Prepare images for carousel
-            const images = ((_a = detail.offerImages) === null || _a === void 0 ? void 0 : _a.length) > 0
-                ? detail.offerImages.map((img) => img.url)
-                : [
-                    detail.coverImage ||
-                        "https://via.placeholder.com/600x400?text=No+Image",
-                ];
-            // Render variants if available
-            const variantsHtml = this.renderVariantSelector(detail.offerVariants);
-            // Action buttons
-            const hasCallbacks = !!(this.config.onAddToCart ||
-                this.config.onShare ||
-                this.config.onLikeUnlike);
-            const actionButtonsHtml = hasCallbacks
-                ? `
-      ${this.config.onAddToCart
-                ? '<button class="me-agent-action-button me-agent-add-to-cart">Add To Cart</button>'
-                : ""}
-      ${this.config.onLikeUnlike
-                ? `<button class="me-agent-action-icon ${isLiked ? "liked" : ""}" data-action="like">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="${isLiked ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-        </svg>
-      </button>`
-                : ""}
-      ${this.config.onShare
-                ? `<button class="me-agent-action-icon" data-action="share">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
-          <polyline points="16 6 12 2 8 6"></polyline>
-          <line x1="12" y1="2" x2="12" y2="15"></line>
-        </svg>
-      </button>`
-                : ""}
-    `
-                : "";
-            this.element.innerHTML = `
-      ${this.renderHeader("Product details")}
-      <div class="me-agent-offer-detail">
-        <div class="me-agent-offer-detail-scroll">
-          <!-- Image Carousel -->
-          <div class="me-agent-image-carousel">
-            ${images
-            .map((img, i) => `
-              <div class="me-agent-carousel-image ${i === 0 ? "active" : ""}" style="background-image: url('${img}')"></div>
-            `)
-            .join("")}
+            const images = (variantData === null || variantData === void 0 ? void 0 : variantData.productImages) || detail.offerImages || [];
+            const primaryImage = ((_a = images[0]) === null || _a === void 0 ? void 0 : _a.url) || detail.coverImage;
+            return `
+      <div class="me-agent-image-carousel">
+        <img 
+          src="${primaryImage}" 
+          alt="${detail.name}"
+          class="me-agent-carousel-image"
+        />
+      </div>
+    `;
+        }
+        /**
+         * Render product information section
+         */
+        renderProductInfo(detail, currentVariant, finalPrice) {
+            const originalPrice = currentVariant
+                ? parseFloat(currentVariant.variant.price)
+                : parseFloat(detail.originalPrice);
+            const discount = currentVariant
+                ? parseFloat(currentVariant.discountPercentage)
+                : parseFloat(detail.discountPercentage);
+            return `
+      <div class="me-agent-detail-info">
+        <h2 class="me-agent-detail-title">${detail.name}</h2>
+        <div class="me-agent-detail-pricing">
+          <div class="me-agent-detail-price">
+            <span class="me-agent-price-label">Price:</span>
+            <span class="me-agent-price-value">$${finalPrice.toFixed(2)}</span>
           </div>
-
-          <!-- Product Info -->
-          <div class="me-agent-detail-info">
-            <h3 class="me-agent-detail-title">${detail.name}${this.selectedVariant ? ` - ${this.selectedVariant.variant.name}` : ""}</h3>
-            
-            <div class="me-agent-detail-pricing">
-              <span class="me-agent-detail-price">$${finalPrice}</span>
-              <span class="me-agent-detail-original-price">$${detail.originalPrice}</span>
+          ${discount > 0
+            ? `
+            <div class="me-agent-detail-original-price">
+              <span class="me-agent-original-label">Original:</span>
+              <span class="me-agent-original-value">$${originalPrice.toFixed(2)}</span>
             </div>
-
-            <div class="me-agent-detail-badge">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-              </svg>
-              ${discountPercentage}% Off With Coupon
-            </div>
-
-            <p class="me-agent-detail-shipping">Ships To Texas, United State Of America</p>
-
-            ${variantsHtml}
-
-            <!-- Quantity Selector -->
-            <div class="me-agent-quantity-section">
-              <label class="me-agent-section-label">Quantity</label>
-              <div class="me-agent-quantity-selector">
-                <button class="me-agent-quantity-btn" data-action="decrease">−</button>
-                <input type="number" class="me-agent-quantity-input" value="0" min="0" />
-                <button class="me-agent-quantity-btn" data-action="increase">+</button>
-              </div>
-            </div>
-
-            <!-- Description & Reviews Tabs -->
-            <div class="me-agent-tabs">
-              <button class="me-agent-tab active" data-tab="description">Description</button>
-              <button class="me-agent-tab" data-tab="reviews">Reviews</button>
-            </div>
-
-            <div class="me-agent-tab-content">
-              <div class="me-agent-tab-pane active" data-pane="description">
-                <p class="me-agent-description-text">${detail.description || "No description available"}</p>
-              </div>
-              <div class="me-agent-tab-pane" data-pane="reviews">
-                ${this.renderReviews()}
-              </div>
-            </div>
-          </div>
-
-          <!-- Redemption Info -->
-          <div class="me-agent-redemption-info">
-            <p>Redeem this offer to get a unique coupon code, then enter the code on checkout and the discount will be applied to your total before payment.</p>
-          </div>
-        </div>
-
-        <!-- Bottom Actions -->
-        <div class="me-agent-detail-actions">
-          <button class="me-agent-redeem-button">Redeem Offer</button>
-          ${hasCallbacks
-            ? `<div class="me-agent-secondary-actions">${actionButtonsHtml}</div>`
+            <div class="me-agent-detail-badge">${Math.round(discount)}% OFF</div>
+          `
             : ""}
         </div>
+        <div class="me-agent-detail-shipping">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M14 8.5V11.5C14 11.7652 13.8946 12.0196 13.7071 12.2071C13.5196 12.3946 13.2652 12.5 13 12.5H3C2.73478 12.5 2.48043 12.3946 2.29289 12.2071C2.10536 12.0196 2 11.7652 2 11.5V4.5C2 4.23478 2.10536 3.98043 2.29289 3.79289C2.48043 3.60536 2.73478 3.5 3 3.5H10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>Free shipping on orders over $50</span>
+        </div>
       </div>
     `;
-            this.setupDetailListeners();
         }
         /**
-         * Render variant selector with images
+         * Render variant selector
          */
         renderVariantSelector(offerVariants) {
-            if (!offerVariants || offerVariants.length === 0) {
+            if (!offerVariants || offerVariants.length === 0)
                 return "";
-            }
             return `
       <div class="me-agent-variant-section">
-        <label class="me-agent-section-label">Variant</label>
+        <label class="me-agent-section-label">Select Variant</label>
         <div class="me-agent-variant-grid">
           ${offerVariants
-            .map((offerVariant, index) => {
-            var _a, _b;
-            const variant = offerVariant.variant;
-            const image = ((_b = (_a = variant.productImages) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.url) ||
-                "https://via.placeholder.com/80x80";
-            const discountPct = offerVariant.discountPercentage || "0";
-            const isOutOfStock = offerVariant.inventory <= 0;
-            return `
-              <button 
-                class="me-agent-variant-card ${index === 0 ? "active" : ""} ${isOutOfStock ? "disabled" : ""}" 
-                data-variant-index="${index}"
-                ${isOutOfStock ? "disabled" : ""}
-              >
-                <div class="me-agent-variant-image" style="background-image: url('${image}')">
-                  ${!isOutOfStock
-                ? `<span class="me-agent-variant-discount">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-                    </svg>
-                    ${discountPct}% Off
-                  </span>`
-                : ""}
-                </div>
-              </button>
-            `;
-        })
+            .map((variant, index) => this.renderVariantCard(variant, index === 0))
             .join("")}
         </div>
       </div>
     `;
         }
         /**
-         * Render dummy reviews section
+         * Render a single variant card
+         */
+        renderVariantCard(variant, isSelected) {
+            var _a, _b;
+            const variantImage = ((_b = (_a = variant.variant.productImages) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.url) || "";
+            const variantPrice = parseFloat(variant.variant.price);
+            const discount = parseFloat(variant.discountPercentage);
+            const finalPrice = variantPrice * (1 - discount / 100);
+            return `
+      <div class="me-agent-variant-card ${isSelected ? "selected" : ""}" data-variant-id="${variant.id}">
+        ${variantImage
+            ? `<img src="${variantImage}" alt="${variant.variant.name}" class="me-agent-variant-image" />`
+            : ""}
+        <div class="me-agent-variant-info">
+          <div class="me-agent-variant-name">${variant.variant.name}</div>
+          <div class="me-agent-variant-price">$${finalPrice.toFixed(2)}</div>
+        </div>
+        ${discount > 0
+            ? `<div class="me-agent-variant-discount">${Math.round(discount)}% OFF</div>`
+            : ""}
+      </div>
+    `;
+        }
+        /**
+         * Render quantity selector
+         */
+        renderQuantitySelector(quantity) {
+            return `
+      <div class="me-agent-quantity-section">
+        <label class="me-agent-section-label">Quantity</label>
+        <div class="me-agent-quantity-selector">
+          <button class="me-agent-quantity-btn" data-action="decrease">-</button>
+          <input 
+            type="number" 
+            class="me-agent-quantity-input" 
+            value="${quantity}" 
+            min="1" 
+            max="10"
+            readonly
+          />
+          <button class="me-agent-quantity-btn" data-action="increase">+</button>
+        </div>
+      </div>
+    `;
+        }
+        /**
+         * Render tabs (Description & Reviews)
+         */
+        renderTabs(detail) {
+            return `
+      <div class="me-agent-tabs">
+        <button class="me-agent-tab active" data-tab="description">Description</button>
+        <button class="me-agent-tab" data-tab="reviews">Reviews</button>
+      </div>
+      <div class="me-agent-tab-content">
+        <div class="me-agent-tab-pane active" data-pane="description">
+          <p class="me-agent-description-text">${detail.description || "No description available."}</p>
+        </div>
+        <div class="me-agent-tab-pane" data-pane="reviews">
+          ${this.renderReviews()}
+        </div>
+      </div>
+    `;
+        }
+        /**
+         * Render reviews section
          */
         renderReviews() {
             const dummyReviews = [
                 {
-                    name: "John Doe",
-                    rating: 4,
-                    text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat",
-                },
-                {
-                    name: "Jane Smith",
+                    name: "Sarah M.",
                     rating: 5,
-                    text: "Great product! Highly recommend. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+                    text: "Absolutely love this product! The quality exceeded my expectations and it arrived quickly.",
                 },
                 {
-                    name: "Bob Johnson",
+                    name: "James T.",
                     rating: 4,
-                    text: "Good quality and fast shipping. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+                    text: "Great value for money. Would recommend to anyone looking for a reliable option.",
+                },
+                {
+                    name: "Emily R.",
+                    rating: 5,
+                    text: "Perfect! Exactly what I was looking for. Will definitely purchase again.",
                 },
             ];
-            const ratings = [
-                { stars: 5, count: 20 },
-                { stars: 4, count: 50 },
-                { stars: 3, count: 20 },
-                { stars: 2, count: 6 },
-                { stars: 1, count: 4 },
-            ];
-            const totalReviews = ratings.reduce((sum, r) => sum + r.count, 0);
-            const avgRating = (ratings.reduce((sum, r) => sum + r.stars * r.count, 0) / totalReviews).toFixed(1);
+            const avgRating = 4.7;
+            const totalReviews = dummyReviews.length;
             return `
       <div class="me-agent-reviews">
         <div class="me-agent-reviews-summary">
+          <div class="me-agent-reviews-score">
+            <div class="me-agent-score-number">${avgRating.toFixed(1)}</div>
+            <div class="me-agent-stars-large">${this.renderStars(avgRating, 20)}</div>
+            <div class="me-agent-review-count">${formatNumber(totalReviews)} reviews</div>
+          </div>
           <div class="me-agent-reviews-bars">
-            ${ratings
-            .map((r) => `
+            ${[5, 4, 3, 2, 1]
+            .map((stars) => `
               <div class="me-agent-rating-row">
-                <div class="me-agent-stars-small">
-                  ${Array(5)
-            .fill(0)
-            .map((_, i) => `<span class="${i < r.stars ? "filled" : ""}">★</span>`)
-            .join("")}
-                </div>
+                <span class="me-agent-stars-small">${this.renderStars(stars, 12)}</span>
                 <div class="me-agent-rating-bar">
-                  <div class="me-agent-rating-fill" style="width: ${(r.count / totalReviews) * 100}%"></div>
+                  <div class="me-agent-rating-fill" style="width: ${stars === 5 ? 70 : stars === 4 ? 20 : 10}%"></div>
                 </div>
-                <span class="me-agent-rating-count">${r.count}</span>
+                <span class="me-agent-rating-count">${stars === 5 ? 2 : stars === 4 ? 1 : 0}</span>
               </div>
             `)
             .join("")}
           </div>
-          <div class="me-agent-reviews-score">
-            <div class="me-agent-score-number">${avgRating} <span>/ 5</span></div>
-            <div class="me-agent-stars-large">
-              ${Array(5)
-            .fill(0)
-            .map((_, i) => `<span class="${i < Math.floor(parseFloat(avgRating)) ? "filled" : ""}">★</span>`)
-            .join("")}
-            </div>
-            <div class="me-agent-review-count">${totalReviews} Reviews</div>
-          </div>
         </div>
-
         <div class="me-agent-reviews-list">
           ${dummyReviews
             .map((review) => `
             <div class="me-agent-review-item">
               <div class="me-agent-review-header">
-                <div class="me-agent-reviewer-avatar"></div>
+                <div class="me-agent-reviewer-avatar">${review.name.charAt(0)}</div>
                 <div>
                   <div class="me-agent-reviewer-name">${review.name}</div>
-                  <div class="me-agent-review-stars">
-                    ${Array(5)
-            .fill(0)
-            .map((_, i) => `<span class="${i < review.rating ? "filled" : ""}">★</span>`)
-            .join("")}
-                  </div>
+                  <div class="me-agent-review-stars">${this.renderStars(review.rating, 14)}</div>
                 </div>
               </div>
               <p class="me-agent-review-text">${review.text}</p>
@@ -2153,385 +2108,915 @@
     `;
         }
         /**
-         * Setup detail page event listeners
+         * Render stars rating
          */
-        setupDetailListeners() {
-            // Back button
-            const backBtn = this.element.querySelector(".me-agent-offers-back");
-            backBtn === null || backBtn === void 0 ? void 0 : backBtn.addEventListener("click", () => this.showGrid(this.offers));
+        renderStars(rating, size) {
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 >= 0.5;
+            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+            return `
+      ${"★".repeat(fullStars)}
+      ${hasHalfStar ? "½" : ""}
+      ${"☆".repeat(emptyStars)}
+    `.trim();
+        }
+        /**
+         * Render redemption info
+         */
+        renderRedemptionInfo(detail) {
+            return `
+      <div class="me-agent-redemption-info">
+        <h3>Redeem with ${detail.reward.rewardSymbol}</h3>
+        <p>Use your ${detail.reward.rewardName} rewards to get this offer</p>
+      </div>
+    `;
+        }
+        /**
+         * Render action buttons
+         */
+        renderActions(detail, isLiked = false) {
+            return `
+      <div class="me-agent-detail-actions">
+        <button class="me-agent-redeem-button" data-action="redeem">
+          Redeem Now
+        </button>
+        <div class="me-agent-secondary-actions">
+          <button class="me-agent-action-button" data-action="like" data-liked="${isLiked}">
+            <span class="me-agent-action-icon">${isLiked ? "❤️" : "♡"}</span>
+          </button>
+          <button class="me-agent-action-button" data-action="share">
+            <span class="me-agent-action-icon">↗</span>
+          </button>
+          <button class="me-agent-action-button" data-action="add-to-cart">
+            <span class="me-agent-action-icon">🛒</span>
+          </button>
+        </div>
+      </div>
+    `;
+        }
+        /**
+         * Calculate final price after discount
+         */
+        calculateFinalPrice(detail, currentVariant) {
+            const price = currentVariant
+                ? parseFloat(currentVariant.variant.price)
+                : parseFloat(detail.originalPrice);
+            const discount = currentVariant
+                ? parseFloat(currentVariant.discountPercentage)
+                : parseFloat(detail.discountPercentage);
+            return price * (1 - discount / 100);
+        }
+    }
+
+    /**
+     * Brand List View
+     * Renders a list of brands with signup earning methods
+     */
+    class BrandListView {
+        /**
+         * Render brand list
+         */
+        render(brands, origin) {
+            return `
+      <div class="me-agent-brands-list">
+        ${brands.map((brand) => this.renderBrandCard(brand, origin)).join("")}
+      </div>
+    `;
+        }
+        /**
+         * Render a single brand card
+         */
+        renderBrandCard(brand, origin) {
+            const rule = brand.rewardDetails.rules[0];
+            const points = (rule === null || rule === void 0 ? void 0 : rule.points) || 0;
+            const { rewardSymbol, rewardValueInDollars, rewardOriginalValue } = brand.rewardDetails.rewardInfo;
+            const signupUrl = this.buildSignupUrl(brand, origin);
+            const conversionRate = this.formatConversionRate(rewardSymbol, rewardOriginalValue, rewardValueInDollars);
+            return `
+      <div class="me-agent-brand-card">
+        <div class="me-agent-brand-logo-container">
+          <img 
+            src="${brand.logoUrl ||
+            "https://via.placeholder.com/64x64?text=" + brand.name.charAt(0)}" 
+            alt="${brand.name}"
+            class="me-agent-brand-logo"
+          />
+        </div>
+        <div class="me-agent-brand-info">
+          <h3 class="me-agent-brand-name">${brand.name}</h3>
+          <p class="me-agent-brand-conversion">${conversionRate}</p>
+        </div>
+        <div class="me-agent-brand-actions">
+          <div class="me-agent-brand-reward-amount">
+            ${formatNumber(points)} ${rewardSymbol}
+          </div>
+          <a 
+            href="${signupUrl}" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            class="me-agent-brand-signup-button"
+          >
+            Sign Up & Earn
+            ${getExternalLinkIcon({ width: 12, height: 12 })}
+          </a>
+        </div>
+      </div>
+    `;
+        }
+        /**
+         * Build signup URL with callback
+         */
+        buildSignupUrl(brand, origin) {
+            const baseUrl = brand.shopifyStoreUrl || brand.websiteUrl || "";
+            if (!baseUrl)
+                return "#";
+            try {
+                const url = new URL(baseUrl);
+                url.searchParams.append("meprotocol_callback", origin);
+                return url.toString();
+            }
+            catch (error) {
+                console.error("Invalid brand URL:", baseUrl);
+                return baseUrl;
+            }
+        }
+        /**
+         * Format conversion rate display
+         */
+        formatConversionRate(symbol, originalValue, dollarValue) {
+            const value = parseFloat(dollarValue || originalValue || "0");
+            return `1 ${symbol} = $${value.toFixed(2)}`;
+        }
+    }
+
+    /**
+     * Brand Offers View
+     * Renders brands with their horizontal offer lists
+     */
+    class BrandOffersView {
+        /**
+         * Render brands with offers
+         */
+        render(brandsWithOffers) {
+            if (brandsWithOffers.length === 0) {
+                return this.renderEmptyState();
+            }
+            return `
+      <div class="me-agent-brands-offers-list">
+        ${brandsWithOffers
+            .map((item) => this.renderBrandWithOffers(item))
+            .join("")}
+      </div>
+    `;
+        }
+        /**
+         * Render a brand with its offers
+         */
+        renderBrandWithOffers(item) {
+            var _a, _b;
+            const { brand, offers } = item;
+            const rule = (_b = (_a = brand.rewardDetails) === null || _a === void 0 ? void 0 : _a.rules) === null || _b === void 0 ? void 0 : _b[0];
+            const earningInfo = rule
+                ? `Earn ${rule.earningPercentage}% back in ${brand.rewardDetails.rewardInfo.rewardSymbol}`
+                : "Earn rewards";
+            return `
+      <div class="me-agent-brand-offers-section">
+        <div class="me-agent-brand-offers-header">
+          <div class="me-agent-brand-offers-info">
+            <img 
+              src="${brand.logoUrl ||
+            "https://via.placeholder.com/60x60?text=" + brand.name.charAt(0)}" 
+              alt="${brand.name}"
+              class="me-agent-brand-offers-logo"
+            />
+            <h3 class="me-agent-brand-offers-name">${brand.name}</h3>
+          </div>
+          <div class="me-agent-brand-earning-amount">${earningInfo}</div>
+        </div>
+        <div class="me-agent-brand-offers-scroll">
+          ${offers.map((offer) => this.renderOfferCard(offer)).join("")}
+        </div>
+      </div>
+    `;
+        }
+        /**
+         * Render a single offer card
+         */
+        renderOfferCard(offer) {
+            const price = parseFloat(offer.price || offer.originalPrice || "0");
+            const discountedPrice = calculateOfferDiscount(price, offer.discountType || "", offer.discountDetails || []);
+            const discountBadge = formatDiscount(offer.discountType || "", offer.discountDetails || []);
+            const hasDiscount = typeof discountedPrice === "number" && discountedPrice < price;
+            const finalPrice = typeof discountedPrice === "number" ? discountedPrice : price;
+            return `
+      <div 
+        class="me-agent-brand-offer-card" 
+        data-product-url="${offer.productUrl || "#"}"
+      >
+        <div class="me-agent-brand-offer-image-container">
+          <img 
+            src="${offer.coverImage ||
+            offer.image ||
+            "https://via.placeholder.com/200x200?text=No+Image"}" 
+            alt="${offer.name}"
+            class="me-agent-brand-offer-image"
+          />
+          ${discountBadge
+            ? `<div class="me-agent-brand-offer-badge">${discountBadge}</div>`
+            : ""}
+        </div>
+        <div class="me-agent-brand-offer-info">
+          <h4 class="me-agent-brand-offer-name">${offer.name}</h4>
+          <div class="me-agent-brand-offer-pricing">
+            <span class="me-agent-brand-offer-price">$${finalPrice.toFixed(2)}</span>
+            ${hasDiscount
+            ? `<span class="me-agent-brand-offer-original-price">$${price.toFixed(2)}</span>`
+            : ""}
+          </div>
+        </div>
+      </div>
+    `;
+        }
+        /**
+         * Render empty state
+         */
+        renderEmptyState() {
+            return `
+      <div class="me-agent-empty-state">
+        <p>No offers available at this time.</p>
+      </div>
+    `;
+        }
+    }
+
+    /**
+     * Category Grid View
+     * Renders a grid of purchase earning categories
+     */
+    class CategoryGridView {
+        /**
+         * Render category grid
+         */
+        render(categories) {
+            return `
+      <div class="me-agent-categories-grid">
+        ${categories
+            .map((category) => this.renderCategoryCard(category))
+            .join("")}
+      </div>
+    `;
+        }
+        /**
+         * Render a single category card
+         */
+        renderCategoryCard(category) {
+            const iconSvg = this.getCategoryIcon(category.icon || "");
+            return `
+      <div 
+        class="me-agent-category-card" 
+        data-category-id="${category.categoryId}"
+      >
+        <div class="me-agent-category-icon-overlay">
+          ${iconSvg}
+        </div>
+        <div class="me-agent-category-info">
+          <h3 class="me-agent-category-title">${category.title || category.categoryName}</h3>
+          <p class="me-agent-category-brand-count">${category.brandCount} brands</p>
+        </div>
+      </div>
+    `;
+        }
+        /**
+         * Get category icon SVG (from Lucide React icons)
+         */
+        getCategoryIcon(iconName) {
+            const icons = {
+                award: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>`,
+                shirt: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>`,
+                heartPulse: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/></svg>`,
+                sofa: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v3"/><path d="M2 16a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v1.5a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5V11a2 2 0 0 0-4 0z"/><path d="M4 18v2"/><path d="M20 18v2"/><path d="M12 4v9"/></svg>`,
+                tag: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="white"/></svg>`,
+                layoutGrid: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>`,
+                laptop: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"/></svg>`,
+                bookOpen: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`,
+            };
+            return icons[iconName] || icons.tag; // Default to tag icon
+        }
+    }
+
+    /**
+     * Detail Panel Controller
+     * Orchestrates the detail panel and routes between different views
+     */
+    class DetailPanelController {
+        constructor(config, offerService, brandService, onClose) {
+            this.config = config;
+            this.offerService = offerService;
+            this.brandService = brandService;
+            this.onClose = onClose;
+            this.isVisible = false;
+            this.currentView = null;
+            this.viewStack = [];
+            this.sessionId = "";
+            this.currentAbortController = null;
+            // Current state
+            this.currentOfferDetail = null;
+            this.selectedVariant = null;
+            this.quantity = 1;
+            // Initialize views
+            this.offerGridView = new OfferGridView();
+            this.offerDetailView = new OfferDetailView();
+            this.brandListView = new BrandListView();
+            this.brandOffersView = new BrandOffersView();
+            this.categoryGridView = new CategoryGridView();
+            // Create DOM elements
+            this.wrapper = document.createElement("div");
+            this.wrapper.className = "me-agent-detail-panel-wrapper";
+            this.container = document.createElement("div");
+            this.container.className = "me-agent-detail-panel";
+            // Create fixed header
+            this.header = document.createElement("div");
+            this.header.className = "me-agent-detail-header";
+            // Back button with title
+            this.backButton = document.createElement("button");
+            this.backButton.className = "me-agent-back-button";
+            this.backButton.style.display = "none"; // Hidden by default
+            this.backButton.addEventListener("click", () => this.goBack());
+            // Title (standalone when no back)
+            this.headerTitle = document.createElement("h2");
+            this.headerTitle.className = "me-agent-detail-title";
+            this.headerTitle.textContent = "Details";
+            this.headerTitle.style.display = "block"; // Visible by default
             // Close button
-            const closeBtn = this.element.querySelector(".me-agent-offers-close");
-            closeBtn === null || closeBtn === void 0 ? void 0 : closeBtn.addEventListener("click", this.onClose);
-            // Redeem button
-            const redeemBtn = this.element.querySelector(".me-agent-redeem-button");
-            redeemBtn === null || redeemBtn === void 0 ? void 0 : redeemBtn.addEventListener("click", () => this.handleClaimOffer());
+            this.closeButton = document.createElement("button");
+            this.closeButton.className = "me-agent-close-button";
+            this.closeButton.innerHTML = getCloseIcon({ width: 20, height: 20 });
+            this.closeButton.addEventListener("click", () => this.onClose());
+            this.header.appendChild(this.backButton);
+            this.header.appendChild(this.headerTitle);
+            this.header.appendChild(this.closeButton);
+            // Create content area
+            this.content = document.createElement("div");
+            this.content.className = "me-agent-detail-content";
+            // Assemble
+            this.container.appendChild(this.header);
+            this.container.appendChild(this.content);
+            this.wrapper.appendChild(this.container);
+        }
+        /**
+         * Get the wrapper element
+         */
+        getElement() {
+            return this.wrapper;
+        }
+        /**
+         * Show the detail panel
+         */
+        show() {
+            this.isVisible = true;
+            this.container.classList.add("visible");
+        }
+        /**
+         * Hide the detail panel
+         */
+        hide() {
+            this.cancelCurrentRequest();
+            this.isVisible = false;
+            this.container.classList.remove("visible");
+            this.viewStack = [];
+            this.currentView = null;
+            // Reset header to default state
+            this.backButton.style.display = "none";
+            this.headerTitle.style.display = "block";
+            this.headerTitle.textContent = "Details";
+        }
+        /**
+         * Cancel any pending requests
+         */
+        cancelCurrentRequest() {
+            if (this.currentAbortController) {
+                this.currentAbortController.abort();
+                this.currentAbortController = null;
+            }
+        }
+        /**
+         * Update header title and back button visibility
+         */
+        updateHeader(title) {
+            // Show back button with title if there's more than one view in the stack
+            if (this.viewStack.length > 1) {
+                this.backButton.style.display = "flex";
+                this.backButton.innerHTML = `
+        ${getChevronLeftIcon({ width: 20, height: 20 })}
+        <span style="margin-left: 8px;">${title}</span>
+      `;
+                this.headerTitle.style.display = "none";
+            }
+            else {
+                // Just show title, no back button
+                this.backButton.style.display = "none";
+                this.headerTitle.style.display = "block";
+                this.headerTitle.textContent = title;
+            }
+        }
+        /**
+         * Go back to previous view
+         */
+        goBack() {
+            if (this.viewStack.length <= 1) {
+                return; // No previous view
+            }
+            // Cancel any pending requests
+            this.cancelCurrentRequest();
+            // Pop current view
+            this.viewStack.pop();
+            // Get previous view state
+            const previousView = this.viewStack[this.viewStack.length - 1];
+            // Restore previous view
+            this.restoreView(previousView);
+        }
+        /**
+         * Restore a view from state
+         */
+        restoreView(viewState) {
+            switch (viewState.type) {
+                case "offer-grid":
+                    this.content.innerHTML = this.offerGridView.render(viewState.data);
+                    this.attachOfferGridListeners();
+                    break;
+                case "brand-list":
+                    const origin = window.location.origin;
+                    this.content.innerHTML = this.brandListView.render(viewState.data, origin);
+                    this.attachBrandListListeners();
+                    break;
+                case "category-grid":
+                    this.content.innerHTML = this.categoryGridView.render(viewState.data);
+                    this.attachCategoryGridListeners();
+                    break;
+                case "brand-offers":
+                    this.content.innerHTML = this.brandOffersView.render(viewState.data);
+                    this.attachBrandOffersListeners();
+                    break;
+            }
+            this.currentView = viewState.type;
+            this.updateHeader(viewState.title);
+        }
+        /**
+         * Show offer grid
+         */
+        showOfferGrid(offers, sessionId) {
+            this.sessionId = sessionId;
+            this.content.innerHTML = this.offerGridView.render(offers);
+            this.currentView = "offer-grid";
+            this.viewStack = [
+                {
+                    type: "offer-grid",
+                    title: "Available Offers",
+                    data: offers,
+                },
+            ];
+            this.updateHeader("Available Offers");
+            this.attachOfferGridListeners();
+            this.show();
+        }
+        /**
+         * Show offer detail
+         */
+        showOfferDetail(offerCode, sessionId) {
+            return __awaiter(this, void 0, void 0, function* () {
+                var _a;
+                // Cancel any existing request
+                this.cancelCurrentRequest();
+                // Create new AbortController
+                this.currentAbortController = new AbortController();
+                const signal = this.currentAbortController.signal;
+                try {
+                    // Show loading with cancel button
+                    this.content.innerHTML = this.offerGridView.renderLoading(true);
+                    this.attachCancelLoadingListener();
+                    this.updateHeader("Loading...");
+                    this.show();
+                    // Fetch offer details
+                    const detail = yield this.offerService.getOfferDetail(offerCode, sessionId);
+                    // Check if request was aborted
+                    if (signal.aborted) {
+                        return;
+                    }
+                    this.currentOfferDetail = detail;
+                    this.selectedVariant = ((_a = detail.offerVariants) === null || _a === void 0 ? void 0 : _a[0]) || null;
+                    this.quantity = 1;
+                    // Render offer detail
+                    this.content.innerHTML = this.offerDetailView.render(detail, this.selectedVariant, this.quantity, this.config);
+                    this.currentView = "offer-detail";
+                    this.viewStack.push({
+                        type: "offer-detail",
+                        title: "Product Details",
+                        data: { offerCode, sessionId },
+                    });
+                    this.updateHeader("Product Details");
+                    this.attachOfferDetailListeners();
+                    // Clear abort controller after successful completion
+                    this.currentAbortController = null;
+                }
+                catch (error) {
+                    // Don't show error if request was aborted
+                    if (signal.aborted) {
+                        return;
+                    }
+                    console.error("Error showing offer detail:", error);
+                    this.content.innerHTML = `<div class="me-agent-error">Failed to load offer details</div>`;
+                    this.updateHeader("Error");
+                    this.currentAbortController = null;
+                }
+            });
+        }
+        /**
+         * Show brand list
+         */
+        showBrandList(brands) {
+            const origin = window.location.origin;
+            this.content.innerHTML = this.brandListView.render(brands, origin);
+            this.currentView = "brand-list";
+            this.viewStack = [
+                {
+                    type: "brand-list",
+                    title: "Brands with Sign-Up Rewards",
+                    data: brands,
+                },
+            ];
+            this.updateHeader("Brands with Sign-Up Rewards");
+            this.attachBrandListListeners();
+            this.show();
+        }
+        /**
+         * Show category grid
+         */
+        showCategoryGrid(categories) {
+            this.content.innerHTML = this.categoryGridView.render(categories);
+            this.currentView = "category-grid";
+            this.viewStack = [
+                {
+                    type: "category-grid",
+                    title: "Purchase Earning Categories",
+                    data: categories,
+                },
+            ];
+            this.updateHeader("Purchase Earning Categories");
+            this.attachCategoryGridListeners();
+            this.show();
+        }
+        /**
+         * Show brands with offers for a category
+         */
+        showBrandsWithOffers(categoryId, token) {
+            return __awaiter(this, void 0, void 0, function* () {
+                // Cancel any existing request
+                this.cancelCurrentRequest();
+                // Create new AbortController
+                this.currentAbortController = new AbortController();
+                const signal = this.currentAbortController.signal;
+                try {
+                    // Show loading with cancel button
+                    this.content.innerHTML = this.offerGridView.renderLoading(true);
+                    this.attachCancelLoadingListener();
+                    this.updateHeader("Loading...");
+                    this.show();
+                    // Fetch brands with offers
+                    const brandsWithOffers = yield this.brandService.getBrandsWithOffers(categoryId, token);
+                    // Check if request was aborted
+                    if (signal.aborted) {
+                        return;
+                    }
+                    // Render brands with offers
+                    this.content.innerHTML = this.brandOffersView.render(brandsWithOffers);
+                    this.currentView = "brand-offers";
+                    this.viewStack.push({
+                        type: "brand-offers",
+                        title: "Brands with Purchase Rewards",
+                        data: brandsWithOffers,
+                    });
+                    this.updateHeader("Brands with Purchase Rewards");
+                    this.attachBrandOffersListeners();
+                    // Clear abort controller after successful completion
+                    this.currentAbortController = null;
+                }
+                catch (error) {
+                    // Don't show error if request was aborted
+                    if (signal.aborted) {
+                        return;
+                    }
+                    console.error("Error showing brands with offers:", error);
+                    this.content.innerHTML = `<div class="me-agent-error">Failed to load brands</div>`;
+                    this.updateHeader("Error");
+                    this.currentAbortController = null;
+                }
+            });
+        }
+        /**
+         * Attach event listeners for offer grid
+         */
+        attachOfferGridListeners() {
+            // Offer cards (using brand-offer-card class for consistency)
+            const offerCards = this.content.querySelectorAll(".me-agent-brand-offer-card");
+            offerCards.forEach((card) => {
+                card.addEventListener("click", () => {
+                    const offerCode = card.getAttribute("data-offer-code");
+                    if (offerCode && this.sessionId) {
+                        this.showOfferDetail(offerCode, this.sessionId);
+                    }
+                });
+            });
+        }
+        /**
+         * Attach event listeners for offer detail
+         */
+        attachOfferDetailListeners() {
+            // Variant selection
+            const variantCards = this.content.querySelectorAll(".me-agent-variant-card");
+            variantCards.forEach((card) => {
+                card.addEventListener("click", () => {
+                    const variantId = card.getAttribute("data-variant-id");
+                    if (variantId && this.currentOfferDetail) {
+                        this.selectVariant(variantId);
+                    }
+                });
+            });
             // Quantity controls
-            const quantityInput = this.element.querySelector(".me-agent-quantity-input");
-            const decreaseBtn = this.element.querySelector('[data-action="decrease"]');
-            const increaseBtn = this.element.querySelector('[data-action="increase"]');
-            decreaseBtn === null || decreaseBtn === void 0 ? void 0 : decreaseBtn.addEventListener("click", () => {
-                const val = parseInt(quantityInput.value || "0");
-                if (val > 0)
-                    quantityInput.value = String(val - 1);
-            });
-            increaseBtn === null || increaseBtn === void 0 ? void 0 : increaseBtn.addEventListener("click", () => {
-                const val = parseInt(quantityInput.value || "0");
-                quantityInput.value = String(val + 1);
-            });
-            // Tab switching
-            const tabs = this.element.querySelectorAll(".me-agent-tab");
-            const panes = this.element.querySelectorAll(".me-agent-tab-pane");
+            const decreaseBtn = this.content.querySelector('[data-action="decrease"]');
+            const increaseBtn = this.content.querySelector('[data-action="increase"]');
+            decreaseBtn === null || decreaseBtn === void 0 ? void 0 : decreaseBtn.addEventListener("click", () => this.changeQuantity(-1));
+            increaseBtn === null || increaseBtn === void 0 ? void 0 : increaseBtn.addEventListener("click", () => this.changeQuantity(1));
+            // Tabs
+            const tabs = this.content.querySelectorAll(".me-agent-tab");
             tabs.forEach((tab) => {
                 tab.addEventListener("click", () => {
                     const tabName = tab.getAttribute("data-tab");
-                    tabs.forEach((t) => t.classList.remove("active"));
-                    panes.forEach((p) => p.classList.remove("active"));
-                    tab.classList.add("active");
-                    const activePane = this.element.querySelector(`[data-pane="${tabName}"]`);
-                    activePane === null || activePane === void 0 ? void 0 : activePane.classList.add("active");
-                });
-            });
-            // Variant selection
-            const variantCards = this.element.querySelectorAll(".me-agent-variant-card");
-            variantCards.forEach((card, index) => {
-                card.addEventListener("click", () => {
-                    var _a;
-                    variantCards.forEach((c) => c.classList.remove("active"));
-                    card.classList.add("active");
-                    if ((_a = this.currentOfferDetail) === null || _a === void 0 ? void 0 : _a.offerVariants) {
-                        this.selectedVariant = this.currentOfferDetail.offerVariants[index];
+                    if (tabName) {
+                        this.switchTab(tabName);
                     }
                 });
             });
             // Action buttons
-            if (this.config.onAddToCart && this.currentOfferDetail) {
-                const addToCartBtn = this.element.querySelector(".me-agent-add-to-cart");
-                addToCartBtn === null || addToCartBtn === void 0 ? void 0 : addToCartBtn.addEventListener("click", () => {
-                    if (this.currentOfferDetail && this.config.onAddToCart) {
-                        this.config.onAddToCart(this.currentOfferDetail);
+            this.attachActionListeners();
+        }
+        /**
+         * Attach event listeners for brand list
+         */
+        attachBrandListListeners() {
+            // No additional listeners needed - back/close handled by header
+        }
+        /**
+         * Attach event listeners for category grid
+         */
+        attachCategoryGridListeners() {
+            // Category cards
+            const categoryCards = this.content.querySelectorAll(".me-agent-category-card");
+            categoryCards.forEach((card) => {
+                card.addEventListener("click", () => {
+                    const categoryId = card.getAttribute("data-category-id");
+                    if (categoryId) {
+                        this.showBrandsWithOffers(categoryId);
                     }
                 });
-            }
-            if (this.config.onShare && this.currentOfferDetail) {
-                const shareBtn = this.element.querySelector('[data-action="share"]');
-                shareBtn === null || shareBtn === void 0 ? void 0 : shareBtn.addEventListener("click", () => {
-                    if (this.currentOfferDetail && this.config.onShare) {
-                        this.config.onShare(this.currentOfferDetail);
+            });
+        }
+        /**
+         * Attach event listeners for brand offers
+         */
+        attachBrandOffersListeners() {
+            // Offer cards - navigate to product URL
+            const offerCards = this.content.querySelectorAll(".me-agent-brand-offer-card");
+            offerCards.forEach((card) => {
+                card.addEventListener("click", () => {
+                    const productUrl = card.getAttribute("data-product-url");
+                    if (productUrl && productUrl !== "#") {
+                        window.open(productUrl, "_blank");
                     }
                 });
-            }
-            if (this.config.onLikeUnlike && this.currentOfferDetail) {
-                const likeBtn = this.element.querySelector('[data-action="like"]');
-                likeBtn === null || likeBtn === void 0 ? void 0 : likeBtn.addEventListener("click", () => {
-                    if (this.currentOfferDetail && this.config.onLikeUnlike) {
-                        const isLiked = !this.likedOffers[this.currentOfferDetail.id];
-                        this.likedOffers[this.currentOfferDetail.id] = isLiked;
-                        likeBtn.classList.toggle("liked", isLiked);
-                        this.config.onLikeUnlike(this.currentOfferDetail, isLiked);
+            });
+        }
+        /**
+         * Attach cancel button listener during loading
+         */
+        attachCancelLoadingListener() {
+            const cancelBtn = this.content.querySelector(".me-agent-cancel-loading-btn");
+            if (cancelBtn) {
+                cancelBtn.addEventListener("click", () => {
+                    // Cancel the current request
+                    this.cancelCurrentRequest();
+                    // Restore current view (top of stack) without popping
+                    const currentView = this.viewStack[this.viewStack.length - 1];
+                    if (currentView) {
+                        this.restoreView(currentView);
                     }
                 });
             }
         }
         /**
-         * Setup variant selection listeners
+         * Attach action button listeners (like, share, add to cart)
          */
-        setupVariantListeners() {
+        attachActionListeners() {
+            const likeBtn = this.content.querySelector('[data-action="like"]');
+            const shareBtn = this.content.querySelector('[data-action="share"]');
+            const cartBtn = this.content.querySelector('[data-action="add-to-cart"]');
+            likeBtn === null || likeBtn === void 0 ? void 0 : likeBtn.addEventListener("click", () => {
+                if (this.currentOfferDetail && this.config.onLikeUnlike) {
+                    const isLiked = likeBtn.getAttribute("data-liked") === "true";
+                    this.config.onLikeUnlike(this.currentOfferDetail, !isLiked);
+                    likeBtn.setAttribute("data-liked", (!isLiked).toString());
+                    likeBtn.querySelector(".me-agent-action-icon").textContent = !isLiked
+                        ? "❤️"
+                        : "♡";
+                }
+            });
+            shareBtn === null || shareBtn === void 0 ? void 0 : shareBtn.addEventListener("click", () => {
+                if (this.currentOfferDetail && this.config.onShare) {
+                    this.config.onShare(this.currentOfferDetail);
+                }
+            });
+            cartBtn === null || cartBtn === void 0 ? void 0 : cartBtn.addEventListener("click", () => {
+                if (this.currentOfferDetail && this.config.onAddToCart) {
+                    this.config.onAddToCart(this.currentOfferDetail);
+                }
+            });
+        }
+        /**
+         * Select a variant
+         */
+        selectVariant(variantId) {
             var _a;
-            if (!((_a = this.currentOfferDetail) === null || _a === void 0 ? void 0 : _a.offerVariants))
-                return;
-            const variantButtons = this.element.querySelectorAll(".me-agent-variant-chip");
-            variantButtons.forEach((btn) => {
-                btn.addEventListener("click", (e) => {
-                    var _a;
-                    const target = e.currentTarget;
-                    const index = parseInt(target.getAttribute("data-variant-index") || "0");
-                    // Update active state
-                    variantButtons.forEach((b) => b.classList.remove("active"));
-                    target.classList.add("active");
-                    // Update selected variant
-                    if ((_a = this.currentOfferDetail) === null || _a === void 0 ? void 0 : _a.offerVariants) {
-                        this.selectedVariant = this.currentOfferDetail.offerVariants[index];
-                    }
-                });
-            });
-        }
-        /**
-         * Calculate final price
-         */
-        calculateFinalPrice(detail) {
-            const original = parseFloat(detail.originalPrice);
-            if (detail.redemptionMethod.discountPercentage) {
-                const discount = parseFloat(detail.redemptionMethod.discountPercentage);
-                return (original * (1 - discount / 100)).toFixed(2);
-            }
-            else if (detail.redemptionMethod.discountAmount) {
-                const discount = parseFloat(detail.redemptionMethod.discountAmount);
-                return (original - discount).toFixed(2);
-            }
-            return original.toFixed(2);
-        }
-        /**
-         * Handle claim offer button click
-         */
-        handleClaimOffer() {
-            return __awaiter(this, void 0, void 0, function* () {
-                if (!this.redeemManager || !this.redeemManager.isMagicConfigured()) {
-                    alert("Redemption is not configured. Please contact support.");
-                    return;
-                }
-                if (!this.currentOfferDetail) {
-                    return;
-                }
-                // Show loading on the claim button
-                const claimBtn = this.element.querySelector(".me-agent-offer-claim-button");
-                if (claimBtn) {
-                    claimBtn.disabled = true;
-                    claimBtn.textContent = "Processing...";
-                }
-                try {
-                    // Update Magic with brand's network if needed
-                    if (this.currentOfferDetail.brand.network) {
-                        yield this.redeemManager.updateNetwork(this.currentOfferDetail.brand.network);
-                    }
-                    // Proceed to authentication check (variant already selected from horizontal list)
-                    yield this.proceedToAuthentication();
-                }
-                catch (error) {
-                    console.error("Error handling claim offer:", error);
-                    alert("Failed to process claim. Please try again.");
-                    // Reset button state on error
-                    if (claimBtn) {
-                        claimBtn.disabled = false;
-                        claimBtn.textContent = "Claim Offer";
-                    }
-                }
-            });
-        }
-        /**
-         * Proceed to authentication check
-         */
-        proceedToAuthentication() {
-            return __awaiter(this, void 0, void 0, function* () {
-                if (!this.redeemManager)
-                    return;
-                try {
-                    // Check if user is already authenticated
-                    const isAuthenticated = yield this.redeemManager.isAuthenticated();
-                    if (isAuthenticated) {
-                        // Already authenticated with Magic, check ME Protocol onboarding
-                        yield this.checkAndHandleOnboarding();
-                    }
-                    else {
-                        // Show OTP verification view
-                        this.showOTPView();
-                    }
-                }
-                catch (error) {
-                    console.error("Error in authentication:", error);
-                    alert("Failed to verify authentication. Please try again.");
-                }
-            });
-        }
-        /**
-         * Check ME Protocol login and handle accordingly
-         */
-        checkAndHandleOnboarding() {
-            return __awaiter(this, void 0, void 0, function* () {
-                if (!this.redeemManager) {
-                    return;
-                }
-                try {
-                    // Clear any cached wallet address to force refresh from Magic
-                    this.redeemManager.clearWalletAddressCache();
-                    // Check if already logged in to ME Protocol
-                    if (this.redeemManager.isMEProtocolLoggedIn()) {
-                        // Already logged in, proceed to reward selection
-                        yield this.fetchAndShowRewardSelection();
-                        return;
-                    }
-                    // Show loading view and login to ME Protocol
-                    yield this.showAndExecuteLogin();
-                }
-                catch (error) {
-                    console.error("Error in ME Protocol login:", error);
-                    alert("Failed to authenticate. Please try again.");
-                    if (this.currentOfferDetail) {
-                        this.showDetail(this.currentOfferDetail);
-                    }
-                }
-            });
-        }
-        /**
-         * Show loading view and execute ME Protocol login
-         */
-        showAndExecuteLogin() {
-            return __awaiter(this, void 0, void 0, function* () {
-                if (!this.redeemManager) {
-                    return;
-                }
-                this.currentView = "onboarding";
-                this.element.innerHTML = OnboardingView.render();
-                // Start login process (creates account if new user)
-                yield OnboardingView.startOnboarding(this.element, this.redeemManager, () => {
-                    // Login successful, proceed to reward selection
-                    this.fetchAndShowRewardSelection();
-                }, (error) => {
-                    // Login failed
-                    alert(error);
-                    if (this.currentOfferDetail) {
-                        this.showDetail(this.currentOfferDetail);
-                    }
-                });
-            });
-        }
-        /**
-         * Show OTP verification view
-         */
-        showOTPView() {
-            return __awaiter(this, void 0, void 0, function* () {
-                this.currentView = "otp-verify";
-                if (!this.redeemManager)
-                    return;
-                const email = this.redeemManager.getEmail();
-                let autoSendOTP = false;
-                // Show loading while sending OTP
-                if (email) {
-                    this.showLoading("Sending verification code...");
-                    try {
-                        yield this.redeemManager.sendOTP(email);
-                        autoSendOTP = true;
-                    }
-                    catch (error) {
-                        console.error("Error auto-sending OTP:", error);
-                        // If auto-send fails, show the form
-                        autoSendOTP = false;
-                    }
-                }
-                this.element.innerHTML = OTPView.render(() => {
-                    if (this.currentOfferDetail) {
-                        this.showDetail(this.currentOfferDetail);
-                    }
-                }, this.onClose, () => this.checkAndHandleOnboarding(), // Check onboarding after OTP success
-                this.redeemManager, autoSendOTP);
-                OTPView.setupListeners(this.element, () => {
-                    if (this.currentOfferDetail) {
-                        this.showDetail(this.currentOfferDetail);
-                    }
-                }, this.onClose, () => this.checkAndHandleOnboarding(), // Check onboarding after OTP success
-                this.redeemManager, autoSendOTP);
-            });
-        }
-        /**
-         * Fetch balances and show reward selection
-         */
-        fetchAndShowRewardSelection() {
-            return __awaiter(this, void 0, void 0, function* () {
-                if (!this.redeemManager) {
-                    return;
-                }
-                try {
-                    this.showLoading();
-                    const balances = yield this.redeemManager.fetchBalances();
-                    if (balances.length === 0) {
-                        alert("You don't have any rewards yet. Please earn rewards first.");
-                        if (this.currentOfferDetail) {
-                            this.showDetail(this.currentOfferDetail);
-                        }
-                        return;
-                    }
-                    this.showRewardSelection(balances);
-                }
-                catch (error) {
-                    console.error("Error fetching balances:", error);
-                    alert("Failed to fetch your rewards. Please try again.");
-                    if (this.currentOfferDetail) {
-                        this.showDetail(this.currentOfferDetail);
-                    }
-                }
-            });
-        }
-        /**
-         * Show reward selection view
-         */
-        showRewardSelection(balances) {
-            this.currentView = "reward-select";
-            this.element.innerHTML = RewardSelectionView.render(balances);
-            RewardSelectionView.setupListeners(this.element, balances, () => {
-                if (this.currentOfferDetail) {
-                    this.showDetail(this.currentOfferDetail);
-                }
-            }, this.onClose, (reward) => this.handleRewardSelect(reward));
-        }
-        /**
-         * Handle reward selection
-         */
-        handleRewardSelect(reward) {
-            return __awaiter(this, void 0, void 0, function* () {
-                var _a;
-                if (!this.redeemManager || !this.currentOfferDetail) {
-                    return;
-                }
-                this.selectedReward = reward;
-                try {
-                    this.showLoading();
-                    // Calculate swap amount with selected variant
-                    const swapAmount = yield this.redeemManager.calculateSwapAmount(reward.reward.contractAddress, this.currentOfferDetail, (_a = this.selectedVariant) === null || _a === void 0 ? void 0 : _a.id);
-                    this.swapAmount = swapAmount;
-                    // Check affordability
-                    const canAfford = this.redeemManager.canAffordOffer(reward, swapAmount.amountNeeded);
-                    if (!canAfford) {
-                        this.showAffordabilityError(reward, swapAmount.amountNeeded);
-                    }
-                    else {
-                        this.showConfirmation(reward, swapAmount);
-                    }
-                }
-                catch (error) {
-                    console.error("Error calculating swap amount:", error);
-                    alert("Failed to calculate redemption amount. Please try again.");
-                    this.fetchAndShowRewardSelection();
-                }
-            });
-        }
-        /**
-         * Show affordability error
-         */
-        showAffordabilityError(reward, amountNeeded) {
-            this.element.innerHTML = AffordabilityErrorView.render(reward, amountNeeded);
-            AffordabilityErrorView.setupListeners(this.element, () => this.fetchAndShowRewardSelection(), this.onClose);
-        }
-        /**
-         * Show confirmation view
-         */
-        showConfirmation(reward, swapAmount) {
             if (!this.currentOfferDetail)
                 return;
-            this.currentView = "confirm";
-            this.element.innerHTML = ConfirmationView.render(reward, swapAmount, this.currentOfferDetail);
-            ConfirmationView.setupListeners(this.element, () => this.fetchAndShowRewardSelection(), this.onClose, () => __awaiter(this, void 0, void 0, function* () {
-                // Execute blockchain redemption transaction
-                // This will be implemented when transaction logic is added
-                alert("Redemption confirmed! Processing transaction...");
-                this.onClose();
-            }));
+            const variant = (_a = this.currentOfferDetail.offerVariants) === null || _a === void 0 ? void 0 : _a.find((v) => v.id === variantId);
+            if (variant) {
+                this.selectedVariant = variant;
+                // Re-render
+                this.content.innerHTML = this.offerDetailView.render(this.currentOfferDetail, this.selectedVariant, this.quantity, this.config);
+                this.attachOfferDetailListeners();
+            }
         }
         /**
-         * Get the panel element
+         * Change quantity
          */
-        getElement() {
-            return this.element;
+        changeQuantity(delta) {
+            const newQuantity = this.quantity + delta;
+            if (newQuantity >= 1 && newQuantity <= 10) {
+                this.quantity = newQuantity;
+                if (this.currentOfferDetail) {
+                    this.content.innerHTML = this.offerDetailView.render(this.currentOfferDetail, this.selectedVariant, this.quantity, this.config);
+                    this.attachOfferDetailListeners();
+                }
+            }
         }
         /**
-         * Show the panel
+         * Switch tab
          */
-        show() {
-            this.element.classList.add("visible");
+        switchTab(tabName) {
+            // Remove active class from all tabs and panes
+            this.content.querySelectorAll(".me-agent-tab").forEach((tab) => {
+                tab.classList.remove("active");
+            });
+            this.content.querySelectorAll(".me-agent-tab-pane").forEach((pane) => {
+                pane.classList.remove("active");
+            });
+            // Add active class to selected tab and pane
+            const selectedTab = this.content.querySelector(`[data-tab="${tabName}"]`);
+            const selectedPane = this.content.querySelector(`[data-pane="${tabName}"]`);
+            selectedTab === null || selectedTab === void 0 ? void 0 : selectedTab.classList.add("active");
+            selectedPane === null || selectedPane === void 0 ? void 0 : selectedPane.classList.add("active");
+        }
+    }
+
+    /**
+     * Offer Service
+     * Business logic for offer management
+     */
+    /**
+     * Offer Service
+     * Handles offer fetching, caching, and business logic
+     */
+    class OfferService {
+        constructor(offerAPI) {
+            this.offerAPI = offerAPI;
+            this.offerCache = new Map();
         }
         /**
-         * Hide the panel
+         * Get offer details (with caching)
          */
-        hide() {
-            this.element.classList.remove("visible");
+        getOfferDetail(offerCode_1, sessionId_1) {
+            return __awaiter(this, arguments, void 0, function* (offerCode, sessionId, useCache = true) {
+                // Check cache first
+                if (useCache && this.offerCache.has(offerCode)) {
+                    return this.offerCache.get(offerCode);
+                }
+                // Fetch from API
+                const detail = yield this.offerAPI.fetchOfferDetails(offerCode, sessionId);
+                // Cache the result
+                this.offerCache.set(offerCode, detail);
+                return detail;
+            });
+        }
+        /**
+         * Get offers by brand ID
+         */
+        getOffersByBrandId(brandId, token) {
+            return __awaiter(this, void 0, void 0, function* () {
+                return this.offerAPI.fetchOffersByBrandId(brandId, token);
+            });
+        }
+        /**
+         * Clear offer cache
+         */
+        clearCache() {
+            this.offerCache.clear();
+        }
+        /**
+         * Calculate final price after discount
+         */
+        calculateFinalPrice(originalPrice, discountPercentage) {
+            const price = typeof originalPrice === "string"
+                ? parseFloat(originalPrice)
+                : originalPrice;
+            const discount = typeof discountPercentage === "string"
+                ? parseFloat(discountPercentage)
+                : discountPercentage;
+            return price * (1 - discount / 100);
+        }
+    }
+
+    /**
+     * Brand Service
+     * Business logic for brand and category management
+     */
+    /**
+     * Brand Service
+     * Handles brand fetching and business logic
+     */
+    class BrandService {
+        constructor(brandAPI, offerAPI) {
+            this.brandAPI = brandAPI;
+            this.offerAPI = offerAPI;
+        }
+        /**
+         * Get brands by category ID
+         */
+        getBrandsByCategory(categoryId) {
+            return __awaiter(this, void 0, void 0, function* () {
+                return this.brandAPI.fetchBrandsByCategoryId(categoryId);
+            });
+        }
+        /**
+         * Get brands with their offers for a category
+         * Filters out brands with no offers
+         */
+        getBrandsWithOffers(categoryId, token) {
+            return __awaiter(this, void 0, void 0, function* () {
+                // Fetch all brands for the category
+                const brands = yield this.brandAPI.fetchBrandsByCategoryId(categoryId);
+                // Fetch offers for each brand in parallel
+                const brandsWithOffers = yield Promise.all(brands.map((brand) => __awaiter(this, void 0, void 0, function* () {
+                    try {
+                        const offers = yield this.offerAPI.fetchOffersByBrandId(brand.id, token);
+                        return { brand, offers };
+                    }
+                    catch (error) {
+                        console.error(`Error fetching offers for brand ${brand.id}:`, error);
+                        return { brand, offers: [] };
+                    }
+                })));
+                // Filter out brands with no offers
+                return brandsWithOffers.filter((item) => item.offers.length > 0);
+            });
+        }
+        /**
+         * Generate signup link for a brand
+         */
+        generateSignupLink(brand, callbackUrl) {
+            const baseUrl = brand.shopifyStoreUrl || brand.websiteUrl || "";
+            if (!baseUrl)
+                return "#";
+            const url = new URL(baseUrl);
+            url.searchParams.append("meprotocol_callback", callbackUrl);
+            return url.toString();
+        }
+        /**
+         * Format conversion rate display
+         */
+        formatConversionRate(brand) {
+            const { rewardSymbol, rewardValueInDollars } = brand.rewardDetails.rewardInfo;
+            const dollars = parseFloat(rewardValueInDollars || "0");
+            return `1 ${rewardSymbol} = $${dollars.toFixed(2)}`;
+        }
+        /**
+         * Get reward amount display text
+         */
+        getRewardAmountText(brand) {
+            const rule = brand.rewardDetails.rules[0];
+            if (!rule)
+                return "N/A";
+            const { points } = rule;
+            const { rewardSymbol } = brand.rewardDetails.rewardInfo;
+            return `${points.toLocaleString()} ${rewardSymbol}`;
         }
     }
 
@@ -2539,30 +3024,31 @@
      * Chat Popup Component
      */
     class ChatPopup {
-        constructor(position, onSendMessage, onClose, apiClient, sessionId, config, redeemManager) {
+        constructor(position, onSendMessage, onClose, apiClient, sessionId, config, redemptionService) {
             this.welcomeElement = null;
             this.isMaximized = false;
-            this.detailPanel = null;
             this.currentOffers = [];
             this.sessionId = "";
-            this.redeemManager = null;
+            this.redemptionService = null;
             this.position = position;
             this.onSendMessage = onSendMessage;
             this.onClose = onClose;
             this.apiClient = apiClient;
             this.sessionId = sessionId;
             this.config = config;
-            this.redeemManager = redeemManager || null;
+            this.redemptionService = redemptionService || null;
+            // Initialize services
+            this.offerService = new OfferService(apiClient.offerAPI);
+            this.brandService = new BrandService(apiClient.brandAPI, apiClient.offerAPI);
+            // Initialize detail panel controller
+            this.detailPanelController = new DetailPanelController(config, this.offerService, this.brandService, () => this.hideDetailPanel());
             this.element = this.create();
             this.messagesContainer = this.element.querySelector(".me-agent-messages");
             this.inputElement = this.element.querySelector(".me-agent-input");
             this.sendButton = this.element.querySelector(".me-agent-send-button");
             this.maximizeButton = this.element.querySelector(".me-agent-maximize-button");
-            // Initialize detail panel
-            this.detailPanel = new DetailPanel(() => this.hideDetailPanel(), (offerCode) => this.handleOfferClick(offerCode), config, this.apiClient, this.redeemManager || undefined);
-            // Mount detail panel inside chat
-            const detailWrapper = this.element.querySelector(".me-agent-detail-panel-wrapper");
-            detailWrapper.appendChild(this.detailPanel.getElement());
+            // Mount detail panel inside chat - controller provides its own wrapper
+            this.element.appendChild(this.detailPanelController.getElement());
             this.setupEventListeners();
         }
         /**
@@ -2607,7 +3093,6 @@
           </div>
         </div>
       </div>
-      <div class="me-agent-detail-panel-wrapper"></div>
     `;
             return chat;
         }
@@ -2891,17 +3376,15 @@
          * Show brands detail panel with full list
          */
         showBrandsDetail(brands) {
-            var _a;
             if (this.isMaximized) {
-                (_a = this.detailPanel) === null || _a === void 0 ? void 0 : _a.showBrandsDetail(brands);
+                this.detailPanelController.showBrandList(brands);
                 this.element.classList.add("has-detail-panel");
             }
             else {
                 this.toggleMaximize();
                 // Wait for maximize animation
                 setTimeout(() => {
-                    var _a;
-                    (_a = this.detailPanel) === null || _a === void 0 ? void 0 : _a.showBrandsDetail(brands);
+                    this.detailPanelController.showBrandList(brands);
                     this.element.classList.add("has-detail-panel");
                 }, 300);
             }
@@ -2938,17 +3421,15 @@
          * Show categories detail panel with grid
          */
         showCategoriesDetail(categories) {
-            var _a;
             if (this.isMaximized) {
-                (_a = this.detailPanel) === null || _a === void 0 ? void 0 : _a.showCategoriesDetail(categories);
+                this.detailPanelController.showCategoryGrid(categories);
                 this.element.classList.add("has-detail-panel");
             }
             else {
                 this.toggleMaximize();
                 // Wait for maximize animation
                 setTimeout(() => {
-                    var _a;
-                    (_a = this.detailPanel) === null || _a === void 0 ? void 0 : _a.showCategoriesDetail(categories);
+                    this.detailPanelController.showCategoryGrid(categories);
                     this.element.classList.add("has-detail-panel");
                 }, 300);
             }
@@ -2991,7 +3472,6 @@
          * Show detail panel with offers
          */
         showDetailPanel(offers) {
-            var _a, _b;
             // Store the offers that are being displayed
             this.currentOffers = offers;
             // Auto-maximize when showing offers
@@ -2999,35 +3479,29 @@
                 this.toggleMaximize();
             }
             this.element.classList.add("has-detail-panel");
-            (_a = this.detailPanel) === null || _a === void 0 ? void 0 : _a.showGrid(offers);
-            (_b = this.detailPanel) === null || _b === void 0 ? void 0 : _b.show();
+            this.detailPanelController.showOfferGrid(offers, this.sessionId);
+            this.detailPanelController.show();
         }
         /**
          * Hide detail panel
          */
         hideDetailPanel() {
-            var _a;
             this.element.classList.remove("has-detail-panel");
-            (_a = this.detailPanel) === null || _a === void 0 ? void 0 : _a.hide();
+            this.detailPanelController.hide();
         }
         /**
          * Handle offer click
          */
         handleOfferClick(offerCode) {
             return __awaiter(this, void 0, void 0, function* () {
-                var _a, _b, _c;
                 try {
                     // Maximize widget if not already maximized
                     if (!this.isMaximized) {
                         this.toggleMaximize();
                     }
-                    // Show the detail panel
+                    // Show the detail panel with offer details
                     this.element.classList.add("has-detail-panel");
-                    (_a = this.detailPanel) === null || _a === void 0 ? void 0 : _a.show();
-                    // Fetch and display offer details
-                    (_b = this.detailPanel) === null || _b === void 0 ? void 0 : _b.showLoading();
-                    const offerDetail = yield this.apiClient.fetchOfferDetails(offerCode, this.sessionId);
-                    (_c = this.detailPanel) === null || _c === void 0 ? void 0 : _c.showDetail(offerDetail);
+                    yield this.detailPanelController.showOfferDetail(offerCode, this.sessionId);
                 }
                 catch (error) {
                     console.error("Error fetching offer details:", error);
@@ -3699,6 +4173,113 @@
     pointer-events: auto;
   }
 
+  /* Detail Panel Header */
+  .me-agent-detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e5e5;
+    background: white;
+    flex-shrink: 0;
+  }
+
+  .me-agent-detail-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0;
+    flex: 1;
+  }
+
+  .me-agent-back-button {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    color: #1a1a1a;
+    font-size: 18px;
+    font-weight: 600;
+    transition: opacity 0.2s ease;
+    flex: 1;
+  }
+
+  .me-agent-back-button:hover {
+    opacity: 0.7;
+  }
+
+  .me-agent-detail-header .me-agent-close-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    color: #666;
+    transition: opacity 0.2s ease;
+  }
+
+  .me-agent-detail-header .me-agent-close-button:hover {
+    opacity: 0.7;
+  }
+
+  /* Detail Panel Content */
+  .me-agent-detail-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  /* Detail Panel Loading State */
+  .me-agent-detail-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    min-height: 400px;
+    width: 100%;
+  }
+
+  .me-agent-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid #f3f4f6;
+    border-top-color: #0f0f0f;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .me-agent-cancel-loading-btn {
+    padding: 10px 20px;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .me-agent-cancel-loading-btn:hover {
+    background: #e5e7eb;
+    border-color: #d1d5db;
+  }
+
+  .me-agent-cancel-loading-btn:active {
+    transform: scale(0.98);
+  }
+
   .me-agent-offers-header {
     padding: 20px;
     background: white;
@@ -3957,8 +4538,6 @@
 
   .me-agent-brand-offers-section {
     background: white;
-    border-radius: 16px;
-    border: 1px solid #F5F5F5;
   }
 
   .me-agent-brand-offers-header {
@@ -4001,7 +4580,7 @@
     flex-shrink: 0;
     padding: 8px 16px;
     background: #000000;
-    border-radius: 8px;
+    border-radius: 100px;
   }
 
   .me-agent-brand-offers-scroll {
@@ -4034,8 +4613,8 @@
   }
 
   .me-agent-brand-offer-card {
-    min-width: 200px;
-    max-width: 200px;
+    min-width: 150px;
+    max-width: 150px;
     background: #FAFAFA;
     border: 1px solid #F5F5F5;
     border-radius: 12px;
@@ -4047,7 +4626,6 @@
 
   .me-agent-brand-offer-card:hover {
     transform: scale(1.02);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   }
 
   .me-agent-brand-offer-image-container {
@@ -4087,7 +4665,7 @@
     font-size: 14px;
     font-weight: 500;
     color: #000000;
-    margin: 0 0 8px 0;
+    margin: 0 0 4px 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -4118,80 +4696,13 @@
     font-size: 16px;
   }
 
-  .me-agent-offer-card {
-    background: #FAFAFA;
-    border-radius: 12px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: 1px solid #F5F5F5;
-  }
-
-  .me-agent-offer-card:hover {
-    transform: scale(1.02);
-  }
-
-  .me-agent-offer-image-container {
-    position: relative;
+  /* Note: Offer cards now use .me-agent-brand-offer-card for consistency */
+  
+  /* Override brand offer card width when in grid layout */
+  .me-agent-offers-grid .me-agent-brand-offer-card {
+    min-width: unset;
+    max-width: unset;
     width: 100%;
-    padding-top: 100%;
-    overflow: hidden;
-  }
-
-  .me-agent-offer-image {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-size: cover;
-    background-position: center;
-    background-color: #f3f4f6;
-  }
-
-  .me-agent-offer-badge {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    background: #000000;
-    color: white;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 500;
-    z-index: 1;
-  }
-
-  .me-agent-offer-info {
-    padding: 16px;
-  }
-
-  .me-agent-offer-name {
-    font-size: 14px;
-    font-weight: 600;
-    color: #0f0f0f;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .me-agent-offer-pricing {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .me-agent-offer-price {
-    font-size: 14px;
-    color: #0f0f0f;
-    font-weight: 700;
-  }
-
-  .me-agent-offer-original-price {
-    font-size: 14px;
-    color: #9ca3af;
-    font-weight: 400;
-    text-decoration: line-through;
   }
 
   /* Offers Loading */
@@ -5305,412 +5816,6 @@
     }
 
     /**
-     * Magic Link Client Wrapper
-     * Handles authentication and wallet operations
-     */
-    class MagicClient {
-        constructor(config) {
-            this.magic = null;
-            this.initialized = false;
-            this.config = config;
-        }
-        /**
-         * Initialize Magic SDK
-         * Loads the Magic SDK from CDN if not already loaded
-         */
-        init() {
-            return __awaiter(this, void 0, void 0, function* () {
-                if (this.initialized) {
-                    return;
-                }
-                // Load Magic SDK from CDN if not already loaded
-                if (!window.Magic) {
-                    yield this.loadMagicSDK();
-                }
-                // Initialize Magic instance with network configuration
-                this.magic = new window.Magic(this.config.apiKey, {
-                    network: {
-                        rpcUrl: this.config.rpcUrl,
-                        chainId: parseInt(this.config.chainId),
-                    },
-                });
-                this.initialized = true;
-            });
-        }
-        /**
-         * Load Magic SDK from CDN
-         */
-        loadMagicSDK() {
-            return new Promise((resolve, reject) => {
-                // Check if already loaded
-                if (window.Magic) {
-                    resolve();
-                    return;
-                }
-                const script = document.createElement("script");
-                script.src = "https://auth.magic.link/sdk";
-                script.async = true;
-                script.onload = () => {
-                    // Wait a bit for Magic to be available
-                    setTimeout(() => resolve(), 100);
-                };
-                script.onerror = () => reject(new Error("Failed to load Magic SDK"));
-                document.head.appendChild(script);
-            });
-        }
-        /**
-         * Check if user is logged in
-         */
-        isLoggedIn() {
-            return __awaiter(this, void 0, void 0, function* () {
-                if (!this.initialized) {
-                    yield this.init();
-                }
-                try {
-                    return yield this.magic.user.isLoggedIn();
-                }
-                catch (error) {
-                    console.error("Error checking Magic login status:", error);
-                    return false;
-                }
-            });
-        }
-        /**
-         * Get user metadata (including wallet address)
-         */
-        getUserMetadata() {
-            return __awaiter(this, void 0, void 0, function* () {
-                var _a, _b;
-                if (!this.initialized) {
-                    yield this.init();
-                }
-                try {
-                    // Magic SDK uses getInfo() method, not getMetadata()
-                    const metadata = yield this.magic.user.getInfo();
-                    // Extract wallet address from the wallets object
-                    const publicAddress = (_b = (_a = metadata === null || metadata === void 0 ? void 0 : metadata.wallets) === null || _a === void 0 ? void 0 : _a.ethereum) === null || _b === void 0 ? void 0 : _b.publicAddress;
-                    if (!publicAddress) {
-                        console.error("Failed to extract wallet address from metadata:", metadata);
-                        throw new Error("Magic returned invalid user metadata - no Ethereum wallet address found");
-                    }
-                    return {
-                        publicAddress,
-                        email: metadata.email || null,
-                    };
-                }
-                catch (error) {
-                    console.error("Error getting Magic user metadata:", error);
-                    throw error;
-                }
-            });
-        }
-        /**
-         * Login with email OTP
-         */
-        loginWithEmailOTP(email) {
-            return __awaiter(this, void 0, void 0, function* () {
-                if (!this.initialized) {
-                    yield this.init();
-                }
-                try {
-                    // Magic SDK v11+ uses loginWithEmailOTP directly on auth
-                    const didToken = yield this.magic.auth.loginWithEmailOTP({
-                        email,
-                        showUI: true, // Show Magic's UI for OTP entry
-                    });
-                    return didToken;
-                }
-                catch (error) {
-                    console.error("Error logging in with Magic:", error);
-                    throw error;
-                }
-            });
-        }
-        /**
-         * Logout
-         */
-        logout() {
-            return __awaiter(this, void 0, void 0, function* () {
-                if (!this.initialized) {
-                    return;
-                }
-                try {
-                    yield this.magic.user.logout();
-                }
-                catch (error) {
-                    console.error("Error logging out from Magic:", error);
-                    throw error;
-                }
-            });
-        }
-        /**
-         * Get wallet address (shortcut method)
-         */
-        getWalletAddress() {
-            return __awaiter(this, void 0, void 0, function* () {
-                const metadata = yield this.getUserMetadata();
-                return metadata.publicAddress;
-            });
-        }
-    }
-
-    /**
-     * Redemption Manager
-     * Handles the complete offer redemption flow
-     */
-    class RedeemManager {
-        constructor(apiClient, magicConfig, openRewardDiamond) {
-            this.magicClient = null;
-            this.walletAddress = null;
-            this.balances = [];
-            this.meProtocolLoggedIn = false;
-            this.currentEmail = null;
-            this.meProtocolToken = null;
-            this.apiClient = apiClient;
-            this.magicClient = new MagicClient(magicConfig);
-            this.openRewardDiamond = openRewardDiamond;
-        }
-        /**
-         * Get email from config or stored email
-         */
-        getEmail() {
-            return this.currentEmail || this.apiClient.getUserEmail() || null;
-        }
-        /**
-         * Set email (for OTP flow)
-         */
-        setEmail(email) {
-            this.currentEmail = email;
-        }
-        /**
-         * Check if Magic is configured
-         */
-        isMagicConfigured() {
-            return this.magicClient !== null;
-        }
-        /**
-         * Check if user is authenticated
-         */
-        isAuthenticated() {
-            return __awaiter(this, void 0, void 0, function* () {
-                if (!this.magicClient) {
-                    return false;
-                }
-                try {
-                    return yield this.magicClient.isLoggedIn();
-                }
-                catch (error) {
-                    console.error("Error checking authentication:", error);
-                    return false;
-                }
-            });
-        }
-        /**
-         * Get wallet address (with force refresh option)
-         */
-        getWalletAddress() {
-            return __awaiter(this, arguments, void 0, function* (forceRefresh = false) {
-                // Use cached value unless force refresh is requested
-                if (this.walletAddress && !forceRefresh) {
-                    return this.walletAddress;
-                }
-                if (!this.magicClient) {
-                    throw new Error("Magic is not configured");
-                }
-                try {
-                    // First verify user is logged in
-                    const isLoggedIn = yield this.magicClient.isLoggedIn();
-                    if (!isLoggedIn) {
-                        throw new Error("User is not logged in to Magic");
-                    }
-                    // Retry logic for fetching wallet address (Magic might need a moment)
-                    let retries = 3;
-                    let lastError = null;
-                    while (retries > 0) {
-                        try {
-                            // Fetch wallet address from Magic
-                            this.walletAddress = yield this.magicClient.getWalletAddress();
-                            if (this.walletAddress) {
-                                return this.walletAddress;
-                            }
-                            // If null, wait and retry
-                            console.warn("Wallet address is null, retrying...");
-                            yield new Promise((resolve) => setTimeout(resolve, 1000));
-                            retries--;
-                        }
-                        catch (err) {
-                            lastError = err;
-                            console.warn(`Error on attempt ${4 - retries}:`, err);
-                            yield new Promise((resolve) => setTimeout(resolve, 1000));
-                            retries--;
-                        }
-                    }
-                    // All retries failed
-                    throw new Error(`Failed to retrieve wallet address from Magic after 3 attempts. Last error: ${(lastError === null || lastError === void 0 ? void 0 : lastError.message) || "Unknown"}`);
-                }
-                catch (error) {
-                    console.error("Error getting wallet address:", error);
-                    throw error;
-                }
-            });
-        }
-        /**
-         * Clear cached wallet address (useful after logout or re-authentication)
-         */
-        clearWalletAddressCache() {
-            this.walletAddress = null;
-        }
-        /**
-         * Send OTP to email
-         */
-        sendOTP(email) {
-            return __awaiter(this, void 0, void 0, function* () {
-                if (!this.magicClient) {
-                    throw new Error("Magic is not configured");
-                }
-                try {
-                    this.currentEmail = email; // Store email for later use
-                    yield this.magicClient.loginWithEmailOTP(email);
-                }
-                catch (error) {
-                    console.error("Error sending OTP:", error);
-                    throw error;
-                }
-            });
-        }
-        /**
-         * Login to ME Protocol (creates account if new user)
-         */
-        loginToMEProtocol() {
-            return __awaiter(this, void 0, void 0, function* () {
-                try {
-                    const email = this.getEmail();
-                    if (!email) {
-                        throw new Error("Email not available");
-                    }
-                    // Force refresh wallet address to ensure we have the latest from Magic
-                    const walletAddress = yield this.getWalletAddress(true);
-                    // Login to ME Protocol (this creates account if new user)
-                    const loginResponse = yield this.apiClient.meProtocolLogin(email, walletAddress);
-                    if (loginResponse.data.user && loginResponse.data.token) {
-                        this.meProtocolLoggedIn = true;
-                        this.meProtocolToken = loginResponse.data.token; // Store the token
-                    }
-                    else {
-                        throw new Error("Login failed");
-                    }
-                }
-                catch (error) {
-                    console.error("Error logging in to ME Protocol:", error);
-                    throw error;
-                }
-            });
-        }
-        /**
-         * Check if user is logged in to ME Protocol
-         */
-        isMEProtocolLoggedIn() {
-            return this.meProtocolLoggedIn;
-        }
-        /**
-         * Fetch user's reward balances
-         */
-        fetchBalances() {
-            return __awaiter(this, void 0, void 0, function* () {
-                try {
-                    const walletAddress = yield this.getWalletAddress();
-                    if (!this.meProtocolToken) {
-                        throw new Error("ME Protocol token not available. Please login first.");
-                    }
-                    const balances = yield this.apiClient.fetchRewardBalances(walletAddress, this.meProtocolToken);
-                    this.balances = balances;
-                    return balances;
-                }
-                catch (error) {
-                    console.error("Error fetching balances:", error);
-                    throw error;
-                }
-            });
-        }
-        /**
-         * Calculate swap amount for redemption
-         * @param selectedRewardAddress - The contract address of the reward the user selected to use
-         * @param offerDetail - The offer detail containing the reward they want to redeem for
-         * @param selectedVariantId - Optional variant ID if the offer has variants
-         */
-        calculateSwapAmount(selectedRewardAddress, offerDetail, selectedVariantId) {
-            return __awaiter(this, void 0, void 0, function* () {
-                try {
-                    const walletAddress = yield this.getWalletAddress();
-                    if (!this.meProtocolToken) {
-                        throw new Error("ME Protocol token not available. Please login first.");
-                    }
-                    // Use provided variant ID, or first variant if available
-                    let variantId = selectedVariantId;
-                    if (!variantId &&
-                        offerDetail.offerVariants &&
-                        offerDetail.offerVariants.length > 0) {
-                        variantId = offerDetail.offerVariants[0].id;
-                    }
-                    const payload = {
-                        walletAddress,
-                        inputRewardAddress: selectedRewardAddress, // The reward the user wants to use
-                        outPutRewardAddress: offerDetail.reward.contractAddress, // The reward from the offer
-                        redemptionMethodId: offerDetail.redemptionMethod.id,
-                        offerId: offerDetail.id,
-                        variantId,
-                        brandId: offerDetail.brand.id,
-                    };
-                    const result = yield this.apiClient.fetchSwapAmount(payload, this.meProtocolToken);
-                    return result;
-                }
-                catch (error) {
-                    console.error("Error calculating swap amount:", error);
-                    throw error;
-                }
-            });
-        }
-        /**
-         * Update Magic network configuration
-         */
-        updateNetwork(brandNetwork) {
-            return __awaiter(this, void 0, void 0, function* () {
-                if (!this.magicClient) {
-                    return;
-                }
-            });
-        }
-        /**
-         * Check if user can afford the offer with selected reward
-         */
-        canAffordOffer(selectedReward, amountNeeded) {
-            return selectedReward.balance >= amountNeeded;
-        }
-        /**
-         * Get cached balances
-         */
-        getCachedBalances() {
-            return this.balances;
-        }
-        /**
-         * Clear wallet address cache
-         */
-        clearCache() {
-            this.walletAddress = null;
-            this.balances = [];
-        }
-        /**
-         * Logout - REMOVED: Users should stay logged in
-         * Kept for backward compatibility but does nothing
-         */
-        logout() {
-            return __awaiter(this, void 0, void 0, function* () {
-                // Do nothing - users stay logged in with Magic
-            });
-        }
-    }
-
-    /**
      * Environment types
      */
     exports.Environment = void 0;
@@ -5802,18 +5907,26 @@
      */
     class MeAgentSDK {
         constructor(config) {
-            this.redeemManager = null;
+            this.redemptionService = null;
             this.button = null;
             this.chat = null;
             this.initialized = false;
+            this.isOpen = false;
             this.validateConfig(config);
             this.config = Object.assign({ position: "bottom-right", environment: exports.Environment.DEV, network: exports.SupportedNetwork.SEPOLIA }, config);
             // Get environment configuration based on environment and network
             this.env = getEnv(this.config.environment, this.config.network);
-            this.stateManager = new StateManager();
+            // Initialize API client
             this.apiClient = new APIClient(this.config, this.env);
-            // Initialize RedeemManager with network-specific configuration
-            this.redeemManager = new RedeemManager(this.apiClient, {
+            // Initialize services
+            const sessionAPI = new SessionAPI(this.config, this.env);
+            const chatAPI = new ChatAPI(this.config, this.env);
+            const authAPI = new AuthAPI(this.config, this.env);
+            const rewardAPI = new RewardAPI(this.config, this.env);
+            this.sessionService = new SessionService(sessionAPI, chatAPI);
+            this.messageParser = new MessageParser();
+            // Initialize RedemptionService with network-specific configuration
+            this.redemptionService = new RedemptionService(authAPI, rewardAPI, {
                 apiKey: this.env.MAGIC_PUBLISHABLE_API_KEY,
                 chainId: this.env.CHAIN_ID,
                 rpcUrl: this.env.RPC_URL,
@@ -5838,28 +5951,15 @@
                     // Inject styles
                     injectStyles();
                     // Create session
-                    const sessionId = yield this.apiClient.createSession();
-                    this.stateManager.setSessionId(sessionId);
+                    const sessionId = yield this.sessionService.getOrCreateSession();
                     // Initialize UI components
                     this.button = new FloatingButton(this.config.position || "bottom-right", () => this.toggleChat());
-                    this.chat = new ChatPopup(this.config.position || "bottom-right", (message) => this.sendMessage(message), () => this.toggleChat(), this.apiClient, sessionId, this.config, this.redeemManager || undefined);
+                    this.chat = new ChatPopup(this.config.position || "bottom-right", (message) => this.sendMessage(message), () => this.toggleChat(), this.apiClient, sessionId, this.config, this.redemptionService || undefined);
                     // Mount components
                     this.button.mount();
                     this.chat.mount();
                     // Show welcome message
                     this.chat.showWelcome();
-                    // Subscribe to state changes
-                    this.stateManager.subscribe((state) => {
-                        var _a, _b, _c, _d;
-                        if (state.isOpen) {
-                            (_a = this.chat) === null || _a === void 0 ? void 0 : _a.show();
-                            (_b = this.button) === null || _b === void 0 ? void 0 : _b.hide();
-                        }
-                        else {
-                            (_c = this.chat) === null || _c === void 0 ? void 0 : _c.hide();
-                            (_d = this.button) === null || _d === void 0 ? void 0 : _d.show();
-                        }
-                    });
                     this.initialized = true;
                 }
                 catch (error) {
@@ -5872,7 +5972,16 @@
          * Toggle chat open/closed
          */
         toggleChat() {
-            this.stateManager.toggleChat();
+            var _a, _b, _c, _d;
+            this.isOpen = !this.isOpen;
+            if (this.isOpen) {
+                (_a = this.chat) === null || _a === void 0 ? void 0 : _a.show();
+                (_b = this.button) === null || _b === void 0 ? void 0 : _b.hide();
+            }
+            else {
+                (_c = this.chat) === null || _c === void 0 ? void 0 : _c.hide();
+                (_d = this.button) === null || _d === void 0 ? void 0 : _d.show();
+            }
         }
         /**
          * Send a message
@@ -5880,75 +5989,55 @@
         sendMessage(content) {
             return __awaiter(this, void 0, void 0, function* () {
                 var _a, _b, _c, _d;
-                const state = this.stateManager.getState();
-                if (!state.sessionId) {
+                const sessionId = this.sessionService.getSessionId();
+                if (!sessionId) {
                     console.error("MeAgent SDK: No active session");
                     return;
                 }
                 // Add user message
-                const userMessage = {
-                    id: this.generateId(),
-                    role: "user",
-                    content,
-                    timestamp: Date.now(),
-                };
-                this.stateManager.addMessage(userMessage);
+                const userMessage = this.sessionService.createMessage("user", content);
+                this.sessionService.addMessage(userMessage);
                 (_a = this.chat) === null || _a === void 0 ? void 0 : _a.addMessage(userMessage);
                 // Show loading
-                this.stateManager.setLoading(true);
                 (_b = this.chat) === null || _b === void 0 ? void 0 : _b.setLoading(true);
                 (_c = this.chat) === null || _c === void 0 ? void 0 : _c.showLoading();
-                let assistantMessage = {
-                    id: this.generateId(),
-                    role: "assistant",
-                    content: "",
-                    timestamp: Date.now(),
-                };
+                let assistantMessage = this.sessionService.createMessage("assistant", "");
                 let isFirstChunk = true;
-                let detectedOffers = [];
-                let detectedBrands = [];
-                let detectedCategories = [];
-                let showWaysToEarnActions = false;
-                let hasFinalMessage = false; // Track if we've received a final message
+                let parsedData = {
+                    offers: [],
+                    brands: [],
+                    categories: [],
+                    showWaysToEarn: false,
+                };
+                let hasFinalMessage = false;
                 try {
-                    yield this.apiClient.sendMessage(state.sessionId, content, (chunk, rawData) => {
-                        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1;
-                        // Check for function calls and responses
+                    yield this.apiClient.sendMessage(sessionId, content, (chunk, rawData) => {
+                        var _a, _b, _c, _d, _e, _f, _g;
+                        // Parse function calls and responses using MessageParser
                         if (rawData) {
-                            // Check for query_offers function response
-                            if (((_d = (_c = (_b = (_a = rawData.content) === null || _a === void 0 ? void 0 : _a.parts) === null || _b === void 0 ? void 0 : _b[0]) === null || _c === void 0 ? void 0 : _c.functionResponse) === null || _d === void 0 ? void 0 : _d.name) ===
-                                "query_offers") {
-                                const matches = ((_e = rawData.content.parts[0].functionResponse.response) === null || _e === void 0 ? void 0 : _e.matches) ||
-                                    [];
-                                detectedOffers = this.parseOffers(matches);
+                            const parsed = this.messageParser.parseMessageData(rawData);
+                            if (parsed.offers.length > 0) {
+                                parsedData.offers = parsed.offers;
                             }
-                            // Check for get_signup_earning_brands function response
-                            if (((_j = (_h = (_g = (_f = rawData.content) === null || _f === void 0 ? void 0 : _f.parts) === null || _g === void 0 ? void 0 : _g[0]) === null || _h === void 0 ? void 0 : _h.functionResponse) === null || _j === void 0 ? void 0 : _j.name) ===
-                                "get_signup_earning_brands") {
-                                const brands = ((_k = rawData.content.parts[0].functionResponse.response) === null || _k === void 0 ? void 0 : _k.brands) ||
-                                    [];
-                                detectedBrands = this.parseBrands(brands);
-                                console.log("[SDK] Detected signup earning brands:", detectedBrands.length);
+                            if (parsed.brands.length > 0) {
+                                parsedData.brands = parsed.brands;
+                                console.log("[SDK] Detected signup earning brands:", parsed.brands.length);
                             }
-                            // Check for get_category_purchase_earning function response
-                            if (((_p = (_o = (_m = (_l = rawData.content) === null || _l === void 0 ? void 0 : _l.parts) === null || _m === void 0 ? void 0 : _m[0]) === null || _o === void 0 ? void 0 : _o.functionResponse) === null || _p === void 0 ? void 0 : _p.name) ===
-                                "get_category_purchase_earning") {
-                                const categories = ((_q = rawData.content.parts[0].functionResponse.response) === null || _q === void 0 ? void 0 : _q.categories) || [];
-                                detectedCategories = mergeCategoriesWithPresets(categories);
-                                console.log("[SDK] Detected purchase categories:", detectedCategories.length);
+                            if (parsed.categories.length > 0) {
+                                parsedData.categories = parsed.categories;
+                                console.log("[SDK] Detected purchase categories:", parsed.categories.length);
                             }
-                            // Check for ways_to_earn function call
-                            if (((_u = (_t = (_s = (_r = rawData.content) === null || _r === void 0 ? void 0 : _r.parts) === null || _s === void 0 ? void 0 : _s[0]) === null || _t === void 0 ? void 0 : _t.functionCall) === null || _u === void 0 ? void 0 : _u.name) === "ways_to_earn") {
+                            if (parsed.showWaysToEarn) {
+                                parsedData.showWaysToEarn = true;
                                 console.log("[SDK] Detected ways_to_earn function call");
-                                showWaysToEarnActions = true;
                             }
                         }
                         // Create message container on first data, even if empty text
                         if (isFirstChunk) {
-                            (_v = this.chat) === null || _v === void 0 ? void 0 : _v.removeLoading();
+                            (_a = this.chat) === null || _a === void 0 ? void 0 : _a.removeLoading();
                             assistantMessage.content = chunk || "";
-                            this.stateManager.addMessage(assistantMessage);
-                            (_w = this.chat) === null || _w === void 0 ? void 0 : _w.addMessage(assistantMessage);
+                            this.sessionService.addMessage(assistantMessage);
+                            (_b = this.chat) === null || _b === void 0 ? void 0 : _b.addMessage(assistantMessage);
                             isFirstChunk = false;
                         }
                         else if (chunk) {
@@ -5957,10 +6046,10 @@
                             if (isPartial) {
                                 // Streaming chunk (delta) - append it for real-time display
                                 assistantMessage.content += chunk;
-                                this.stateManager.updateLastMessage(assistantMessage.content);
-                                (_x = this.chat) === null || _x === void 0 ? void 0 : _x.updateLastMessage(assistantMessage.content);
+                                this.sessionService.updateLastMessage(assistantMessage.content);
+                                (_c = this.chat) === null || _c === void 0 ? void 0 : _c.updateLastMessage(assistantMessage.content);
                             }
-                            else if ((_0 = (_z = (_y = rawData === null || rawData === void 0 ? void 0 : rawData.content) === null || _y === void 0 ? void 0 : _y.parts) === null || _z === void 0 ? void 0 : _z[0]) === null || _0 === void 0 ? void 0 : _0.text) {
+                            else if ((_f = (_e = (_d = rawData === null || rawData === void 0 ? void 0 : rawData.content) === null || _d === void 0 ? void 0 : _d.parts) === null || _e === void 0 ? void 0 : _e[0]) === null || _f === void 0 ? void 0 : _f.text) {
                                 // Final complete message
                                 if (hasFinalMessage) {
                                     // We already have a final message, so this is additional text
@@ -5972,30 +6061,29 @@
                                     assistantMessage.content = chunk;
                                     hasFinalMessage = true;
                                 }
-                                this.stateManager.updateLastMessage(assistantMessage.content);
-                                (_1 = this.chat) === null || _1 === void 0 ? void 0 : _1.updateLastMessage(assistantMessage.content);
+                                this.sessionService.updateLastMessage(assistantMessage.content);
+                                (_g = this.chat) === null || _g === void 0 ? void 0 : _g.updateLastMessage(assistantMessage.content);
                             }
                         }
                     }, () => {
                         var _a, _b, _c, _d, _e, _f;
                         // On complete
-                        this.stateManager.setLoading(false);
                         (_a = this.chat) === null || _a === void 0 ? void 0 : _a.setLoading(false);
                         (_b = this.chat) === null || _b === void 0 ? void 0 : _b.removeLoading();
                         // Show offer preview if offers were found
-                        if (detectedOffers.length > 0) {
-                            (_c = this.chat) === null || _c === void 0 ? void 0 : _c.showOfferPreview(detectedOffers);
+                        if (parsedData.offers.length > 0) {
+                            (_c = this.chat) === null || _c === void 0 ? void 0 : _c.showOfferPreview(parsedData.offers);
                         }
                         // Show brand preview if brands were found
-                        if (detectedBrands.length > 0) {
-                            (_d = this.chat) === null || _d === void 0 ? void 0 : _d.showBrandPreview(detectedBrands);
+                        if (parsedData.brands.length > 0) {
+                            (_d = this.chat) === null || _d === void 0 ? void 0 : _d.showBrandPreview(parsedData.brands);
                         }
                         // Show category preview if categories were found
-                        if (detectedCategories.length > 0) {
-                            (_e = this.chat) === null || _e === void 0 ? void 0 : _e.showCategoryPreview(detectedCategories);
+                        if (parsedData.categories.length > 0) {
+                            (_e = this.chat) === null || _e === void 0 ? void 0 : _e.showCategoryPreview(parsedData.categories);
                         }
                         // Show ways to earn quick actions if function was called
-                        if (showWaysToEarnActions) {
+                        if (parsedData.showWaysToEarn) {
                             console.log("[SDK] Showing ways to earn actions");
                             (_f = this.chat) === null || _f === void 0 ? void 0 : _f.showWaysToEarnActions();
                         }
@@ -6003,82 +6091,18 @@
                         var _a, _b, _c;
                         // On error
                         console.error("MeAgent SDK: Error sending message", error);
-                        this.stateManager.setLoading(false);
                         (_a = this.chat) === null || _a === void 0 ? void 0 : _a.setLoading(false);
                         (_b = this.chat) === null || _b === void 0 ? void 0 : _b.removeLoading();
-                        const errorMessage = {
-                            id: this.generateId(),
-                            role: "assistant",
-                            content: "Sorry, something went wrong. Please try again.",
-                            timestamp: Date.now(),
-                        };
-                        this.stateManager.addMessage(errorMessage);
+                        const errorMessage = this.sessionService.createMessage("assistant", "Sorry, something went wrong. Please try again.");
+                        this.sessionService.addMessage(errorMessage);
                         (_c = this.chat) === null || _c === void 0 ? void 0 : _c.addMessage(errorMessage);
                     });
                 }
                 catch (error) {
                     console.error("MeAgent SDK: Error in sendMessage", error);
-                    this.stateManager.setLoading(false);
                     (_d = this.chat) === null || _d === void 0 ? void 0 : _d.setLoading(false);
                 }
             });
-        }
-        /**
-         * Parse offers from function response
-         */
-        parseOffers(matches) {
-            return matches.map((match) => {
-                return {
-                    id: match[0] || "",
-                    name: match[1] || "Unnamed Offer",
-                    offerCode: match[2] || "",
-                    price: match[3] || 0,
-                    description: match[4] || "",
-                    discountType: match[6] || "",
-                    discountPercentage: match[7] || 0,
-                    brandName: match[12] || "Unknown Brand",
-                    image: match[13] || undefined,
-                };
-            });
-        }
-        /**
-         * Parse brands from function response
-         */
-        parseBrands(brands) {
-            return brands.map((brand) => {
-                return {
-                    id: brand.id || "",
-                    name: brand.name || "Unknown Brand",
-                    logoUrl: brand.logoUrl || null,
-                    description: brand.description || null,
-                    websiteUrl: brand.websiteUrl || null,
-                    shopifyStoreUrl: brand.shopifyStoreUrl || null,
-                    network: brand.network || "sepolia",
-                    categoryId: brand.categoryId || "",
-                    categoryName: brand.categoryName || "Unknown Category",
-                    rewardDetails: brand.rewardDetails || {
-                        earningMethodId: "",
-                        earningType: "sign_up",
-                        isActive: true,
-                        rewardExistingCustomers: false,
-                        rewardInfo: {
-                            id: "",
-                            rewardName: "",
-                            rewardSymbol: "",
-                            rewardImage: "",
-                            rewardValueInDollars: "0",
-                            rewardOriginalValue: "0",
-                        },
-                        rules: [],
-                    },
-                };
-            });
-        }
-        /**
-         * Generate a unique ID
-         */
-        generateId() {
-            return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         }
         /**
          * Destroy the SDK
@@ -6098,7 +6122,7 @@
     function init(config) {
         return __awaiter(this, void 0, void 0, function* () {
             if (sdkInstance) {
-                console.warn('MeAgent: Instance already exists. Destroying previous instance.');
+                console.warn("MeAgent: Instance already exists. Destroying previous instance.");
                 destroy();
             }
             sdkInstance = new MeAgentSDK(config);
@@ -6122,7 +6146,7 @@
         Environment: exports.Environment,
     };
     // For UMD build - attach to window
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
         window.MeAgent = MeAgent;
     }
 
