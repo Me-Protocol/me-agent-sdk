@@ -23,6 +23,29 @@ export class RedemptionView {
     const finalPrice = getDiscountedPrice(originalPrice, offerDetail.redemptionMethod as any as RedemptionMethodInput);
     const isAffordable = selectedReward.balance >= swapAmount.amountNeeded;
 
+    // Calculate discount percentage for display
+    let discountDisplay = "";
+    const redemptionMethod = offerDetail.redemptionMethod;
+    if (redemptionMethod) {
+      if (redemptionMethod.type === "FREE_SHIPPING") {
+        discountDisplay = "FREE SHIPPING";
+      } else if (redemptionMethod.discountPercentage && parseFloat(redemptionMethod.discountPercentage) > 0) {
+        discountDisplay = `${Math.round(parseFloat(redemptionMethod.discountPercentage))}% OFF`;
+      } else if (redemptionMethod.discountAmount && parseFloat(redemptionMethod.discountAmount) > 0) {
+        discountDisplay = `$${parseFloat(redemptionMethod.discountAmount).toFixed(0)} OFF`;
+      } else if (selectedVariant?.discountPercentage && parseFloat(selectedVariant.discountPercentage) > 0) {
+        discountDisplay = `${Math.round(parseFloat(selectedVariant.discountPercentage))}% OFF`;
+      } else {
+        // Calculate percentage from prices
+        const discount = ((originalPrice - (typeof finalPrice === "number" ? finalPrice : originalPrice)) / originalPrice) * 100;
+        discountDisplay = discount > 0 ? `${Math.round(discount)}% OFF` : "";
+      }
+    } else if (selectedVariant?.discountPercentage && parseFloat(selectedVariant.discountPercentage) > 0) {
+      discountDisplay = `${Math.round(parseFloat(selectedVariant.discountPercentage))}% OFF`;
+    } else if (offerDetail.discountPercentage && parseFloat(offerDetail.discountPercentage) > 0) {
+      discountDisplay = `${Math.round(parseFloat(offerDetail.discountPercentage))}% OFF`;
+    }
+
     return `
       <div class="me-agent-redemption-container">
         <div class="me-agent-step-indicator">
@@ -39,13 +62,19 @@ export class RedemptionView {
             <div class="me-agent-offer-summary-details">
               <h3 class="me-agent-offer-summary-title">${offerDetail.name}${variantName !== "Default" ? ` - ${variantName}` : ""}</h3>
               <div class="me-agent-offer-summary-price">
-                <span class="me-agent-price-final">$${typeof finalPrice === "number" ? finalPrice.toFixed(2) : finalPrice}</span>
-                ${typeof finalPrice === "number" ? `<span class="me-agent-price-original">$${originalPrice.toFixed(2)}</span>` : ""}
+                ${finalPrice === "Free shipping" 
+                  ? `<span class="me-agent-price-original">$${originalPrice.toFixed(2)}</span>
+                     <span class="me-agent-price-final">Free Shipping</span>`
+                  : `<span class="me-agent-price-final">$${typeof finalPrice === "number" ? finalPrice.toFixed(2) : originalPrice.toFixed(2)}</span>
+                     ${typeof finalPrice === "number" && finalPrice < originalPrice ? `<span class="me-agent-price-original">$${originalPrice.toFixed(2)}</span>` : ""}`
+                }
               </div>
             </div>
-            <div class="me-agent-offer-summary-discount">
-              ${Math.round(parseFloat(offerDetail.discountPercentage))}% OFF
-            </div>
+            ${
+              discountDisplay
+                ? `<div class="me-agent-offer-summary-discount">${discountDisplay}</div>`
+                : ""
+            }
           </div>
 
           <div class="me-agent-reward-selection">

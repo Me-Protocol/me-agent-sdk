@@ -91,10 +91,9 @@ export class BrandOffersView {
       offer.discountDetails || []
     );
 
-    const hasDiscount =
-      typeof discountedPrice === "number" && discountedPrice < price;
-    const finalPrice =
-      typeof discountedPrice === "number" ? discountedPrice : price;
+    // Check if it's free shipping
+    const isFreeShipping = discountedPrice === "Free shipping";
+    const hasDiscount = isFreeShipping || (typeof discountedPrice === "number" && discountedPrice < price);
 
     // Get product URL from nested product object and ensure it has a protocol
     let productUrl = offer.product?.productUrl || "#";
@@ -132,15 +131,18 @@ export class BrandOffersView {
         <div class="me-agent-brand-offer-info">
           <h4 class="me-agent-brand-offer-name">${offer.name}</h4>
           <div class="me-agent-brand-offer-pricing">
-            <span class="me-agent-brand-offer-price">$${finalPrice.toFixed(
-              2
-            )}</span>
             ${
-              hasDiscount
-                ? `<span class="me-agent-brand-offer-original-price">$${price.toFixed(
-                    2
-                  )}</span>`
-                : ""
+              isFreeShipping
+                ? `<span class="me-agent-brand-offer-original-price">$${price.toFixed(2)}</span>
+                   <span class="me-agent-brand-offer-price">Free Shipping</span>`
+                : `<span class="me-agent-brand-offer-price">$${
+                    typeof discountedPrice === "number" ? discountedPrice.toFixed(2) : price.toFixed(2)
+                  }</span>
+                   ${
+                     hasDiscount
+                       ? `<span class="me-agent-brand-offer-original-price">$${price.toFixed(2)}</span>`
+                       : ""
+                   }`
             }
           </div>
         </div>

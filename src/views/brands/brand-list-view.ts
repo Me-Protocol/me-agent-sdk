@@ -53,7 +53,7 @@ export class BrandListView {
         </div>
         <div class="me-agent-brand-actions">
           <div class="me-agent-brand-reward-amount">
-            ${formatNumber(points)} ${rewardSymbol}
+            ${formatNumber(points)} <span class="me-agent-brand-reward-symbol">${rewardSymbol}</span>
           </div>
           <a 
             href="${signupUrl}" 

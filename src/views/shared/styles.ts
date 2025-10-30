@@ -2,9 +2,12 @@
  * Styles - Scoped CSS for SDK components
  */
 
+import { clashDisplayFonts } from "../../core/fonts";
+import { fireImage } from "../../core/images";
+
 export const styles = `
-  /* Import Clash Display font */
-  @import url('https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&display=swap');
+  /* Clash Display font - embedded */
+  ${clashDisplayFonts}
 
   /* Container for all SDK elements */
   .me-agent-container * {
@@ -866,7 +869,7 @@ export const styles = `
   .me-agent-brand-name {
     font-family: 'Clash Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-size: 24px;
-    font-weight: 600;
+    font-weight: 500;
     color: #000000;
     margin: 0 0 2px 0;
   }
@@ -982,7 +985,6 @@ export const styles = `
   }
 
   .me-agent-category-title {
-    font-family: 'Clash Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-size: 18px;
     font-weight: 600;
     color: #000000;
@@ -1037,7 +1039,7 @@ export const styles = `
   .me-agent-brand-offers-name {
     font-family: 'Clash Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-size: 24px;
-    font-weight: 600;
+    font-weight: 500;
     color: #000000;
     margin: 0;
   }
@@ -1226,8 +1228,8 @@ export const styles = `
 
   .me-agent-carousel-image {
     flex-shrink: 0;
-    width: 280px;
-    height: 280px;
+    width: 220px;
+    height: 220px;
     background-size: cover;
     background-position: center;
     background-color: #f3f4f6;
@@ -1244,10 +1246,10 @@ export const styles = `
   }
 
   .me-agent-detail-title {
-    font-size: 16px;
-    font-weight: 400;
+    font-size: 14px;
+    font-weight: 600;
     color: #0f0f0f;
-    margin: 0 0 8px 0;
+    margin: 0 0 4px 0;
     line-height: 1.4;
   }
 
@@ -1255,20 +1257,20 @@ export const styles = `
     display: flex;
     gap: 12px;
     align-items: center;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
   }
 
   .me-agent-price-main {
-    font-size: 24px;
+    font-size: 14px;
     font-weight: 600;
     color: #0f0f0f;
   }
 
   .me-agent-price-original {
-    font-size: 20px;
+    font-size: 14px;
     color: #9ca3af;
     text-decoration: line-through;
-    font-weight: 400;
+    font-weight: 600;
   }
 
   .me-agent-discount-badge {
@@ -1279,19 +1281,26 @@ export const styles = `
     background: #0F0F0F;
     color: white;
     border-radius: 100px;
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 500;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
   }
 
   .me-agent-discount-badge::before {
-    content: '🔥';
-    font-size: 14px;
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+    background-image: url(${fireImage});
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    vertical-align: middle;
   }
 
   .me-agent-detail-shipping {
     font-size: 14px;
-    color: #6b7280;
     margin: 0 0 20px 0;
   }
 
@@ -1301,12 +1310,12 @@ export const styles = `
     font-weight: 600;
     color: #0f0f0f;
     display: block;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
   }
 
   /* Variant Section */
   .me-agent-variant-section {
-    margin-bottom: 20px;
+    margin-bottom: 40px;
   }
 
   .me-agent-variant-grid {
@@ -1320,9 +1329,9 @@ export const styles = `
     flex-shrink: 0;
     background: none;
     border: 2px solid transparent;
-    border-radius: 12px;
+    border-radius: 16px;
     cursor: pointer;
-    padding: 0;
+    padding: 2px;
     overflow: hidden;
     transition: all 0.2s ease;
   }
@@ -1339,7 +1348,7 @@ export const styles = `
     position: relative;
     width: 100px;
     height: 100px;
-    border-radius: 10px;
+    border-radius: 14px;
     overflow: hidden;
   }
 
@@ -1358,21 +1367,25 @@ export const styles = `
 
   .me-agent-variant-badge {
     position: absolute;
-    bottom: 4px;
+    bottom: 6px;
     left: 4px;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 2px;
     padding: 2px 6px;
     background: rgba(0, 0, 0, 0.85);
     color: white;
-    border-radius: 4px;
-    font-size: 10px;
+    border-radius: 100px;
+    font-size: 8px;
     font-weight: 500;
+    width: 92%;
   }
 
   .me-agent-variant-badge-icon {
     font-size: 10px;
+    display: inline-block;
+    vertical-align: middle;
   }
 
   .me-agent-variant-badge-text {
@@ -1620,12 +1633,13 @@ export const styles = `
 
   /* Redemption Info */
   .me-agent-redemption-info {
-    margin-top: 24px;
+    margin-bottom: 16px;
     padding: 16px;
-    background: #f9fafb;
-    border-radius: 12px;
+    background: #F5F6FF;
+    border: 1px solid #EBEEFF;
+    border-radius: 8px;
     font-size: 14px;
-    color: #4b5563;
+    color: #0F0F0F;
     line-height: 1.6;
   }
 
@@ -1634,12 +1648,20 @@ export const styles = `
   }
 
   /* Bottom Actions */
-  .me-agent-detail-actions {
+  .me-agent-detail-bottom-actions {
     position: sticky;
     bottom: 0;
+    padding: 20px;
     background: white;
+  }
+
+  .me-agent-detail-bottom-actions-content {
+    background: #FAFAFA;
     padding: 16px 20px;
-    border-top: 1px solid #e5e7eb;
+    border-radius: 16px;
+  }
+
+  .me-agent-detail-actions {
     display: flex;
     gap: 12px;
     align-items: center;
@@ -1669,16 +1691,17 @@ export const styles = `
   }
 
   .me-agent-action-button {
-    padding: 14px 20px;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background: white;
-    color: #0f0f0f;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
+    border: 1px solid #F5F5F5;
+    border-radius: 10px;
+    padding: 0;
     cursor: pointer;
     transition: all 0.2s ease;
-    white-space: nowrap;
   }
 
   .me-agent-action-button:hover {
@@ -1686,27 +1709,29 @@ export const styles = `
     border-color: #d1d5db;
   }
 
-  .me-agent-action-icon {
-    width: 48px;
+  .me-agent-action-button svg {
+    display: block;
+  }
+
+  .me-agent-add-to-cart-button {
     height: 48px;
+    padding: 0 16px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: white;
-    border: 1px solid #e5e7eb;
+    background: #F5F5F5;
+    border: none;
     border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #0f0f0f;
     cursor: pointer;
     transition: all 0.2s ease;
-    color: #0f0f0f;
+    white-space: nowrap;
   }
 
-  .me-agent-action-icon:hover {
-    background: #f9fafb;
-    border-color: #d1d5db;
-  }
-
-  .me-agent-action-icon.liked {
-    color: #ef4444;
+  .me-agent-add-to-cart-button:hover {
+    background: #e5e5e5;
   }
 
   .me-agent-offer-detail-header {
@@ -2316,8 +2341,6 @@ export const styles = `
 
   /* ===== Redemption Styles ===== */
   .me-agent-redemption-container {
-    padding: 24px;
-    max-width: 600px;
     margin: 0 auto;
   }
 

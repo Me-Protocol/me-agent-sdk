@@ -17,6 +17,18 @@ export declare function getBotIcon(options?: IconOptions): string;
  */
 export declare function getCloseIcon(options?: IconOptions): string;
 /**
+ * Share Icon (for share button)
+ */
+export declare function getShareIcon(options?: IconOptions): string;
+/**
+ * Heart Icon (for like button - outlined)
+ */
+export declare function getHeartIcon(options?: IconOptions): string;
+/**
+ * Heart Icon (for like button - filled)
+ */
+export declare function getHeartFilledIcon(options?: IconOptions): string;
+/**
  * Send/Arrow Icon (for send message button)
  */
 export declare function getSendIcon(options?: IconOptions): string;

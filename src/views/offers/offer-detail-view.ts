@@ -5,6 +5,16 @@
 
 import { OfferDetail, OfferVariant } from "../../types";
 import { formatNumber } from "../../core/utils/formatters";
+import {
+  getDiscountedPrice,
+  RedemptionMethodInput,
+} from "../../core/utils/discount";
+import { fireImage } from "../../core/images";
+import {
+  getShareIcon,
+  getHeartIcon,
+  getHeartFilledIcon,
+} from "../shared/icons";
 
 export class OfferDetailView {
   /**
@@ -13,7 +23,6 @@ export class OfferDetailView {
   render(
     detail: OfferDetail,
     selectedVariant: OfferVariant | null,
-    quantity: number,
     config: { likedOffers?: Record<string, boolean> }
   ): string {
     const currentVariant = selectedVariant || detail.offerVariants?.[0] || null;
@@ -24,10 +33,12 @@ export class OfferDetailView {
       <div class="me-agent-offer-detail-scroll">
         ${this.renderImageCarousel(detail, variantData)}
         ${this.renderProductInfo(detail, currentVariant, finalPrice)}
-        ${this.renderVariantSelector(detail.offerVariants)}
-        ${this.renderQuantitySelector(quantity)}
+        ${this.renderVariantSelector(
+          detail.offerVariants,
+          selectedVariant,
+          detail.redemptionMethod
+        )}
         ${this.renderTabs(detail)}
-        ${this.renderRedemptionInfo(detail)}
       </div>
       ${this.renderActions(detail, config.likedOffers?.[detail.id])}
     `;
@@ -57,31 +68,57 @@ export class OfferDetailView {
   private renderProductInfo(
     detail: OfferDetail,
     currentVariant: OfferVariant | null,
-    finalPrice: number
+    finalPrice: number | string
   ): string {
     const originalPrice = currentVariant
       ? parseFloat(currentVariant.variant.price)
       : parseFloat(detail.originalPrice);
-    const discount = currentVariant
-      ? parseFloat(currentVariant.discountPercentage)
-      : parseFloat(detail.discountPercentage);
-    
+
+    // Calculate discount from redemptionMethod first, then fallback to variant/offer discount
+    let discount = 0;
+    if (detail.redemptionMethod?.discountPercentage) {
+      discount = parseFloat(detail.redemptionMethod.discountPercentage);
+    } else if (detail.redemptionMethod?.discountAmount) {
+      // Calculate percentage from fixed amount discount
+      const discountAmount = parseFloat(detail.redemptionMethod.discountAmount);
+      discount = (discountAmount / originalPrice) * 100;
+    } else {
+      // Fallback to variant or offer discount
+      discount = currentVariant
+        ? parseFloat(currentVariant.discountPercentage)
+        : parseFloat(detail.discountPercentage);
+    }
+
     const variantName = currentVariant?.variant.name || "Default";
     const redemptionType = detail.redemptionMethod?.type || "";
-    const isFreeShipping = redemptionType === "FREE_SHIPPING";
+    const isFreeShipping =
+      finalPrice === "Free shipping" || redemptionType === "FREE_SHIPPING";
 
     return `
       <div class="me-agent-detail-info">
-        <h2 class="me-agent-detail-title">${detail.name}${variantName !== "Default" ? ` - ${variantName}` : ""}</h2>
+        <h2 class="me-agent-detail-title">${detail.name}${
+      variantName !== "Default" ? ` - ${variantName}` : ""
+    }</h2>
         <div class="me-agent-detail-pricing">
           ${
             isFreeShipping
-              ? `<div class="me-agent-price-main">$${originalPrice.toFixed(2)}</div>`
+              ? `<div class="me-agent-price-original">$${originalPrice.toFixed(
+                  2
+                )}</div>
+                 <div class="me-agent-price-main">Free Shipping</div>`
               : `
-                <div class="me-agent-price-main">$${finalPrice.toFixed(2)}</div>
+                <div class="me-agent-price-main">$${
+                  typeof finalPrice === "number"
+                    ? finalPrice.toFixed(2)
+                    : originalPrice.toFixed(2)
+                }</div>
                 ${
-                  discount > 0
-                    ? `<div class="me-agent-price-original">$${originalPrice.toFixed(2)}</div>`
+                  discount > 0 &&
+                  typeof finalPrice === "number" &&
+                  finalPrice < originalPrice
+                    ? `<div class="me-agent-price-original">$${originalPrice.toFixed(
+                        2
+                      )}</div>`
                     : ""
                 }
               `
@@ -104,16 +141,31 @@ export class OfferDetailView {
   /**
    * Render variant selector
    */
-  private renderVariantSelector(offerVariants?: OfferVariant[]): string {
+  private renderVariantSelector(
+    offerVariants?: OfferVariant[],
+    selectedVariant?: OfferVariant | null,
+    redemptionMethod?: any
+  ): string {
     if (!offerVariants || offerVariants.length === 0) return "";
+
+    const selectedId = selectedVariant?.id || offerVariants[0]?.id;
+    const isFreeShipping = redemptionMethod?.type === "FREE_SHIPPING";
+    const redemptionDiscount = redemptionMethod?.discountPercentage
+      ? parseFloat(redemptionMethod.discountPercentage)
+      : 0;
 
     return `
       <div class="me-agent-variant-section">
         <label class="me-agent-section-label">Variant</label>
         <div class="me-agent-variant-grid">
           ${offerVariants
-            .map((variant, index) =>
-              this.renderVariantCard(variant, index === 0)
+            .map((variant) =>
+              this.renderVariantCard(
+                variant,
+                variant.id === selectedId,
+                isFreeShipping,
+                redemptionDiscount
+              )
             )
             .join("")}
         </div>
@@ -126,10 +178,17 @@ export class OfferDetailView {
    */
   private renderVariantCard(
     variant: OfferVariant,
-    isSelected: boolean
+    isSelected: boolean,
+    isFreeShipping: boolean = false,
+    redemptionDiscount: number = 0
   ): string {
     const variantImage = variant.variant.productImages?.[0]?.url || "";
-    const discount = parseFloat(variant.discountPercentage);
+    // Use redemptionMethod discount if available, otherwise use variant discount
+    const discount =
+      redemptionDiscount > 0
+        ? redemptionDiscount
+        : parseFloat(variant.discountPercentage);
+    const hasDiscount = isFreeShipping || discount > 0;
 
     return `
       <div class="me-agent-variant-card ${
@@ -142,36 +201,17 @@ export class OfferDetailView {
               : `<div class="me-agent-variant-placeholder"></div>`
           }
           ${
-            discount > 0
+            hasDiscount
               ? `<div class="me-agent-variant-badge">
-                  <span class="me-agent-variant-badge-icon">🔥</span>
-                  <span class="me-agent-variant-badge-text">${Math.round(discount)}% Off</span>
+                  <img src="${fireImage}" alt="fire" class="me-agent-variant-badge-icon" style="width: 12px; height: 12px; object-fit: contain;" />
+                  <span class="me-agent-variant-badge-text">${
+                    isFreeShipping
+                      ? "Free Shipping"
+                      : `${Math.round(discount)}% Off`
+                  }</span>
                 </div>`
               : ""
           }
-        </div>
-      </div>
-    `;
-  }
-
-  /**
-   * Render quantity selector
-   */
-  private renderQuantitySelector(quantity: number): string {
-    return `
-      <div class="me-agent-quantity-section">
-        <label class="me-agent-section-label">Quantity</label>
-        <div class="me-agent-quantity-selector">
-          <button class="me-agent-quantity-btn" data-action="decrease">-</button>
-          <input 
-            type="number" 
-            class="me-agent-quantity-input" 
-            value="${quantity}" 
-            min="1" 
-            max="10"
-            readonly
-          />
-          <button class="me-agent-quantity-btn" data-action="increase">+</button>
         </div>
       </div>
     `;
@@ -314,8 +354,7 @@ export class OfferDetailView {
   private renderRedemptionInfo(detail: OfferDetail): string {
     return `
       <div class="me-agent-redemption-info">
-        <h3>Redeem with ${detail.reward.rewardSymbol}</h3>
-        <p>Use your ${detail.reward.rewardName} rewards to get this offer</p>
+        <p>Redeem this offer to get a unique coupon code, then enter the code on checkout and the discount will be applied to your total before payment.</p>
       </div>
     `;
   }
@@ -325,20 +364,25 @@ export class OfferDetailView {
    */
   private renderActions(detail: OfferDetail, isLiked: boolean = false): string {
     return `
-      <div class="me-agent-detail-actions">
-        <button class="me-agent-redeem-button" data-action="redeem">
-          Redeem Now
-        </button>
-        <div class="me-agent-secondary-actions">
-          <button class="me-agent-action-button" data-action="like" data-liked="${isLiked}">
-            <span class="me-agent-action-icon">${isLiked ? "❤️" : "♡"}</span>
-          </button>
-          <button class="me-agent-action-button" data-action="share">
-            <span class="me-agent-action-icon">↗</span>
-          </button>
-          <button class="me-agent-action-button" data-action="add-to-cart">
-            <span class="me-agent-action-icon">🛒</span>
-          </button>
+      <div class="me-agent-detail-bottom-actions">
+        <div class="me-agent-detail-bottom-actions-content">
+          ${this.renderRedemptionInfo(detail)}
+          <div class="me-agent-detail-actions">
+            <button class="me-agent-redeem-button" data-action="redeem">
+              Redeem Now
+            </button>
+            <div class="me-agent-secondary-actions">
+              <button class="me-agent-add-to-cart-button" data-action="add-to-cart">
+                Add To Cart
+              </button>
+              <button class="me-agent-action-button" data-action="like" data-liked="${isLiked}">
+                ${isLiked ? getHeartFilledIcon() : getHeartIcon()}
+              </button>
+              <button class="me-agent-action-button" data-action="share">
+                ${getShareIcon()}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     `;
@@ -350,10 +394,26 @@ export class OfferDetailView {
   private calculateFinalPrice(
     detail: OfferDetail,
     currentVariant: OfferVariant | null
-  ): number {
+  ): number | string {
     const price = currentVariant
       ? parseFloat(currentVariant.variant.price)
       : parseFloat(detail.originalPrice);
+
+    // Use the redemption method to calculate proper discounted price
+    if (detail.redemptionMethod) {
+      const method: RedemptionMethodInput = {
+        type: detail.redemptionMethod.type as any,
+        discountPercentage: detail.redemptionMethod.discountPercentage
+          ? parseFloat(detail.redemptionMethod.discountPercentage)
+          : undefined,
+        discountAmount: detail.redemptionMethod.discountAmount
+          ? parseFloat(detail.redemptionMethod.discountAmount)
+          : undefined,
+      };
+      return getDiscountedPrice(price, method);
+    }
+
+    // Fallback to percentage-based calculation
     const discount = currentVariant
       ? parseFloat(currentVariant.discountPercentage)
       : parseFloat(detail.discountPercentage);

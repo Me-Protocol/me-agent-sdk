@@ -7,7 +7,7 @@ export declare class OfferDetailView {
     /**
      * Render complete offer detail page
      */
-    render(detail: OfferDetail, selectedVariant: OfferVariant | null, quantity: number, config: {
+    render(detail: OfferDetail, selectedVariant: OfferVariant | null, config: {
         likedOffers?: Record<string, boolean>;
     }): string;
     /**
@@ -26,10 +26,6 @@ export declare class OfferDetailView {
      * Render a single variant card
      */
     private renderVariantCard;
-    /**
-     * Render quantity selector
-     */
-    private renderQuantitySelector;
     /**
      * Render tabs (Description & Reviews)
      */

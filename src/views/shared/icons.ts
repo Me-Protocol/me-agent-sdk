@@ -45,6 +45,60 @@ export function getCloseIcon(options: IconOptions = {}): string {
 }
 
 /**
+ * Share Icon (for share button)
+ */
+export function getShareIcon(options: IconOptions = {}): string {
+  const {
+    width = 16,
+    height = 16,
+    color = "black",
+    className = "",
+  } = options;
+
+  return `
+    <svg width="${width}" height="${height}" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}">
+      <path d="M15 8L9.4 2V5C6.6 5 1 6.8 1 14C1 12.9997 2.68 11 9.4 11V14L15 8Z" stroke="${color}" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `.trim();
+}
+
+/**
+ * Heart Icon (for like button - outlined)
+ */
+export function getHeartIcon(options: IconOptions = {}): string {
+  const {
+    width = 16,
+    height = 16,
+    color = "#0F0F0F",
+    className = "",
+  } = options;
+
+  return `
+    <svg width="${width}" height="${height}" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}">
+      <path d="M4.85 2C2.72375 2 1 3.72173 1 5.84548C1 9.69096 5.55 13.1869 8 14C10.45 13.1869 15 9.69096 15 5.84548C15 3.72173 13.2762 2 11.15 2C9.848 2 8.6965 2.64569 8 3.63398C7.64493 3.12896 7.17328 2.7168 6.62498 2.43238C6.07667 2.14796 5.46784 1.99965 4.85 2Z" stroke="${color}" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `.trim();
+}
+
+/**
+ * Heart Icon (for like button - filled)
+ */
+export function getHeartFilledIcon(options: IconOptions = {}): string {
+  const {
+    width = 16,
+    height = 16,
+    color = "#0F0F0F",
+    className = "",
+  } = options;
+
+  return `
+    <svg width="${width}" height="${height}" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="${className}">
+      <path d="M4.85 2C2.72375 2 1 3.72173 1 5.84548C1 9.69096 5.55 13.1869 8 14C10.45 13.1869 15 9.69096 15 5.84548C15 3.72173 13.2762 2 11.15 2C9.848 2 8.6965 2.64569 8 3.63398C7.64493 3.12896 7.17328 2.7168 6.62498 2.43238C6.07667 2.14796 5.46784 1.99965 4.85 2Z" stroke="${color}" fill="${color}" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `.trim();
+}
+
+/**
  * Send/Arrow Icon (for send message button)
  */
 export function getSendIcon(options: IconOptions = {}): string {

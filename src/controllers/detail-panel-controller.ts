@@ -50,7 +50,6 @@ export class DetailPanelController {
   // Current state
   private currentOfferDetail: OfferDetail | null = null;
   private selectedVariant: OfferVariant | null = null;
-  private quantity: number = 1;
   private currentBrandsWithOffers: Array<{ brand: any; offers: any[] }> = [];
 
   // Redemption state
@@ -304,13 +303,11 @@ export class DetailPanelController {
 
       this.currentOfferDetail = detail;
       this.selectedVariant = detail.offerVariants?.[0] || null;
-      this.quantity = 1;
 
       // Render offer detail
       this.content.innerHTML = this.offerDetailView.render(
         detail,
         this.selectedVariant,
-        this.quantity,
         this.config
       );
 
@@ -466,13 +463,6 @@ export class DetailPanelController {
         }
       });
     });
-
-    // Quantity controls
-    const decreaseBtn = this.content.querySelector('[data-action="decrease"]');
-    const increaseBtn = this.content.querySelector('[data-action="increase"]');
-
-    decreaseBtn?.addEventListener("click", () => this.changeQuantity(-1));
-    increaseBtn?.addEventListener("click", () => this.changeQuantity(1));
 
     // Tabs
     const tabs = this.content.querySelectorAll(".me-agent-tab");
@@ -1058,30 +1048,9 @@ export class DetailPanelController {
       this.content.innerHTML = this.offerDetailView.render(
         this.currentOfferDetail,
         this.selectedVariant,
-        this.quantity,
         this.config
       );
       this.attachOfferDetailListeners();
-    }
-  }
-
-  /**
-   * Change quantity
-   */
-  private changeQuantity(delta: number): void {
-    const newQuantity = this.quantity + delta;
-    if (newQuantity >= 1 && newQuantity <= 10) {
-      this.quantity = newQuantity;
-
-      if (this.currentOfferDetail) {
-        this.content.innerHTML = this.offerDetailView.render(
-          this.currentOfferDetail,
-          this.selectedVariant,
-          this.quantity,
-          this.config
-        );
-        this.attachOfferDetailListeners();
-      }
     }
   }
 

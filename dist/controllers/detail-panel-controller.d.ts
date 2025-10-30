@@ -26,7 +26,6 @@ export declare class DetailPanelController {
     private currentAbortController;
     private currentOfferDetail;
     private selectedVariant;
-    private quantity;
     private currentBrandsWithOffers;
     private userBalances;
     private selectedReward;
@@ -178,10 +177,6 @@ export declare class DetailPanelController {
      * Select a variant
      */
     private selectVariant;
-    /**
-     * Change quantity
-     */
-    private changeQuantity;
     /**
      * Switch tab
      */
