@@ -22,6 +22,7 @@ import { BrandOffersView } from "../views/brands/brand-offers-view";
 import { CategoryGridView } from "../views/categories/category-grid-view";
 import { RedemptionView } from "../views/redemption/redemption-view";
 import { getChevronLeftIcon, getCloseIcon } from "../views/shared/icons";
+import { BottomSheet } from "../views/components/bottom-sheet";
 
 /**
  * Detail Panel Controller
@@ -55,7 +56,11 @@ export class DetailPanelController {
   // Redemption state
   private userBalances: RewardBalance[] = [];
   private selectedReward: RewardBalance | null = null;
-  private swapAmount: { amount: number; amountNeeded: number; checkAffordability: boolean } | null = null;
+  private swapAmount: {
+    amount: number;
+    amountNeeded: number;
+    checkAffordability: boolean;
+  } | null = null;
 
   // Views
   private offerGridView: OfferGridView;
@@ -64,6 +69,9 @@ export class DetailPanelController {
   private brandOffersView: BrandOffersView;
   private categoryGridView: CategoryGridView;
   private redemptionView: RedemptionView;
+
+  // Components
+  private bottomSheet: BottomSheet | null = null;
 
   constructor(
     private config: MeAgentConfig,
@@ -121,6 +129,9 @@ export class DetailPanelController {
     this.container.appendChild(this.header);
     this.container.appendChild(this.content);
     this.wrapper.appendChild(this.container);
+
+    // Initialize bottom sheet
+    this.bottomSheet = new BottomSheet(this.wrapper);
   }
 
   /**
@@ -658,7 +669,9 @@ export class DetailPanelController {
       // Step 1: Check if email is available
       const email = this.redemptionService.getEmail();
       if (!email) {
-        throw new Error("Email is required for redemption. Please configure the SDK with an email address.");
+        throw new Error(
+          "Email is required for redemption. Please configure the SDK with an email address."
+        );
       }
 
       // Step 2: Ensure Magic is logged in (will trigger OTP if needed)
@@ -685,12 +698,15 @@ export class DetailPanelController {
       this.selectedReward = this.findDefaultReward();
 
       // Step 4: Show redemption review (with loading state for amount)
-      this.swapAmount = { amount: 0, amountNeeded: 0, checkAffordability: false }; // Placeholder
+      this.swapAmount = {
+        amount: 0,
+        amountNeeded: 0,
+        checkAffordability: false,
+      }; // Placeholder
       this.showRedemptionReview();
 
       // Step 5: Calculate swap amount in background and update UI
       await this.calculateAndUpdateSwapAmount();
-
     } catch (error) {
       console.error("Redemption error:", error);
       this.content.innerHTML = this.redemptionView.renderError(
@@ -723,7 +739,8 @@ export class DetailPanelController {
   private async calculateSwapAmount(): Promise<void> {
     if (!this.currentOfferDetail || !this.selectedReward) return;
 
-    const variant = this.selectedVariant || this.currentOfferDetail.offerVariants?.[0];
+    const variant =
+      this.selectedVariant || this.currentOfferDetail.offerVariants?.[0];
     const variantId = variant?.id;
 
     this.swapAmount = await this.redemptionService.calculateSwapAmount(
@@ -739,8 +756,10 @@ export class DetailPanelController {
   private async calculateAndUpdateSwapAmount(): Promise<void> {
     if (!this.currentOfferDetail || !this.selectedReward) return;
 
-    const amountElement = this.content.querySelector('.me-agent-amount-needed');
-    const redeemButton = this.content.querySelector('.me-agent-redeem-btn') as HTMLButtonElement;
+    const amountElement = this.content.querySelector(".me-agent-amount-needed");
+    const redeemButton = this.content.querySelector(
+      ".me-agent-redeem-btn"
+    ) as HTMLButtonElement;
 
     if (!amountElement) return;
 
@@ -757,42 +776,55 @@ export class DetailPanelController {
       await this.calculateSwapAmount();
 
       // Check if view was changed during calculation
-      if (!this.swapAmount || this.content.querySelector('.me-agent-redemption-container') === null) {
+      if (
+        !this.swapAmount ||
+        this.content.querySelector(".me-agent-redemption-container") === null
+      ) {
         return;
       }
 
       // Update with actual amount
-      amountElement.textContent = `${this.swapAmount.amountNeeded.toFixed(2)} ${this.selectedReward.reward.symbol}`;
-      (amountElement as HTMLElement).style.color = '';
+      amountElement.textContent = `${this.swapAmount.amountNeeded.toFixed(2)} ${
+        this.selectedReward.reward.symbol
+      }`;
+      (amountElement as HTMLElement).style.color = "";
 
       // Enable/disable button based on affordability
       if (redeemButton) {
-        const isAffordable = this.selectedReward.balance >= this.swapAmount.amountNeeded;
+        const isAffordable =
+          this.selectedReward.balance >= this.swapAmount.amountNeeded;
         redeemButton.disabled = !isAffordable;
 
         // Show insufficient balance message if needed
         if (!isAffordable) {
-          const errorMsg = this.content.querySelector('.me-agent-error-message');
+          const errorMsg = this.content.querySelector(
+            ".me-agent-error-message"
+          );
           if (!errorMsg) {
-            const rewardSelection = this.content.querySelector('.me-agent-reward-selection');
+            const rewardSelection = this.content.querySelector(
+              ".me-agent-reward-selection"
+            );
             if (rewardSelection) {
-              const errorDiv = document.createElement('div');
-              errorDiv.className = 'me-agent-error-message';
+              const errorDiv = document.createElement("div");
+              errorDiv.className = "me-agent-error-message";
               errorDiv.innerHTML = `
-                <p>Insufficient balance. You need ${this.swapAmount.amountNeeded.toFixed(2)} ${this.selectedReward.reward.symbol} but only have ${this.selectedReward.balance.toFixed(2)}.</p>
+                <p>Insufficient balance. You need ${this.swapAmount.amountNeeded.toFixed(
+                  2
+                )} ${
+                this.selectedReward.reward.symbol
+              } but only have ${this.selectedReward.balance.toFixed(2)}.</p>
               `;
               rewardSelection.appendChild(errorDiv);
             }
           }
         }
       }
-
     } catch (error) {
       console.error("Error calculating swap amount:", error);
-      
+
       // Show error in red
       amountElement.innerHTML = `<span style="color: #ef4444;">Failed to fetch needed amount</span>`;
-      
+
       // Disable redeem button
       if (redeemButton) {
         redeemButton.disabled = true;
@@ -804,13 +836,15 @@ export class DetailPanelController {
    * Show redemption review step
    */
   private showRedemptionReview(): void {
-    if (!this.currentOfferDetail || !this.selectedReward || !this.swapAmount) return;
+    if (!this.currentOfferDetail || !this.selectedReward || !this.swapAmount)
+      return;
 
-    const variant = this.selectedVariant || this.currentOfferDetail.offerVariants?.[0];
+    const variant =
+      this.selectedVariant || this.currentOfferDetail.offerVariants?.[0];
 
     this.viewStack.push({
       type: "redemption-review",
-      title: "Review Redemption",
+      title: "Complete Your Redemption",
       data: {
         offer: this.currentOfferDetail,
         reward: this.selectedReward,
@@ -826,7 +860,7 @@ export class DetailPanelController {
       variant
     );
 
-    this.updateHeader("Review Redemption");
+    this.updateHeader("Complete Your Redemption");
     this.attachRedemptionReviewListeners();
   }
 
@@ -835,7 +869,9 @@ export class DetailPanelController {
    */
   private attachRedemptionReviewListeners(): void {
     // Change reward button
-    const changeRewardBtn = this.content.querySelector(".me-agent-change-reward-btn");
+    const changeRewardBtn = this.content.querySelector(
+      ".me-agent-change-reward-btn"
+    );
     changeRewardBtn?.addEventListener("click", () => {
       this.showRewardSelectionList();
     });
@@ -851,49 +887,34 @@ export class DetailPanelController {
    * Show list of available rewards for selection
    */
   private showRewardSelectionList(): void {
-    if (!this.userBalances.length) return;
+    if (!this.userBalances.length || !this.bottomSheet) return;
 
-    const listHTML = `
-      <div class="me-agent-reward-list">
-        <h3 class="me-agent-reward-list-title">Select a reward</h3>
-        <div class="me-agent-reward-list-items">
-          ${this.userBalances
-            .map(
-              (reward) => `
-            <div class="me-agent-reward-list-item ${reward.reward.id === this.selectedReward?.reward.id ? "selected" : ""}" 
-                 data-reward-id="${reward.reward.id}">
-              <img src="${reward.reward.image}" alt="${reward.reward.name}" class="me-agent-reward-list-icon" />
-              <div class="me-agent-reward-list-info">
-                <p class="me-agent-reward-list-name">${reward.reward.name}</p>
-                <p class="me-agent-reward-list-balance">Balance: ${reward.balance.toFixed(2)} ${reward.reward.symbol}</p>
-              </div>
-              <span class="me-agent-reward-list-check">✓</span>
-            </div>
-          `
-            )
-            .join("")}
-        </div>
-      </div>
-    `;
+    // Use view to generate HTML
+    const listHTML = this.redemptionView.renderRewardList(
+      this.userBalances,
+      this.selectedReward?.reward.id || ""
+    );
 
-    // Insert before redeem button
-    const redeemBtn = this.content.querySelector(".me-agent-redeem-btn");
-    if (redeemBtn && redeemBtn.parentElement) {
-      const tempDiv = document.createElement("div");
-      tempDiv.innerHTML = listHTML;
-      redeemBtn.parentElement.insertBefore(tempDiv.firstElementChild!, redeemBtn);
-    }
+    // Show in bottom sheet
+    this.bottomSheet.show("Select a Reward", listHTML);
 
-    // Attach listeners
-    const rewardItems = this.content.querySelectorAll(".me-agent-reward-list-item");
-    rewardItems.forEach((item) => {
-      item.addEventListener("click", async () => {
-        const rewardId = item.getAttribute("data-reward-id");
-        if (rewardId) {
-          await this.selectReward(rewardId);
-        }
-      });
-    });
+    // Attach listeners after bottom sheet is shown
+    setTimeout(() => {
+      const contentElement = this.bottomSheet?.getContentElement();
+      if (contentElement) {
+        const rewardItems = contentElement.querySelectorAll(
+          ".me-agent-reward-list-item"
+        );
+        rewardItems.forEach((item) => {
+          item.addEventListener("click", async () => {
+            const rewardId = item.getAttribute("data-reward-id");
+            if (rewardId) {
+              await this.selectReward(rewardId);
+            }
+          });
+        });
+      }
+    }, 0);
   }
 
   /**
@@ -902,6 +923,9 @@ export class DetailPanelController {
   private async selectReward(rewardId: string): Promise<void> {
     const reward = this.userBalances.find((r) => r.reward.id === rewardId);
     if (!reward) return;
+
+    // Close bottom sheet
+    this.bottomSheet?.hide();
 
     this.selectedReward = reward;
     this.swapAmount = { amount: 0, amountNeeded: 0, checkAffordability: false }; // Reset to loading state
@@ -913,18 +937,24 @@ export class DetailPanelController {
    * Execute the redemption transaction
    */
   private async executeRedemption(): Promise<void> {
-    if (!this.currentOfferDetail || !this.selectedReward || !this.swapAmount) return;
+    if (!this.currentOfferDetail || !this.selectedReward || !this.swapAmount)
+      return;
 
     try {
       // Show processing step
-      this.content.innerHTML = this.redemptionView.renderProcessingStep(this.currentOfferDetail);
+      this.content.innerHTML = this.redemptionView.renderProcessingStep(
+        this.currentOfferDetail
+      );
       this.updateHeader("Processing");
 
-      const variant = this.selectedVariant || this.currentOfferDetail.offerVariants?.[0];
+      const variant =
+        this.selectedVariant || this.currentOfferDetail.offerVariants?.[0];
       const variantId = variant?.id;
 
       // Determine if same-brand or cross-brand redemption
-      const isSameBrand = this.selectedReward.reward.contractAddress === this.currentOfferDetail.reward.contractAddress;
+      const isSameBrand =
+        this.selectedReward.reward.contractAddress ===
+        this.currentOfferDetail.reward.contractAddress;
 
       let order;
       if (isSameBrand) {
@@ -953,11 +983,12 @@ export class DetailPanelController {
 
       // Show complete step
       this.showRedemptionComplete(order);
-
     } catch (error) {
       console.error("Redemption transaction error:", error);
       this.content.innerHTML = this.redemptionView.renderError(
-        error instanceof Error ? error.message : "Redemption failed. Please try again."
+        error instanceof Error
+          ? error.message
+          : "Redemption failed. Please try again."
       );
       this.updateHeader("Error");
       this.attachRedemptionRetryListener();
@@ -969,7 +1000,10 @@ export class DetailPanelController {
    */
   private showRedemptionComplete(order: any): void {
     if (!this.currentOfferDetail) return;
-    this.content.innerHTML = this.redemptionView.renderCompleteStep(order, this.currentOfferDetail);
+    this.content.innerHTML = this.redemptionView.renderCompleteStep(
+      order,
+      this.currentOfferDetail
+    );
     this.updateHeader("Complete");
     this.attachRedemptionCompleteListeners(order);
   }
@@ -992,12 +1026,15 @@ export class DetailPanelController {
     });
 
     // Use coupon button
-    const useCouponBtn = this.content.querySelector('[data-action="use-coupon"]');
+    const useCouponBtn = this.content.querySelector(
+      '[data-action="use-coupon"]'
+    );
     useCouponBtn?.addEventListener("click", async () => {
       try {
         if (!this.currentOfferDetail) return;
 
-        const variant = this.selectedVariant || this.currentOfferDetail.offerVariants?.[0];
+        const variant =
+          this.selectedVariant || this.currentOfferDetail.offerVariants?.[0];
         const checkoutUrl = await this.redemptionService.getCheckoutUrl(
           this.currentOfferDetail.brand.id,
           variant?.variant?.id || "" // Use variant ID as the product variant ID
@@ -1007,7 +1044,9 @@ export class DetailPanelController {
         window.open(checkoutUrl, "_blank");
       } catch (error) {
         console.error("Error getting checkout URL:", error);
-        alert("Failed to generate checkout URL. Please use the coupon code manually.");
+        alert(
+          "Failed to generate checkout URL. Please use the coupon code manually."
+        );
       }
     });
   }
@@ -1016,7 +1055,9 @@ export class DetailPanelController {
    * Attach retry listener for redemption errors
    */
   private attachRedemptionRetryListener(): void {
-    const retryBtn = this.content.querySelector('[data-action="retry-redemption"]');
+    const retryBtn = this.content.querySelector(
+      '[data-action="retry-redemption"]'
+    );
     retryBtn?.addEventListener("click", () => {
       this.handleRedemption();
     });

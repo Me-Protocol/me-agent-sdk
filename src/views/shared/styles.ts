@@ -102,6 +102,7 @@ export const styles = `
 
   /* Detail Panel Wrapper (right side) */
   .me-agent-detail-panel-wrapper {
+    position: relative;
     width: 0;
     height: 100%;
     overflow: hidden;
@@ -673,7 +674,7 @@ export const styles = `
     cursor: pointer;
     padding: 0;
     color: #1a1a1a;
-    font-size: 18px;
+    font-size: 14px;
     font-weight: 600;
     transition: opacity 0.2s ease;
     flex: 1;
@@ -2342,59 +2343,90 @@ export const styles = `
   /* ===== Redemption Styles ===== */
   .me-agent-redemption-container {
     margin: 0 auto;
+    padding: 24px;
+    flex: 1;
+  }
+
+  .me-agent-redemption-header {
+    margin-bottom: 32px;
+  }
+
+  .me-agent-redemption-subtitle {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
   }
 
   .me-agent-step-indicator {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 32px;
+    margin-bottom: 60px;
+    width: 100%;
   }
 
-  .me-agent-step {
-    flex: 1;
-    text-align: center;
-    padding: 8px 12px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 500;
-    color: #666;
-    background: #F5F5F5;
+  .me-agent-step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+  }
+
+  .me-agent-step-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid #D1D5DB;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: all 0.3s ease;
+    z-index: 1;
   }
 
-  .me-agent-step.active {
-    background: #0F0F0F;
-    color: white;
+  .me-agent-step-circle.active {
+    background: white;
+    border-color: #0F0F0F;
   }
 
-  .me-agent-step.completed {
-    background: #4CAF50;
-    color: white;
+  .me-agent-step-circle.completed {
+    background: #10B981;
+    border-color: #10B981;
+  }
+
+  .me-agent-step-label {
+    font-size: 14px;
+    color: #9CA3AF;
+    font-weight: 400;
+  }
+
+  .me-agent-step-label.active {
+    color: #0F0F0F;
+    font-weight: 500;
   }
 
   .me-agent-step-line {
-    flex: 0.5;
+    flex: 1;
     height: 2px;
-    background: #E5E5E5;
-    margin: 0 8px;
+    background: #E5E7EB;
+    margin: 0 12px 24px 12px;
   }
 
   .me-agent-redemption-content {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 40px;
   }
 
   .me-agent-offer-summary-card {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 16px;
-    padding: 16px;
-    background: white;
-    border: 1px solid #E5E5E5;
+    padding: 12px;
+    background: #FAFAFA;
     border-radius: 12px;
-    position: relative;
   }
 
   .me-agent-offer-summary-image {
@@ -2402,17 +2434,22 @@ export const styles = `
     height: 80px;
     object-fit: cover;
     border-radius: 8px;
+    flex-shrink: 0;
   }
 
   .me-agent-offer-summary-details {
     flex: 1;
+    min-width: 0;
   }
 
   .me-agent-offer-summary-title {
     font-size: 16px;
     font-weight: 600;
-    margin: 0 0 8px 0;
+    margin: 0 0 4px 0;
     color: #0F0F0F;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .me-agent-offer-summary-price {
@@ -2422,83 +2459,134 @@ export const styles = `
   }
 
   .me-agent-price-final {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 700;
     color: #0F0F0F;
   }
 
   .me-agent-price-original {
     font-size: 16px;
-    color: #999;
+    color: #9CA3AF;
     text-decoration: line-through;
   }
 
+  .me-agent-offer-summary-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
   .me-agent-offer-summary-discount {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    background: #FF4444;
+    background: #0F0F0F;
     color: white;
-    padding: 4px 8px;
-    border-radius: 4px;
+    padding: 6px 12px;
+    border-radius: 20px;
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+
+  .me-agent-offer-summary-discount::before {
+    content: '';
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    background-image: url(${fireImage});
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+
+  .me-agent-offer-amount-needed {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0F0F0F;
+    white-space: nowrap;
   }
 
   .me-agent-reward-selection {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
   }
 
   .me-agent-selected-reward-card {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 16px;
-    background: white;
-    border: 1px solid #E5E5E5;
-    border-radius: 12px;
+    gap: 16px;
   }
 
   .me-agent-reward-icon {
-    width: 48px;
-    height: 48px;
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
     object-fit: cover;
+    flex-shrink: 0;
   }
 
   .me-agent-reward-info {
     flex: 1;
-  }
-
-  .me-agent-reward-name {
-    font-size: 16px;
-    font-weight: 600;
-    color: #0F0F0F;
-    margin-bottom: 4px;
+    min-width: 0;
   }
 
   .me-agent-reward-balance {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0F0F0F;
+  }
+
+  .me-agent-reward-symbol {
+    font-weight: 400;
+    font-size: 12px;
+  }
+
+  .me-agent-reward-name {
     font-size: 14px;
+    font-weight: 400;
     color: #666;
   }
 
   .me-agent-reward-amount {
     text-align: right;
+    flex-shrink: 0;
   }
 
   .me-agent-amount-needed {
-    font-size: 18px;
-    font-weight: 700;
+    font-size: 14px;
+    font-weight: 600;
     color: #0F0F0F;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+
+  .me-agent-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .me-agent-status-dot.success {
+    background: #10B981;
+  }
+
+  .me-agent-status-dot.error {
+    background: #EF4444;
   }
 
   .me-agent-change-reward-btn {
     width: fit-content;
-    padding: 8px 16px;
-    background: transparent;
-    border: 1px solid #E5E5E5;
+    margin: 0 auto;
+    padding: 10px 24px;
+    background: white;
+    border: 1px solid #E5E7EB;
     border-radius: 8px;
     font-size: 14px;
     font-weight: 500;
@@ -2508,7 +2596,18 @@ export const styles = `
   }
 
   .me-agent-change-reward-btn:hover {
-    background: #F5F5F5;
+    background: #F9FAFB;
+    border-color: #D1D5DB;
+  }
+
+  .me-agent-redeem-btn-container {
+    position: absolute;
+    bottom: 0;
+    padding: 20px;
+    background: white;
+    left: 0;
+    right: 0;
+    z-index: 5;
   }
 
   .me-agent-redeem-btn {
@@ -2522,15 +2621,17 @@ export const styles = `
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
+    margin-top: 8px;
   }
 
   .me-agent-redeem-btn:hover:not(:disabled) {
-    background: #333;
+    background: #1F2937;
   }
 
   .me-agent-redeem-btn:disabled {
-    background: #CCC;
+    background: #D1D5DB;
     cursor: not-allowed;
+    opacity: 0.6;
   }
 
   .me-agent-processing-animation {
@@ -2811,6 +2912,97 @@ export const styles = `
 
   .me-agent-reward-list-item.selected .me-agent-reward-list-check {
     opacity: 1;
+  }
+
+  /* ============================================
+     BOTTOM SHEET MODAL
+     ============================================ */
+  .me-agent-bottom-sheet-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+
+  .me-agent-bottom-sheet-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .me-agent-bottom-sheet {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: white;
+    border-radius: 24px 24px 0 0;
+    max-height: 70vh;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+    z-index: 1001;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .me-agent-bottom-sheet.visible {
+    transform: translateY(0);
+  }
+
+  .me-agent-bottom-sheet-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #E5E7EB;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .me-agent-bottom-sheet-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #0F0F0F;
+    margin: 0;
+    text-align: center;
+  }
+
+  .me-agent-bottom-sheet-close {
+    position: absolute;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #F3F4F6;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .me-agent-bottom-sheet-close:hover {
+    background: #E5E7EB;
+  }
+
+  .me-agent-bottom-sheet-content {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .me-agent-bottom-sheet-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #E5E7EB;
+    flex-shrink: 0;
   }
 
   /* ============================================

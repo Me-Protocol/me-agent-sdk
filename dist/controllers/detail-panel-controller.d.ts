@@ -36,6 +36,7 @@ export declare class DetailPanelController {
     private brandOffersView;
     private categoryGridView;
     private redemptionView;
+    private bottomSheet;
     constructor(config: MeAgentConfig, offerService: OfferService, brandService: BrandService, redemptionService: RedemptionService, onClose: () => void);
     /**
      * Get the wrapper element

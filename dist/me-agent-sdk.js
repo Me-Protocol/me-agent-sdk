@@ -3004,7 +3004,9 @@
          * Render review step (show offer, selected reward, amount needed)
          */
         renderReviewStep(offerDetail, selectedReward, swapAmount, selectedVariant) {
-            const variantName = selectedVariant ? selectedVariant.variant.name : "Default";
+            const variantName = selectedVariant
+                ? selectedVariant.variant.name
+                : "Default";
             const originalPrice = selectedVariant
                 ? parseFloat(selectedVariant.variant.price)
                 : parseFloat(offerDetail.originalPrice);
@@ -3017,80 +3019,114 @@
                 if (redemptionMethod.type === "FREE_SHIPPING") {
                     discountDisplay = "FREE SHIPPING";
                 }
-                else if (redemptionMethod.discountPercentage && parseFloat(redemptionMethod.discountPercentage) > 0) {
+                else if (redemptionMethod.discountPercentage &&
+                    parseFloat(redemptionMethod.discountPercentage) > 0) {
                     discountDisplay = `${Math.round(parseFloat(redemptionMethod.discountPercentage))}% OFF`;
                 }
-                else if (redemptionMethod.discountAmount && parseFloat(redemptionMethod.discountAmount) > 0) {
+                else if (redemptionMethod.discountAmount &&
+                    parseFloat(redemptionMethod.discountAmount) > 0) {
                     discountDisplay = `$${parseFloat(redemptionMethod.discountAmount).toFixed(0)} OFF`;
                 }
-                else if ((selectedVariant === null || selectedVariant === void 0 ? void 0 : selectedVariant.discountPercentage) && parseFloat(selectedVariant.discountPercentage) > 0) {
+                else if ((selectedVariant === null || selectedVariant === void 0 ? void 0 : selectedVariant.discountPercentage) &&
+                    parseFloat(selectedVariant.discountPercentage) > 0) {
                     discountDisplay = `${Math.round(parseFloat(selectedVariant.discountPercentage))}% OFF`;
                 }
                 else {
                     // Calculate percentage from prices
-                    const discount = ((originalPrice - (typeof finalPrice === "number" ? finalPrice : originalPrice)) / originalPrice) * 100;
+                    const discount = ((originalPrice -
+                        (typeof finalPrice === "number" ? finalPrice : originalPrice)) /
+                        originalPrice) *
+                        100;
                     discountDisplay = discount > 0 ? `${Math.round(discount)}% OFF` : "";
                 }
             }
-            else if ((selectedVariant === null || selectedVariant === void 0 ? void 0 : selectedVariant.discountPercentage) && parseFloat(selectedVariant.discountPercentage) > 0) {
+            else if ((selectedVariant === null || selectedVariant === void 0 ? void 0 : selectedVariant.discountPercentage) &&
+                parseFloat(selectedVariant.discountPercentage) > 0) {
                 discountDisplay = `${Math.round(parseFloat(selectedVariant.discountPercentage))}% OFF`;
             }
-            else if (offerDetail.discountPercentage && parseFloat(offerDetail.discountPercentage) > 0) {
+            else if (offerDetail.discountPercentage &&
+                parseFloat(offerDetail.discountPercentage) > 0) {
                 discountDisplay = `${Math.round(parseFloat(offerDetail.discountPercentage))}% OFF`;
             }
             return `
       <div class="me-agent-redemption-container">
+        <div class="me-agent-redemption-header">
+          <p class="me-agent-redemption-subtitle">You are about to redeem this offer</p>
+        </div>
+
         <div class="me-agent-step-indicator">
-          <div class="me-agent-step active">Review</div>
+          <div class="me-agent-step-item">
+            <div class="me-agent-step-circle active"></div>
+            <div class="me-agent-step-label active">Review</div>
+          </div>
           <div class="me-agent-step-line"></div>
-          <div class="me-agent-step">Processing</div>
+          <div class="me-agent-step-item">
+            <div class="me-agent-step-circle"></div>
+            <div class="me-agent-step-label">Processing</div>
+          </div>
           <div class="me-agent-step-line"></div>
-          <div class="me-agent-step">Complete</div>
+          <div class="me-agent-step-item">
+            <div class="me-agent-step-circle"></div>
+            <div class="me-agent-step-label">Complete</div>
+          </div>
         </div>
 
         <div class="me-agent-redemption-content">
           <div class="me-agent-offer-summary-card">
             <img src="${offerDetail.coverImage}" alt="${offerDetail.name}" class="me-agent-offer-summary-image" />
-            <div class="me-agent-offer-summary-details">
-              <h3 class="me-agent-offer-summary-title">${offerDetail.name}${variantName !== "Default" ? ` - ${variantName}` : ""}</h3>
-              <div class="me-agent-offer-summary-price">
-                ${finalPrice === "Free shipping"
-            ? `<span class="me-agent-price-original">$${originalPrice.toFixed(2)}</span>
-                     <span class="me-agent-price-final">Free Shipping</span>`
-            : `<span class="me-agent-price-final">$${typeof finalPrice === "number" ? finalPrice.toFixed(2) : originalPrice.toFixed(2)}</span>
-                     ${typeof finalPrice === "number" && finalPrice < originalPrice ? `<span class="me-agent-price-original">$${originalPrice.toFixed(2)}</span>` : ""}`}
+              <div class="me-agent-offer-summary-details">
+                <h3 class="me-agent-offer-summary-title">${offerDetail.name}${variantName !== "Default" ? ` - ${variantName}` : ""}</h3>
+                <div class="me-agent-offer-summary-price">
+                  ${finalPrice === "Free shipping"
+            ? `<span class="me-agent-price-final">Free Shipping</span>
+                      <span class="me-agent-price-original">$${originalPrice.toFixed(2)}</span>`
+            : `<span class="me-agent-price-final">$${typeof finalPrice === "number"
+                ? finalPrice.toFixed(2)
+                : originalPrice.toFixed(2)}</span>
+                      ${typeof finalPrice === "number" &&
+                finalPrice < originalPrice
+                ? `<span class="me-agent-price-original">$${originalPrice.toFixed(2)}</span>`
+                : ""}`}
+                </div>
               </div>
-            </div>
-            ${discountDisplay
+              <div class="me-agent-offer-summary-right">
+                ${discountDisplay
             ? `<div class="me-agent-offer-summary-discount">${discountDisplay}</div>`
             : ""}
-          </div>
-
-          <div class="me-agent-reward-selection">
-            <label class="me-agent-section-label">Pay With</label>
-            <div class="me-agent-selected-reward-card">
-              <img src="${selectedReward.reward.image}" alt="${selectedReward.reward.name}" class="me-agent-reward-icon" />
-              <div class="me-agent-reward-info">
-                <div class="me-agent-reward-name">${selectedReward.reward.name}</div>
-                <div class="me-agent-reward-balance">Balance: ${selectedReward.balance.toFixed(2)} ${selectedReward.reward.symbol}</div>
-              </div>
-              <div class="me-agent-reward-amount">
-                <div class="me-agent-amount-needed">${swapAmount.amountNeeded.toFixed(2)} ${selectedReward.reward.symbol}</div>
+                <div class="me-agent-offer-amount-needed">${swapAmount.amountNeeded.toFixed(2)} ${selectedReward.reward.symbol} Needed</div>
               </div>
             </div>
-            ${!isAffordable ? `
-              <div class="me-agent-error-message">
-                Insufficient balance. You need ${swapAmount.amountNeeded.toFixed(2)} ${selectedReward.reward.symbol} but only have ${selectedReward.balance.toFixed(2)}.
-              </div>
-            ` : ""}
-            <button class="me-agent-change-reward-btn">Use another reward</button>
-          </div>
 
-          <button class="me-agent-redeem-btn" ${!isAffordable ? "disabled" : ""}>
-            Redeem Offer
-          </button>
-        </div>
+            <div class="me-agent-reward-selection">
+              <div class="me-agent-selected-reward-card">
+                <img src="${selectedReward.reward.image}" alt="${selectedReward.reward.name}" class="me-agent-reward-icon" />
+                <div class="me-agent-reward-info">
+                  <div class="me-agent-reward-balance">${selectedReward.balance.toFixed(2)} <span class="me-agent-reward-symbol">${selectedReward.reward.symbol}</span></div>
+                  <div class="me-agent-reward-name">${selectedReward.reward.name}</div>
+                </div>
+                <div class="me-agent-reward-amount">
+                  <div class="me-agent-amount-needed">
+                    ${swapAmount.amountNeeded.toFixed(2)} ${selectedReward.reward.symbol} Needed
+                    <span class="me-agent-status-dot ${isAffordable ? "success" : "error"}"></span>
+                  </div>
+                </div>
+              </div>
+              ${!isAffordable
+            ? `
+                    <div class="me-agent-error-message">
+                      Insufficient balance. You need ${swapAmount.amountNeeded.toFixed(2)} ${selectedReward.reward.symbol} but only have ${selectedReward.balance.toFixed(2)}.
+                    </div>
+                  `
+            : ""}
+              <button class="me-agent-change-reward-btn">Use Another Reward</button>
+            </div> 
+          </div> 
       </div>
+      <div class="me-agent-redeem-btn-container">
+        <button class="me-agent-redeem-btn" ${!isAffordable ? "disabled" : ""}>
+          Redeem Offer
+        </button>
+      </div>   
     `;
         }
         /**
@@ -3185,28 +3221,134 @@
     `;
         }
         /**
-         * Render reward selection list (for "Use another reward" modal)
+         * Render reward selection list (for bottom sheet)
          */
         renderRewardList(rewards, currentRewardId) {
             return `
-      <div class="me-agent-reward-list">
-        <h3 class="me-agent-reward-list-title">Select a reward</h3>
-        <div class="me-agent-reward-list-items">
-          ${rewards
+      <div class="me-agent-reward-list-items">
+        ${rewards
             .map((reward) => `
-            <div class="me-agent-reward-list-item ${reward.reward.id === currentRewardId ? "selected" : ""}" data-reward-id="${reward.reward.id}">
-              <img src="${reward.reward.image}" alt="${reward.reward.name}" class="me-agent-reward-list-icon" />
-              <div class="me-agent-reward-list-info">
-                <div class="me-agent-reward-list-name">${reward.reward.name}</div>
-                <div class="me-agent-reward-list-balance">Balance: ${reward.balance.toFixed(2)} ${reward.reward.symbol}</div>
-              </div>
-              <div class="me-agent-reward-list-check">✓</div>
+          <div class="me-agent-reward-list-item ${reward.reward.id === currentRewardId ? "selected" : ""}" data-reward-id="${reward.reward.id}">
+            <img src="${reward.reward.image}" alt="${reward.reward.name}" class="me-agent-reward-list-icon" />
+            <div class="me-agent-reward-list-info">
+              <div class="me-agent-reward-list-name">${reward.reward.name}</div>
+              <div class="me-agent-reward-list-balance">Balance: ${reward.balance.toFixed(2)} ${reward.reward.symbol}</div>
             </div>
-          `)
+            <div class="me-agent-reward-list-check">✓</div>
+          </div>
+        `)
             .join("")}
-        </div>
       </div>
     `;
+        }
+    }
+
+    /**
+     * Bottom Sheet Modal Component
+     * A modal that slides up from the bottom of the screen
+     */
+    class BottomSheet {
+        constructor(container) {
+            this.container = container;
+            this.isVisible = false;
+            this.overlay = this.createOverlay();
+            this.sheet = this.createSheet();
+            this.contentElement = this.sheet.querySelector(".me-agent-bottom-sheet-content");
+        }
+        /**
+         * Create overlay element
+         */
+        createOverlay() {
+            const overlay = document.createElement("div");
+            overlay.className = "me-agent-bottom-sheet-overlay";
+            overlay.addEventListener("click", () => this.hide());
+            return overlay;
+        }
+        /**
+         * Create sheet element
+         */
+        createSheet() {
+            const sheet = document.createElement("div");
+            sheet.className = "me-agent-bottom-sheet";
+            sheet.innerHTML = `
+      <div class="me-agent-bottom-sheet-header">
+        <h3 class="me-agent-bottom-sheet-title"></h3>
+        <button class="me-agent-bottom-sheet-close" data-action="close">
+          ${getCloseIcon({ width: 16, height: 16 })}
+        </button>
+      </div>
+      <div class="me-agent-bottom-sheet-content"></div>
+    `;
+            // Prevent clicks inside sheet from closing it
+            sheet.addEventListener("click", (e) => e.stopPropagation());
+            // Close button
+            const closeBtn = sheet.querySelector('[data-action="close"]');
+            if (closeBtn) {
+                closeBtn.addEventListener("click", () => this.hide());
+            }
+            return sheet;
+        }
+        /**
+         * Show the bottom sheet
+         */
+        show(title, content, onClose) {
+            this.onCloseCallback = onClose;
+            // Update title and content
+            const titleElement = this.sheet.querySelector(".me-agent-bottom-sheet-title");
+            if (titleElement) {
+                titleElement.textContent = title;
+            }
+            this.contentElement.innerHTML = content;
+            // Append to container if not already
+            if (!this.overlay.parentElement) {
+                this.container.appendChild(this.overlay);
+                this.container.appendChild(this.sheet);
+            }
+            // Trigger animation
+            requestAnimationFrame(() => {
+                this.overlay.classList.add("visible");
+                this.sheet.classList.add("visible");
+                this.isVisible = true;
+            });
+        }
+        /**
+         * Hide the bottom sheet
+         */
+        hide() {
+            this.overlay.classList.remove("visible");
+            this.sheet.classList.remove("visible");
+            this.isVisible = false;
+            // Remove from DOM after animation
+            setTimeout(() => {
+                if (!this.isVisible && this.overlay.parentElement) {
+                    this.overlay.remove();
+                    this.sheet.remove();
+                }
+            }, 300);
+            // Call onClose callback
+            if (this.onCloseCallback) {
+                this.onCloseCallback();
+            }
+        }
+        /**
+         * Get the content element for attaching event listeners
+         */
+        getContentElement() {
+            return this.contentElement;
+        }
+        /**
+         * Check if bottom sheet is visible
+         */
+        isOpen() {
+            return this.isVisible;
+        }
+        /**
+         * Destroy the bottom sheet
+         */
+        destroy() {
+            this.hide();
+            this.overlay.remove();
+            this.sheet.remove();
         }
     }
 
@@ -3234,6 +3376,8 @@
             this.userBalances = [];
             this.selectedReward = null;
             this.swapAmount = null;
+            // Components
+            this.bottomSheet = null;
             // Initialize views
             this.offerGridView = new OfferGridView();
             this.offerDetailView = new OfferDetailView();
@@ -3274,6 +3418,8 @@
             this.container.appendChild(this.header);
             this.container.appendChild(this.content);
             this.wrapper.appendChild(this.container);
+            // Initialize bottom sheet
+            this.bottomSheet = new BottomSheet(this.wrapper);
         }
         /**
          * Get the wrapper element
@@ -3746,7 +3892,11 @@
                     // Step 3: Select default reward (offer's reward if available, else first reward)
                     this.selectedReward = this.findDefaultReward();
                     // Step 4: Show redemption review (with loading state for amount)
-                    this.swapAmount = { amount: 0, amountNeeded: 0, checkAffordability: false }; // Placeholder
+                    this.swapAmount = {
+                        amount: 0,
+                        amountNeeded: 0,
+                        checkAffordability: false,
+                    }; // Placeholder
                     this.showRedemptionReview();
                     // Step 5: Calculate swap amount in background and update UI
                     yield this.calculateAndUpdateSwapAmount();
@@ -3791,8 +3941,8 @@
             return __awaiter(this, void 0, void 0, function* () {
                 if (!this.currentOfferDetail || !this.selectedReward)
                     return;
-                const amountElement = this.content.querySelector('.me-agent-amount-needed');
-                const redeemButton = this.content.querySelector('.me-agent-redeem-btn');
+                const amountElement = this.content.querySelector(".me-agent-amount-needed");
+                const redeemButton = this.content.querySelector(".me-agent-redeem-btn");
                 if (!amountElement)
                     return;
                 try {
@@ -3806,24 +3956,25 @@
                     // Calculate amount
                     yield this.calculateSwapAmount();
                     // Check if view was changed during calculation
-                    if (!this.swapAmount || this.content.querySelector('.me-agent-redemption-container') === null) {
+                    if (!this.swapAmount ||
+                        this.content.querySelector(".me-agent-redemption-container") === null) {
                         return;
                     }
                     // Update with actual amount
                     amountElement.textContent = `${this.swapAmount.amountNeeded.toFixed(2)} ${this.selectedReward.reward.symbol}`;
-                    amountElement.style.color = '';
+                    amountElement.style.color = "";
                     // Enable/disable button based on affordability
                     if (redeemButton) {
                         const isAffordable = this.selectedReward.balance >= this.swapAmount.amountNeeded;
                         redeemButton.disabled = !isAffordable;
                         // Show insufficient balance message if needed
                         if (!isAffordable) {
-                            const errorMsg = this.content.querySelector('.me-agent-error-message');
+                            const errorMsg = this.content.querySelector(".me-agent-error-message");
                             if (!errorMsg) {
-                                const rewardSelection = this.content.querySelector('.me-agent-reward-selection');
+                                const rewardSelection = this.content.querySelector(".me-agent-reward-selection");
                                 if (rewardSelection) {
-                                    const errorDiv = document.createElement('div');
-                                    errorDiv.className = 'me-agent-error-message';
+                                    const errorDiv = document.createElement("div");
+                                    errorDiv.className = "me-agent-error-message";
                                     errorDiv.innerHTML = `
                 <p>Insufficient balance. You need ${this.swapAmount.amountNeeded.toFixed(2)} ${this.selectedReward.reward.symbol} but only have ${this.selectedReward.balance.toFixed(2)}.</p>
               `;
@@ -3854,7 +4005,7 @@
             const variant = this.selectedVariant || ((_a = this.currentOfferDetail.offerVariants) === null || _a === void 0 ? void 0 : _a[0]);
             this.viewStack.push({
                 type: "redemption-review",
-                title: "Review Redemption",
+                title: "Complete Your Redemption",
                 data: {
                     offer: this.currentOfferDetail,
                     reward: this.selectedReward,
@@ -3863,7 +4014,7 @@
                 },
             });
             this.content.innerHTML = this.redemptionView.renderReviewStep(this.currentOfferDetail, this.selectedReward, this.swapAmount, variant);
-            this.updateHeader("Review Redemption");
+            this.updateHeader("Complete Your Redemption");
             this.attachRedemptionReviewListeners();
         }
         /**
@@ -3885,57 +4036,41 @@
          * Show list of available rewards for selection
          */
         showRewardSelectionList() {
-            if (!this.userBalances.length)
-                return;
-            const listHTML = `
-      <div class="me-agent-reward-list">
-        <h3 class="me-agent-reward-list-title">Select a reward</h3>
-        <div class="me-agent-reward-list-items">
-          ${this.userBalances
-            .map((reward) => {
             var _a;
-            return `
-            <div class="me-agent-reward-list-item ${reward.reward.id === ((_a = this.selectedReward) === null || _a === void 0 ? void 0 : _a.reward.id) ? "selected" : ""}" 
-                 data-reward-id="${reward.reward.id}">
-              <img src="${reward.reward.image}" alt="${reward.reward.name}" class="me-agent-reward-list-icon" />
-              <div class="me-agent-reward-list-info">
-                <p class="me-agent-reward-list-name">${reward.reward.name}</p>
-                <p class="me-agent-reward-list-balance">Balance: ${reward.balance.toFixed(2)} ${reward.reward.symbol}</p>
-              </div>
-              <span class="me-agent-reward-list-check">✓</span>
-            </div>
-          `;
-        })
-            .join("")}
-        </div>
-      </div>
-    `;
-            // Insert before redeem button
-            const redeemBtn = this.content.querySelector(".me-agent-redeem-btn");
-            if (redeemBtn && redeemBtn.parentElement) {
-                const tempDiv = document.createElement("div");
-                tempDiv.innerHTML = listHTML;
-                redeemBtn.parentElement.insertBefore(tempDiv.firstElementChild, redeemBtn);
-            }
-            // Attach listeners
-            const rewardItems = this.content.querySelectorAll(".me-agent-reward-list-item");
-            rewardItems.forEach((item) => {
-                item.addEventListener("click", () => __awaiter(this, void 0, void 0, function* () {
-                    const rewardId = item.getAttribute("data-reward-id");
-                    if (rewardId) {
-                        yield this.selectReward(rewardId);
-                    }
-                }));
-            });
+            if (!this.userBalances.length || !this.bottomSheet)
+                return;
+            // Use view to generate HTML
+            const listHTML = this.redemptionView.renderRewardList(this.userBalances, ((_a = this.selectedReward) === null || _a === void 0 ? void 0 : _a.reward.id) || "");
+            // Show in bottom sheet
+            this.bottomSheet.show("Select a Reward", listHTML);
+            // Attach listeners after bottom sheet is shown
+            setTimeout(() => {
+                var _a;
+                const contentElement = (_a = this.bottomSheet) === null || _a === void 0 ? void 0 : _a.getContentElement();
+                if (contentElement) {
+                    const rewardItems = contentElement.querySelectorAll(".me-agent-reward-list-item");
+                    rewardItems.forEach((item) => {
+                        item.addEventListener("click", () => __awaiter(this, void 0, void 0, function* () {
+                            const rewardId = item.getAttribute("data-reward-id");
+                            if (rewardId) {
+                                yield this.selectReward(rewardId);
+                            }
+                        }));
+                    });
+                }
+            }, 0);
         }
         /**
          * Select a different reward
          */
         selectReward(rewardId) {
             return __awaiter(this, void 0, void 0, function* () {
+                var _a;
                 const reward = this.userBalances.find((r) => r.reward.id === rewardId);
                 if (!reward)
                     return;
+                // Close bottom sheet
+                (_a = this.bottomSheet) === null || _a === void 0 ? void 0 : _a.hide();
                 this.selectedReward = reward;
                 this.swapAmount = { amount: 0, amountNeeded: 0, checkAffordability: false }; // Reset to loading state
                 this.showRedemptionReview();
@@ -3957,7 +4092,8 @@
                     const variant = this.selectedVariant || ((_a = this.currentOfferDetail.offerVariants) === null || _a === void 0 ? void 0 : _a[0]);
                     const variantId = variant === null || variant === void 0 ? void 0 : variant.id;
                     // Determine if same-brand or cross-brand redemption
-                    const isSameBrand = this.selectedReward.reward.contractAddress === this.currentOfferDetail.reward.contractAddress;
+                    const isSameBrand = this.selectedReward.reward.contractAddress ===
+                        this.currentOfferDetail.reward.contractAddress;
                     let order;
                     if (isSameBrand) {
                         // Same brand redemption
@@ -3972,7 +4108,9 @@
                 }
                 catch (error) {
                     console.error("Redemption transaction error:", error);
-                    this.content.innerHTML = this.redemptionView.renderError(error instanceof Error ? error.message : "Redemption failed. Please try again.");
+                    this.content.innerHTML = this.redemptionView.renderError(error instanceof Error
+                        ? error.message
+                        : "Redemption failed. Please try again.");
                     this.updateHeader("Error");
                     this.attachRedemptionRetryListener();
                 }
@@ -4894,6 +5032,7 @@
 
   /* Detail Panel Wrapper (right side) */
   .me-agent-detail-panel-wrapper {
+    position: relative;
     width: 0;
     height: 100%;
     overflow: hidden;
@@ -5465,7 +5604,7 @@
     cursor: pointer;
     padding: 0;
     color: #1a1a1a;
-    font-size: 18px;
+    font-size: 14px;
     font-weight: 600;
     transition: opacity 0.2s ease;
     flex: 1;
@@ -7134,59 +7273,90 @@
   /* ===== Redemption Styles ===== */
   .me-agent-redemption-container {
     margin: 0 auto;
+    padding: 24px;
+    flex: 1;
+  }
+
+  .me-agent-redemption-header {
+    margin-bottom: 32px;
+  }
+
+  .me-agent-redemption-subtitle {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
   }
 
   .me-agent-step-indicator {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 32px;
+    margin-bottom: 60px;
+    width: 100%;
   }
 
-  .me-agent-step {
-    flex: 1;
-    text-align: center;
-    padding: 8px 12px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 500;
-    color: #666;
-    background: #F5F5F5;
+  .me-agent-step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+  }
+
+  .me-agent-step-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid #D1D5DB;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: all 0.3s ease;
+    z-index: 1;
   }
 
-  .me-agent-step.active {
-    background: #0F0F0F;
-    color: white;
+  .me-agent-step-circle.active {
+    background: white;
+    border-color: #0F0F0F;
   }
 
-  .me-agent-step.completed {
-    background: #4CAF50;
-    color: white;
+  .me-agent-step-circle.completed {
+    background: #10B981;
+    border-color: #10B981;
+  }
+
+  .me-agent-step-label {
+    font-size: 14px;
+    color: #9CA3AF;
+    font-weight: 400;
+  }
+
+  .me-agent-step-label.active {
+    color: #0F0F0F;
+    font-weight: 500;
   }
 
   .me-agent-step-line {
-    flex: 0.5;
+    flex: 1;
     height: 2px;
-    background: #E5E5E5;
-    margin: 0 8px;
+    background: #E5E7EB;
+    margin: 0 12px 24px 12px;
   }
 
   .me-agent-redemption-content {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 40px;
   }
 
   .me-agent-offer-summary-card {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 16px;
-    padding: 16px;
-    background: white;
-    border: 1px solid #E5E5E5;
+    padding: 12px;
+    background: #FAFAFA;
     border-radius: 12px;
-    position: relative;
   }
 
   .me-agent-offer-summary-image {
@@ -7194,17 +7364,22 @@
     height: 80px;
     object-fit: cover;
     border-radius: 8px;
+    flex-shrink: 0;
   }
 
   .me-agent-offer-summary-details {
     flex: 1;
+    min-width: 0;
   }
 
   .me-agent-offer-summary-title {
     font-size: 16px;
     font-weight: 600;
-    margin: 0 0 8px 0;
+    margin: 0 0 4px 0;
     color: #0F0F0F;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .me-agent-offer-summary-price {
@@ -7214,83 +7389,134 @@
   }
 
   .me-agent-price-final {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 700;
     color: #0F0F0F;
   }
 
   .me-agent-price-original {
     font-size: 16px;
-    color: #999;
+    color: #9CA3AF;
     text-decoration: line-through;
   }
 
+  .me-agent-offer-summary-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
   .me-agent-offer-summary-discount {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    background: #FF4444;
+    background: #0F0F0F;
     color: white;
-    padding: 4px 8px;
-    border-radius: 4px;
+    padding: 6px 12px;
+    border-radius: 20px;
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+
+  .me-agent-offer-summary-discount::before {
+    content: '';
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    background-image: url(${fireImage});
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+
+  .me-agent-offer-amount-needed {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0F0F0F;
+    white-space: nowrap;
   }
 
   .me-agent-reward-selection {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
   }
 
   .me-agent-selected-reward-card {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 16px;
-    background: white;
-    border: 1px solid #E5E5E5;
-    border-radius: 12px;
+    gap: 16px;
   }
 
   .me-agent-reward-icon {
-    width: 48px;
-    height: 48px;
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
     object-fit: cover;
+    flex-shrink: 0;
   }
 
   .me-agent-reward-info {
     flex: 1;
-  }
-
-  .me-agent-reward-name {
-    font-size: 16px;
-    font-weight: 600;
-    color: #0F0F0F;
-    margin-bottom: 4px;
+    min-width: 0;
   }
 
   .me-agent-reward-balance {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0F0F0F;
+  }
+
+  .me-agent-reward-symbol {
+    font-weight: 400;
+    font-size: 12px;
+  }
+
+  .me-agent-reward-name {
     font-size: 14px;
+    font-weight: 400;
     color: #666;
   }
 
   .me-agent-reward-amount {
     text-align: right;
+    flex-shrink: 0;
   }
 
   .me-agent-amount-needed {
-    font-size: 18px;
-    font-weight: 700;
+    font-size: 14px;
+    font-weight: 600;
     color: #0F0F0F;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+
+  .me-agent-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .me-agent-status-dot.success {
+    background: #10B981;
+  }
+
+  .me-agent-status-dot.error {
+    background: #EF4444;
   }
 
   .me-agent-change-reward-btn {
     width: fit-content;
-    padding: 8px 16px;
-    background: transparent;
-    border: 1px solid #E5E5E5;
+    margin: 0 auto;
+    padding: 10px 24px;
+    background: white;
+    border: 1px solid #E5E7EB;
     border-radius: 8px;
     font-size: 14px;
     font-weight: 500;
@@ -7300,7 +7526,18 @@
   }
 
   .me-agent-change-reward-btn:hover {
-    background: #F5F5F5;
+    background: #F9FAFB;
+    border-color: #D1D5DB;
+  }
+
+  .me-agent-redeem-btn-container {
+    position: absolute;
+    bottom: 0;
+    padding: 20px;
+    background: white;
+    left: 0;
+    right: 0;
+    z-index: 5;
   }
 
   .me-agent-redeem-btn {
@@ -7314,15 +7551,17 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
+    margin-top: 8px;
   }
 
   .me-agent-redeem-btn:hover:not(:disabled) {
-    background: #333;
+    background: #1F2937;
   }
 
   .me-agent-redeem-btn:disabled {
-    background: #CCC;
+    background: #D1D5DB;
     cursor: not-allowed;
+    opacity: 0.6;
   }
 
   .me-agent-processing-animation {
@@ -7603,6 +7842,97 @@
 
   .me-agent-reward-list-item.selected .me-agent-reward-list-check {
     opacity: 1;
+  }
+
+  /* ============================================
+     BOTTOM SHEET MODAL
+     ============================================ */
+  .me-agent-bottom-sheet-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+
+  .me-agent-bottom-sheet-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .me-agent-bottom-sheet {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: white;
+    border-radius: 24px 24px 0 0;
+    max-height: 70vh;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+    z-index: 1001;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .me-agent-bottom-sheet.visible {
+    transform: translateY(0);
+  }
+
+  .me-agent-bottom-sheet-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #E5E7EB;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .me-agent-bottom-sheet-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #0F0F0F;
+    margin: 0;
+    text-align: center;
+  }
+
+  .me-agent-bottom-sheet-close {
+    position: absolute;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #F3F4F6;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .me-agent-bottom-sheet-close:hover {
+    background: #E5E7EB;
+  }
+
+  .me-agent-bottom-sheet-content {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .me-agent-bottom-sheet-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #E5E7EB;
+    flex-shrink: 0;
   }
 
   /* ============================================

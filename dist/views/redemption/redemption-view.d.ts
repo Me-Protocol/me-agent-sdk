@@ -29,7 +29,7 @@ export declare class RedemptionView {
      */
     renderLoading(): string;
     /**
-     * Render reward selection list (for "Use another reward" modal)
+     * Render reward selection list (for bottom sheet)
      */
     renderRewardList(rewards: RewardBalance[], currentRewardId: string): string;
 }
