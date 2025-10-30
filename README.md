@@ -10,16 +10,20 @@ AI-powered chatbot widget that can be embedded on any website. Built with TypeSc
 ## Features
 
 - 🚀 **Easy Integration**: Single script tag integration
-- 💬 **AI-Powered Chat**: Real-time streaming responses with offer redemption
-- 🎨 **Modern UI**: Beautiful, customizable interface inspired by Notion
+- 💬 **AI-Powered Chat**: Real-time streaming responses with offer recommendations
+- 🎨 **Modern UI**: Beautiful, customizable interface with smooth animations
 - 📱 **Fully Responsive**: Works perfectly on desktop and mobile
 - 🔧 **Configurable**: Customize position, environment, network and more
-- 🔐 **Magic Link Authentication**: Built-in wallet authentication for offer redemption
-- ⚡ **Lightweight**: Optimized bundle with all dependencies included
+- 🔐 **Magic Link Authentication**: Built-in wallet authentication for blockchain redemption
+- ⚡ **Lightweight**: Small bundle size (~100KB) with external dependencies for advanced features
+- 🛍️ **Smart Redemption**: Same-brand and cross-brand reward token swapping
+- 🎯 **Product Discovery**: AI-powered offer search, category browsing, and brand exploration
 
 ## Installation
 
-### Via CDN (Recommended)
+### Basic Setup (Chat & Offers)
+
+For basic functionality including AI chat and offer browsing:
 
 ```html
 <!-- Load SDK -->
@@ -38,6 +42,30 @@ AI-powered chatbot widget that can be embedded on any website. Built with TypeSc
 </script>
 ```
 
+### Full Setup (with Redemption)
+
+For complete functionality including blockchain redemption, load ethers.js first:
+
+```html
+<!-- Load dependencies -->
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+
+<!-- Load SDK -->
+<script src="https://cdn.jsdelivr.net/gh/Me-Protocol/me-agent-sdk@main/dist/me-agent-sdk.min.js"></script>
+
+<!-- Initialize -->
+<script>
+  MeAgent.init({
+    emailAddress: "user@example.com", // required for redemption
+    brandId: "your-brand-id",
+    userId: "user-123",
+    position: "bottom-right",
+    environment: MeAgent.Environment.DEV,
+    network: MeAgent.Network.SEPOLIA,
+  });
+</script>
+```
+
 **CDN Options:**
 
 - Latest from main branch: `@main/dist/me-agent-sdk.min.js`
@@ -50,6 +78,7 @@ AI-powered chatbot widget that can be embedded on any website. Built with TypeSc
 npm install me-agent-sdk
 ```
 
+**Basic usage:**
 ```javascript
 import MeAgent, { Environment, SupportedNetwork } from "me-agent-sdk";
 
@@ -62,6 +91,29 @@ MeAgent.init({
   network: SupportedNetwork.SEPOLIA,
 });
 ```
+
+**With redemption (install additional dependencies):**
+```bash
+npm install ethers@5.7.2
+```
+
+### External Dependencies
+
+The SDK uses external dependencies for blockchain redemption to keep the bundle size small:
+
+- **ethers.js v5** (Required for redemption): Handles blockchain transactions and wallet interactions
+- Load via CDN: `https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js`
+
+**What works without ethers.js:**
+- ✅ AI Chat
+- ✅ Offer browsing and search
+- ✅ Category exploration
+- ✅ Brand discovery
+
+**What requires ethers.js:**
+- ❌ Offer redemption (blockchain transactions)
+- ❌ Reward token swaps
+- ❌ Wallet authentication for purchases
 
 ## Configuration Options
 
@@ -123,33 +175,50 @@ MeAgent.Network.BASE; // Base network
 MeAgent.Network.POLYGON; // Polygon network
 ```
 
-## Features
+## Features in Detail
 
-### AI Chat
+### 💬 AI Chat
 
 The widget provides an AI-powered chat interface that can:
 
-- Answer questions about your products and services
-- Search for offers and deals
-- Provide personalized recommendations
+- Answer questions about products and services
+- Search for offers and deals in real-time
+- Provide personalized recommendations based on user queries
+- Display quick action buttons for common tasks
+- Stream responses for a natural conversation feel
 
-### Offer Redemption
+### 🛍️ Offer Discovery
 
-Users can:
+Users can explore offers through multiple channels:
 
-- Browse available offers directly in the chat
-- View offer details including discounts and variants
-- Redeem offers using their reward tokens
-- Authenticate with Magic Link for secure transactions
+- **AI Search**: Ask the AI to find specific offers
+- **Category Browsing**: View offers organized by purchase categories
+- **Brand Discovery**: Explore brands that offer signup and purchase rewards
+- **Card Lists**: Horizontal scrollable lists with "View All" functionality
+- **Detailed Views**: Full product details with variants, reviews, and pricing
 
-### Reward Management
+### 🎁 Offer Redemption
+
+Complete blockchain-powered redemption flow:
+
+- **Same-Brand Redemption**: Use brand tokens to redeem offers from the same brand
+- **Cross-Brand Redemption**: Swap tokens from one brand to redeem offers from another
+- **Magic Link Authentication**: Secure wallet creation and management (no seed phrases!)
+- **Multi-Reward Support**: Automatically check balances across all reward tokens
+- **Swap Calculations**: Real-time token swap amount calculations
+- **Step-by-Step UI**: Clear Review → Processing → Complete flow
+- **Coupon Generation**: Automatic discount code generation and delivery
+- **Checkout Integration**: Direct links to brand checkout with applied coupons
+
+### 💰 Reward Management
 
 The SDK integrates with ME Protocol for:
 
 - Multi-reward balance checking
-- Cross-reward swapping
-- Automatic affordability checking
-- Seamless blockchain transactions
+- Cross-brand token swapping via protocol vaults
+- Automatic affordability checking before redemption
+- Gelato relay for gasless transactions
+- Transaction refunds on failed orders
 
 ## Browser Support
 
@@ -161,17 +230,66 @@ The SDK integrates with ME Protocol for:
 
 ## Development
 
-### Building
+### Setup
 
 ```bash
+# Clone the repository
+git clone https://github.com/Me-Protocol/me-agent-sdk.git
+cd me-agent-sdk
+
+# Install dependencies
+npm install
+
+# Build the SDK
 npm run build
 ```
+
+### Development Workflow
+
+```bash
+# Watch mode (rebuilds on changes)
+npm run watch
+
+# Run local server
+npm run serve
+
+# Development with live reload
+npm run dev:full
+```
+
+### External Dependencies
+
+The SDK externalizes these blockchain libraries to reduce bundle size:
+
+- `ethers` v5.7.2 - Blockchain interactions
+- `@developeruche/runtime-sdk` - ME Protocol runtime
+- `@developeruche/protocol-core` - ME Protocol core functionality
+
+These are loaded externally via CDN or need to be installed for npm usage. See the installation section for details.
+
+### Project Structure
+
+```
+src/
+├── types/           # TypeScript interfaces and types
+├── core/            # Core utilities and constants
+├── data/            # API clients and authentication
+├── services/        # Business logic layer
+├── controllers/     # UI orchestration layer
+├── views/           # UI rendering (pure view functions)
+└── index.ts         # Public API entry point
+```
+
+For detailed architecture information, see [ARCHITECTURE_GUIDE.md](./ARCHITECTURE_GUIDE.md).
 
 ### Testing
 
 **Live Demo**: Visit [https://me-protocol.github.io/me-agent-sdk/](https://me-protocol.github.io/me-agent-sdk/) to see the SDK in action.
 
-**Local Testing**: Open `example/index.html` in your browser to test the SDK locally.
+**Local Testing**: 
+1. Run `npm run serve` to start a local server
+2. Open `http://localhost:5500` in your browser
+3. The example includes ethers.js via CDN for full redemption functionality
 
 ## License
 

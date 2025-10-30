@@ -169,4 +169,22 @@ export class MagicClient {
     const metadata = await this.getUserMetadata();
     return metadata.publicAddress;
   }
+
+  /**
+   * Get Web3 provider for signing transactions
+   */
+  async getProvider(): Promise<any> {
+    if (!this.initialized) {
+      await this.init();
+    }
+
+    return this.magic.rpcProvider;
+  }
+
+  /**
+   * Get the Magic instance (for advanced usage)
+   */
+  getMagicInstance(): any {
+    return this.magic;
+  }
 }

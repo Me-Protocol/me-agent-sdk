@@ -72,10 +72,14 @@ export class ChatPopup {
     );
 
     // Initialize detail panel controller
+    if (!this.redemptionService) {
+      throw new Error("RedemptionService is required for DetailPanelController");
+    }
     this.detailPanelController = new DetailPanelController(
       config,
       this.offerService,
       this.brandService,
+      this.redemptionService,
       () => this.hideDetailPanel()
     );
 
@@ -667,5 +671,43 @@ export class ChatPopup {
    */
   getElement(): HTMLDivElement {
     return this.element;
+  }
+
+  // ============================================
+  // Dev Mode Helper Methods
+  // ============================================
+
+  /**
+   * Show offer detail (for dev mode)
+   */
+  async devShowOfferDetail(offerCode: string, sessionId: string): Promise<void> {
+    // Maximize if not already
+    if (!this.isMaximized) {
+      this.toggleMaximize();
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    }
+
+    // Show detail panel
+    this.element.classList.add("has-detail-panel");
+    await this.detailPanelController.showOfferDetail(offerCode, sessionId);
+    
+    // Show chat
+    this.show();
+  }
+
+  /**
+   * Show brand list (for dev mode)
+   */
+  devShowBrandList(): void {
+    // For now, we'll need sample data or fetch from API
+    console.warn("Dev: Brand list requires data - use AI chat to trigger");
+  }
+
+  /**
+   * Show category grid (for dev mode)
+   */
+  devShowCategoryGrid(): void {
+    // For now, we'll need sample data or fetch from API
+    console.warn("Dev: Category grid requires data - use AI chat to trigger");
   }
 }

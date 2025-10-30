@@ -5,10 +5,12 @@
 import { MeAgentConfig, Offer, Brand, Category } from "../types";
 import { OfferService } from "../services/offer-service";
 import { BrandService } from "../services/brand-service";
+import { RedemptionService } from "../services/redemption-service";
 export declare class DetailPanelController {
     private config;
     private offerService;
     private brandService;
+    private redemptionService;
     private onClose;
     private container;
     private wrapper;
@@ -26,12 +28,16 @@ export declare class DetailPanelController {
     private selectedVariant;
     private quantity;
     private currentBrandsWithOffers;
+    private userBalances;
+    private selectedReward;
+    private swapAmount;
     private offerGridView;
     private offerDetailView;
     private brandListView;
     private brandOffersView;
     private categoryGridView;
-    constructor(config: MeAgentConfig, offerService: OfferService, brandService: BrandService, onClose: () => void);
+    private redemptionView;
+    constructor(config: MeAgentConfig, offerService: OfferService, brandService: BrandService, redemptionService: RedemptionService, onClose: () => void);
     /**
      * Get the wrapper element
      */
@@ -116,6 +122,58 @@ export declare class DetailPanelController {
      * Attach action button listeners (like, share, add to cart)
      */
     private attachActionListeners;
+    /**
+     * Handle redemption button click
+     */
+    private handleRedemption;
+    /**
+     * Find default reward to use for redemption
+     */
+    private findDefaultReward;
+    /**
+     * Calculate swap amount needed for redemption
+     */
+    private calculateSwapAmount;
+    /**
+     * Calculate swap amount and update the UI with result or error
+     */
+    private calculateAndUpdateSwapAmount;
+    /**
+     * Show redemption review step
+     */
+    private showRedemptionReview;
+    /**
+     * Attach listeners for redemption review step
+     */
+    private attachRedemptionReviewListeners;
+    /**
+     * Show list of available rewards for selection
+     */
+    private showRewardSelectionList;
+    /**
+     * Select a different reward
+     */
+    private selectReward;
+    /**
+     * Execute the redemption transaction
+     */
+    private executeRedemption;
+    /**
+     * Show redemption complete step
+     */
+    private showRedemptionComplete;
+    /**
+     * Attach listeners for redemption complete step
+     */
+    private attachRedemptionCompleteListeners;
+    /**
+     * Attach retry listener for redemption errors
+     */
+    private attachRedemptionRetryListener;
+    /**
+     * Attach back button listener
+     */
+    private attachBackButtonListener;
     /**
      * Select a variant
      */

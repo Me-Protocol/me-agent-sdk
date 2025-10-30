@@ -2313,6 +2313,611 @@ export const styles = `
       align-items: flex-start;
     }
   }
+
+  /* ===== Redemption Styles ===== */
+  .me-agent-redemption-container {
+    padding: 24px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .me-agent-step-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+  }
+
+  .me-agent-step {
+    flex: 1;
+    text-align: center;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #666;
+    background: #F5F5F5;
+    transition: all 0.3s ease;
+  }
+
+  .me-agent-step.active {
+    background: #0F0F0F;
+    color: white;
+  }
+
+  .me-agent-step.completed {
+    background: #4CAF50;
+    color: white;
+  }
+
+  .me-agent-step-line {
+    flex: 0.5;
+    height: 2px;
+    background: #E5E5E5;
+    margin: 0 8px;
+  }
+
+  .me-agent-redemption-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .me-agent-offer-summary-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: white;
+    border: 1px solid #E5E5E5;
+    border-radius: 12px;
+    position: relative;
+  }
+
+  .me-agent-offer-summary-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+
+  .me-agent-offer-summary-details {
+    flex: 1;
+  }
+
+  .me-agent-offer-summary-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    color: #0F0F0F;
+  }
+
+  .me-agent-offer-summary-price {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .me-agent-price-final {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0F0F0F;
+  }
+
+  .me-agent-price-original {
+    font-size: 16px;
+    color: #999;
+    text-decoration: line-through;
+  }
+
+  .me-agent-offer-summary-discount {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: #FF4444;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .me-agent-reward-selection {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .me-agent-selected-reward-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: white;
+    border: 1px solid #E5E5E5;
+    border-radius: 12px;
+  }
+
+  .me-agent-reward-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .me-agent-reward-info {
+    flex: 1;
+  }
+
+  .me-agent-reward-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #0F0F0F;
+    margin-bottom: 4px;
+  }
+
+  .me-agent-reward-balance {
+    font-size: 14px;
+    color: #666;
+  }
+
+  .me-agent-reward-amount {
+    text-align: right;
+  }
+
+  .me-agent-amount-needed {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0F0F0F;
+  }
+
+  .me-agent-change-reward-btn {
+    width: fit-content;
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid #E5E5E5;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #0F0F0F;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .me-agent-change-reward-btn:hover {
+    background: #F5F5F5;
+  }
+
+  .me-agent-redeem-btn {
+    width: 100%;
+    padding: 16px;
+    background: #0F0F0F;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .me-agent-redeem-btn:hover:not(:disabled) {
+    background: #333;
+  }
+
+  .me-agent-redeem-btn:disabled {
+    background: #CCC;
+    cursor: not-allowed;
+  }
+
+  .me-agent-processing-animation {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    text-align: center;
+  }
+
+  .me-agent-processing-animation h3 {
+    margin: 24px 0 8px 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #0F0F0F;
+  }
+
+  .me-agent-processing-animation p {
+    margin: 0;
+    font-size: 14px;
+    color: #666;
+  }
+
+  .me-agent-success-animation {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    text-align: center;
+  }
+
+  .me-agent-success-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #4CAF50;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    font-weight: 700;
+  }
+
+  .me-agent-success-animation h3 {
+    margin: 24px 0 8px 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #0F0F0F;
+  }
+
+  .me-agent-success-animation p {
+    margin: 0;
+    font-size: 14px;
+    color: #666;
+  }
+
+  .me-agent-coupon-details-card {
+    padding: 24px;
+    background: white;
+    border: 2px dashed #E5E5E5;
+    border-radius: 12px;
+    text-align: center;
+  }
+
+  .me-agent-coupon-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 12px;
+  }
+
+  .me-agent-coupon-code {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .me-agent-coupon-code-text {
+    font-size: 24px;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    color: #0F0F0F;
+    letter-spacing: 2px;
+  }
+
+  .me-agent-copy-coupon-btn {
+    padding: 6px 12px;
+    background: #F5F5F5;
+    border: 1px solid #E5E5E5;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #0F0F0F;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .me-agent-copy-coupon-btn:hover {
+    background: #E5E5E5;
+  }
+
+  .me-agent-coupon-discount {
+    font-size: 14px;
+    color: #666;
+  }
+
+  .me-agent-use-coupon-btn {
+    width: 100%;
+    padding: 16px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .me-agent-use-coupon-btn:hover {
+    background: #45A049;
+  }
+
+  .me-agent-error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    text-align: center;
+  }
+
+  .me-agent-error-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #FF4444;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    font-weight: 700;
+  }
+
+  .me-agent-error-state h3 {
+    margin: 24px 0 8px 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #0F0F0F;
+  }
+
+  .me-agent-error-state p {
+    margin: 0 0 24px 0;
+    font-size: 14px;
+    color: #666;
+  }
+
+  .me-agent-try-again-btn {
+    padding: 12px 24px;
+    background: #0F0F0F;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .me-agent-try-again-btn:hover {
+    background: #333;
+  }
+
+  .me-agent-loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    text-align: center;
+  }
+
+  .me-agent-loading-state p {
+    margin: 24px 0 0 0;
+    font-size: 14px;
+    color: #666;
+  }
+
+  .me-agent-error-message {
+    padding: 12px;
+    background: #FFE5E5;
+    border: 1px solid #FF4444;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #FF4444;
+  }
+
+  .me-agent-reward-list {
+    padding: 24px;
+  }
+
+  .me-agent-reward-list-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 16px 0;
+    color: #0F0F0F;
+  }
+
+  .me-agent-reward-list-items {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .me-agent-reward-list-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: white;
+    border: 2px solid #E5E5E5;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .me-agent-reward-list-item:hover {
+    border-color: #0F0F0F;
+  }
+
+  .me-agent-reward-list-item.selected {
+    border-color: #0F0F0F;
+    background: #F5F5F5;
+  }
+
+  .me-agent-reward-list-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .me-agent-reward-list-info {
+    flex: 1;
+  }
+
+  .me-agent-reward-list-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #0F0F0F;
+    margin-bottom: 4px;
+  }
+
+  .me-agent-reward-list-balance {
+    font-size: 14px;
+    color: #666;
+  }
+
+  .me-agent-reward-list-check {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #0F0F0F;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .me-agent-reward-list-item.selected .me-agent-reward-list-check {
+    opacity: 1;
+  }
+
+  /* ============================================
+     DEV HELPER STYLES
+     ============================================ */
+  .me-agent-dev-help-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100000;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .me-agent-dev-help-modal {
+    background: white;
+    border-radius: 16px;
+    padding: 0;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideInUp 0.3s ease;
+  }
+
+  .me-agent-dev-help-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px;
+    border-bottom: 1px solid #E5E5E5;
+  }
+
+  .me-agent-dev-help-header h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #0F0F0F;
+  }
+
+  .me-agent-dev-help-close {
+    background: none;
+    border: none;
+    font-size: 32px;
+    line-height: 1;
+    cursor: pointer;
+    color: #666;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+  }
+
+  .me-agent-dev-help-close:hover {
+    background: #F5F5F5;
+    color: #0F0F0F;
+  }
+
+  .me-agent-dev-help-content {
+    padding: 24px;
+  }
+
+  .me-agent-dev-shortcut {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid #F5F5F5;
+  }
+
+  .me-agent-dev-shortcut:last-child {
+    border-bottom: none;
+  }
+
+  .me-agent-dev-shortcut kbd {
+    background: linear-gradient(180deg, #FAFAFA 0%, #F0F0F0 100%);
+    border: 1px solid #D4D4D4;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: #0F0F0F;
+    min-width: 40px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .me-agent-dev-shortcut span {
+    flex: 1;
+    color: #525252;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .me-agent-dev-help-footer {
+    padding: 16px 24px;
+    background: #F9F9F9;
+    border-radius: 0 0 16px 16px;
+    text-align: center;
+  }
+
+  .me-agent-dev-help-footer small {
+    color: #888;
+    font-size: 12px;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 `;
 
 /**

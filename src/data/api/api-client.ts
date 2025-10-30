@@ -10,6 +10,7 @@ import { OfferAPI } from "./offer-api";
 import { BrandAPI } from "./brand-api";
 import { RewardAPI } from "./reward-api";
 import { AuthAPI } from "./auth-api";
+import { RedemptionAPI } from "./redemption-api";
 
 /**
  * Main API Client - Facade for all domain APIs
@@ -22,6 +23,7 @@ export class APIClient {
   private _brandAPI: BrandAPI;
   private _rewardAPI: RewardAPI;
   private _authAPI: AuthAPI;
+  private _redemptionAPI: RedemptionAPI;
 
   constructor(config: MeAgentConfig, env: EnvConfig) {
     // Initialize all domain APIs
@@ -31,6 +33,7 @@ export class APIClient {
     this._brandAPI = new BrandAPI(config, env);
     this._rewardAPI = new RewardAPI(config, env);
     this._authAPI = new AuthAPI(config, env);
+    this._redemptionAPI = new RedemptionAPI(config, env);
   }
 
   // ===== API Access (for services) =====
@@ -40,6 +43,10 @@ export class APIClient {
 
   get offerAPI(): OfferAPI {
     return this._offerAPI;
+  }
+
+  get redemptionAPI(): RedemptionAPI {
+    return this._redemptionAPI;
   }
 
   // ===== User Info =====

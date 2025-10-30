@@ -19,6 +19,7 @@ import { FloatingButton } from "./views/components/button";
 import { ChatPopup } from "./views/components/chat";
 import { injectStyles } from "./views/shared/styles";
 import { getEnv, SupportedNetwork, Environment } from "./core/config/env";
+import { DevHelper } from "./core/dev-helper";
 
 /**
  * Main SDK Class
@@ -32,6 +33,7 @@ export class MeAgentSDK {
   private apiClient: APIClient;
   private button: FloatingButton | null = null;
   private chat: ChatPopup | null = null;
+  private devHelper: DevHelper | null = null;
   private initialized = false;
   private isOpen: boolean = false;
 
@@ -63,12 +65,20 @@ export class MeAgentSDK {
     this.redemptionService = new RedemptionService(
       authAPI,
       rewardAPI,
+      this.apiClient.redemptionAPI,
       {
         apiKey: this.env.MAGIC_PUBLISHABLE_API_KEY,
         chainId: this.env.CHAIN_ID,
         rpcUrl: this.env.RPC_URL,
       },
-      this.env.OPEN_REWARD_DIAMOND
+      this.env.OPEN_REWARD_DIAMOND,
+      parseInt(this.env.CHAIN_ID, 10),
+      this.env.RPC_URL,
+      this.env.RUNTIME_URL,
+      this.env.ME_API_KEY,
+      this.env.API_V1_URL,
+      this.env.GELATO_API_KEY,
+      this.config.brandId || ""
     );
   }
 
@@ -117,6 +127,21 @@ export class MeAgentSDK {
 
       // Show welcome message
       this.chat.showWelcome();
+
+      // Initialize dev helper if dev mode is enabled
+      if (this.config.devMode) {
+        this.devHelper = new DevHelper(true, {
+          onShowOfferDetail: (offerCode, sessionId) => {
+            this.chat?.devShowOfferDetail(offerCode, sessionId);
+          },
+          onShowBrandList: () => {
+            this.chat?.devShowBrandList();
+          },
+          onShowCategoryGrid: () => {
+            this.chat?.devShowCategoryGrid();
+          },
+        });
+      }
 
       this.initialized = true;
     } catch (error) {

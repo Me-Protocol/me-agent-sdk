@@ -335,6 +335,39 @@ Core            → Nothing (foundation layer)
 
 ---
 
+## 📦 External Dependencies
+
+The SDK externalizes blockchain libraries to reduce bundle size:
+
+### **Why External?**
+
+- ⚡ Smaller bundle size (~100KB vs ~2MB+)
+- 🔄 Better browser caching for common libraries
+- 🛠️ Version flexibility for developers
+- 🚫 Avoids module bundling conflicts
+
+### **Required for Redemption:**
+
+```html
+<!-- Load before SDK -->
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+```
+
+### **Rollup Configuration:**
+
+```javascript
+// rollup.config.js
+external: ['ethers', '@developeruche/runtime-sdk', '@developeruche/protocol-core']
+```
+
+### **Fallback Behavior:**
+
+- ✅ Chat & browsing work without ethers.js
+- ❌ Redemption requires ethers.js loaded
+- 🔍 SDK detects missing dependencies gracefully
+
+---
+
 ## 🚀 Quick Start for New Features
 
 1. **Define types** in `src/types/`
@@ -346,4 +379,4 @@ Core            → Nothing (foundation layer)
 
 ---
 
-**Questions? Check `REFACTORING_SUMMARY.md` for detailed examples!**
+**Questions? Check the [README](./README.md) for detailed setup instructions!**

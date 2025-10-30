@@ -25,4 +25,6 @@ export interface MeAgentConfig {
   onLikeUnlike?: (offer: OfferDetail, isLiked: boolean) => void;
   /** Initial liked state for offers - map of offer IDs to liked status (optional) */
   likedOffers?: Record<string, boolean>;
+  /** Enable dev mode shortcuts (defaults to false) */
+  devMode?: boolean;
 }

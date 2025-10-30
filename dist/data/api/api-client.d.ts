@@ -5,6 +5,7 @@
 import { MeAgentConfig, EnvConfig } from "../../types";
 import { OfferAPI } from "./offer-api";
 import { BrandAPI } from "./brand-api";
+import { RedemptionAPI } from "./redemption-api";
 /**
  * Main API Client - Facade for all domain APIs
  */
@@ -15,9 +16,11 @@ export declare class APIClient {
     private _brandAPI;
     private _rewardAPI;
     private _authAPI;
+    private _redemptionAPI;
     constructor(config: MeAgentConfig, env: EnvConfig);
     get brandAPI(): BrandAPI;
     get offerAPI(): OfferAPI;
+    get redemptionAPI(): RedemptionAPI;
     getUserEmail(): string | undefined;
     getUserId(): string;
     createSession(): Promise<string>;

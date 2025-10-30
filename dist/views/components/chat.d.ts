@@ -136,4 +136,16 @@ export declare class ChatPopup {
      * Get the chat element
      */
     getElement(): HTMLDivElement;
+    /**
+     * Show offer detail (for dev mode)
+     */
+    devShowOfferDetail(offerCode: string, sessionId: string): Promise<void>;
+    /**
+     * Show brand list (for dev mode)
+     */
+    devShowBrandList(): void;
+    /**
+     * Show category grid (for dev mode)
+     */
+    devShowCategoryGrid(): void;
 }

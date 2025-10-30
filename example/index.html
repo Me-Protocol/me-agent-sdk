@@ -103,6 +103,9 @@
     </footer>
   </div>
 
+  <!-- Load required dependencies first -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  
   <!-- Load the SDK -->
   <script src="../dist/me-agent-sdk.js"></script>
 
@@ -110,13 +113,17 @@
   <script>
     window.addEventListener('DOMContentLoaded', async () => {
       try {
+        // Make ethers available globally for the SDK
+        window.ethers = window.ethers;
+        
         await MeAgent.init({
-          emailAddress: 'colourjim+chillguy@gmail.com',
+          emailAddress: 'colourjim+bosco@gmail.com',
           brandId: 'demo-brand',
           userId: 'demo-user-001',
           position: 'bottom-right',
           environment: MeAgent.Environment.DEV,
-          network: MeAgent.Network.SEPOLIA
+          network: MeAgent.Network.SEPOLIA,
+          devMode: true
         });
         console.log('MeAgent SDK initialized successfully');
         console.log('Environment:', MeAgent.Environment.DEV);

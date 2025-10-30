@@ -1,8 +1,8 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-    typeof define === 'function' && define.amd ? define(['exports'], factory) :
-    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.MeAgent = {}));
-})(this, (function (exports) { 'use strict';
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('ethers'), require('@developeruche/runtime-sdk'), require('@developeruche/protocol-core')) :
+    typeof define === 'function' && define.amd ? define(['exports', 'ethers', '@developeruche/runtime-sdk', '@developeruche/protocol-core'], factory) :
+    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.MeAgent = {}, global.ethers, global.RuntimeSDK, global.ProtocolCore));
+})(this, (function (exports, ethers, runtimeSdk, protocolCore) { 'use strict';
 
     /******************************************************************************
     Copyright (c) Microsoft Corporation.
@@ -490,24 +490,180 @@
                 return metadata.publicAddress;
             });
         }
+        /**
+         * Get Web3 provider for signing transactions
+         */
+        getProvider() {
+            return __awaiter(this, void 0, void 0, function* () {
+                if (!this.initialized) {
+                    yield this.init();
+                }
+                return this.magic.rpcProvider;
+            });
+        }
+        /**
+         * Get the Magic instance (for advanced usage)
+         */
+        getMagicInstance() {
+            return this.magic;
+        }
     }
+
+    /**
+     * Offer Types
+     * All types related to offers and products
+     */
+    /**
+     * Redemption method types
+     */
+    var RedemptionMethodType;
+    (function (RedemptionMethodType) {
+        RedemptionMethodType["FIXED_AMOUNT_OFF"] = "FIXED_AMOUNT_OFF";
+        RedemptionMethodType["FIXED_PERCENTAGE_OFF"] = "FIXED_PERCENTAGE_OFF";
+        RedemptionMethodType["VARIABLE_AMOUNT_OFF"] = "VARIABLE_AMOUNT_OFF";
+        RedemptionMethodType["VARIABLE_PERCENTAGE_OFF"] = "VARIABLE_PERCENTAGE_OFF";
+        RedemptionMethodType["FREE_SHIPPING"] = "FREE_SHIPPING";
+    })(RedemptionMethodType || (RedemptionMethodType = {}));
+
+    /**
+     * Redemption Types
+     * All types related to reward redemption and swaps
+     */
+    /**
+     * Order verifier type
+     */
+    var OrderVerifier;
+    (function (OrderVerifier) {
+        OrderVerifier["GELATO"] = "gelato";
+        OrderVerifier["RUNTIME"] = "runtime";
+    })(OrderVerifier || (OrderVerifier = {}));
+    /**
+     * Runtime task status
+     */
+    var TaskStatus;
+    (function (TaskStatus) {
+        TaskStatus["SUCCEEDED"] = "SUCCEDDED";
+        TaskStatus["PROCESSING"] = "PROCESSING";
+        TaskStatus["FAILED"] = "FAILED";
+        TaskStatus["ABANDONED"] = "ABANDONED";
+        TaskStatus["INCOMPLETE"] = "INCOMPLETE";
+        TaskStatus["PENDING"] = "PENDING";
+        TaskStatus["FULFILLED"] = "FULLFILLED";
+        TaskStatus["CANCELLED"] = "CANCELLED";
+    })(TaskStatus || (TaskStatus = {}));
+
+    /**
+     * Environment types
+     */
+    exports.Environment = void 0;
+    (function (Environment) {
+        Environment["DEV"] = "dev";
+        Environment["STAGING"] = "staging";
+        Environment["PROD"] = "prod";
+    })(exports.Environment || (exports.Environment = {}));
+    /**
+     * Supported Networks
+     */
+    exports.SupportedNetwork = void 0;
+    (function (SupportedNetwork) {
+        SupportedNetwork["SEPOLIA"] = "sepolia";
+        SupportedNetwork["HEDERA"] = "hedera";
+        SupportedNetwork["BASE"] = "base";
+        SupportedNetwork["POLYGON"] = "polygon";
+    })(exports.SupportedNetwork || (exports.SupportedNetwork = {}));
+    // Development environment
+    const DEV_CONFIG = {
+        API_URL: 'https://paas.meappbounty.com/v1/api/',
+        AGENT_BASE_URL: 'https://fastapi-proxy-580283507238.us-central1.run.app',
+        ME_API_KEY: 'hl3elmtvji75or71j4xy5e',
+        API_V1_URL: 'https://api.meappbounty.com/',
+        MAGIC_PUBLISHABLE_API_KEY: 'pk_live_FB79F672A43B8AC2',
+        RUNTIME_URL: 'https://runtime.meappbounty.com',
+        GELATO_API_KEY: 'g1UFyiAfIyq_m_M3Cn3LWIO6VQpjVTIbeCV7XLzWGb4_',
+    };
+    // Staging environment
+    const STAGING_CONFIG = {
+        API_URL: 'https://paas-staging.meappbounty.com/v1/api/',
+        AGENT_BASE_URL: 'https://fastapi-proxy-staging-580283507238.us-central1.run.app',
+        ME_API_KEY: 'staging_key',
+        API_V1_URL: 'https://api-staging.meappbounty.com/',
+        MAGIC_PUBLISHABLE_API_KEY: 'pk_live_STAGING_KEY',
+        RUNTIME_URL: 'https://runtime-staging.meappbounty.com',
+        GELATO_API_KEY: 'staging_gelato_key',
+    };
+    // Production environment
+    const PROD_CONFIG = {
+        API_URL: 'https://paas.meappbounty.com/v1/api/',
+        AGENT_BASE_URL: 'https://fastapi-proxy.meappbounty.com',
+        ME_API_KEY: 'prod_key',
+        API_V1_URL: 'https://api.meappbounty.com/',
+        MAGIC_PUBLISHABLE_API_KEY: 'pk_live_PROD_KEY',
+        RUNTIME_URL: 'https://runtime.meappbounty.com',
+        GELATO_API_KEY: 'prod_gelato_key',
+    };
+    const ENV_CONFIGS = {
+        [exports.Environment.DEV]: DEV_CONFIG,
+        [exports.Environment.STAGING]: STAGING_CONFIG,
+        [exports.Environment.PROD]: PROD_CONFIG,
+    };
+    const NETWORK_CONFIGS = {
+        [exports.SupportedNetwork.SEPOLIA]: {
+            CHAIN_ID: '11155111',
+            RPC_URL: 'https://eth-sepolia.g.alchemy.com/v2/Ytq0aV34dWOA9X6gWhl_6trwmUTb58Ip',
+            OPEN_REWARD_DIAMOND: '0xacd3379d449ad0042a12f4fa88bc183948f7f472',
+        },
+        [exports.SupportedNetwork.HEDERA]: {
+            CHAIN_ID: '296',
+            RPC_URL: 'https://testnet.hashio.io/api',
+            OPEN_REWARD_DIAMOND: '0x3b03a7980bfe38c9daa4c346ccf495eb24e16782',
+        },
+        [exports.SupportedNetwork.BASE]: {
+            CHAIN_ID: '11155111', // Using Sepolia for now
+            RPC_URL: 'https://eth-sepolia.g.alchemy.com/v2/Ytq0aV34dWOA9X6gWhl_6trwmUTb58Ip',
+            OPEN_REWARD_DIAMOND: '0xacd3379d449ad0042a12f4fa88bc183948f7f472',
+        },
+        [exports.SupportedNetwork.POLYGON]: {
+            CHAIN_ID: '11155111', // Using Sepolia for now
+            RPC_URL: 'https://eth-sepolia.g.alchemy.com/v2/Ytq0aV34dWOA9X6gWhl_6trwmUTb58Ip',
+            OPEN_REWARD_DIAMOND: '0xacd3379d449ad0042a12f4fa88bc183948f7f472',
+        },
+    };
+    /**
+     * Get environment configuration based on environment and network
+     */
+    const getEnv = (environment = exports.Environment.DEV, network = exports.SupportedNetwork.SEPOLIA) => {
+        const envConfig = ENV_CONFIGS[environment] || ENV_CONFIGS[exports.Environment.DEV];
+        const networkConfig = NETWORK_CONFIGS[network] || NETWORK_CONFIGS[exports.SupportedNetwork.SEPOLIA];
+        return Object.assign(Object.assign({}, envConfig), networkConfig);
+    };
+    // Default environment (Dev + Sepolia)
+    getEnv(exports.Environment.DEV, exports.SupportedNetwork.SEPOLIA);
 
     /**
      * Redemption Service
      * Handles the complete offer redemption flow
      */
     class RedemptionService {
-        constructor(authAPI, rewardAPI, magicConfig, openRewardDiamond) {
+        constructor(authAPI, rewardAPI, redemptionAPI, magicConfig, openRewardDiamond, chainId, rpcUrl, runtimeUrl, meApiKey, apiV1Url, gelatoApiKey, brandId) {
             this.magicClient = null;
             this.walletAddress = null;
             this.balances = [];
             this.meProtocolLoggedIn = false;
             this.currentEmail = null;
             this.meProtocolToken = null;
+            this.currentOrder = null;
             this.authAPI = authAPI;
             this.rewardAPI = rewardAPI;
+            this.redemptionAPI = redemptionAPI;
             this.magicClient = new MagicClient(magicConfig);
             this.openRewardDiamond = openRewardDiamond;
+            this.chainId = chainId;
+            this.rpcUrl = rpcUrl;
+            this.runtimeUrl = runtimeUrl;
+            this.meApiKey = meApiKey;
+            this.apiV1Url = apiV1Url;
+            this.gelatoApiKey = gelatoApiKey;
+            this.brandId = brandId;
         }
         /**
          * Get email from stored or config
@@ -547,6 +703,54 @@
         /**
          * Get wallet address (with force refresh option)
          */
+        /**
+         * Ensure user is logged in to Magic (triggers OTP if not)
+         * Also verifies that the logged-in email matches the SDK email
+         */
+        ensureMagicLogin(email) {
+            return __awaiter(this, void 0, void 0, function* () {
+                var _a;
+                if (!this.magicClient) {
+                    throw new Error("Magic is not configured");
+                }
+                try {
+                    // Check if already logged in
+                    const isLoggedIn = yield this.magicClient.isLoggedIn();
+                    if (isLoggedIn) {
+                        // Verify the logged-in email matches the SDK email
+                        try {
+                            const metadata = yield this.magicClient.getUserMetadata();
+                            const loggedInEmail = (_a = metadata.email) === null || _a === void 0 ? void 0 : _a.toLowerCase().trim();
+                            const sdkEmail = email.toLowerCase().trim();
+                            if (loggedInEmail !== sdkEmail) {
+                                console.log(`🔧 Email mismatch: Logged in as "${loggedInEmail}", but SDK expects "${sdkEmail}". Logging out...`);
+                                // Logout and re-login with the correct email
+                                yield this.magicClient.logout();
+                                yield this.magicClient.loginWithEmailOTP(email);
+                            }
+                            else {
+                                console.log(`✅ Already logged in with correct email: ${loggedInEmail}`);
+                            }
+                        }
+                        catch (error) {
+                            console.error("Error verifying logged-in email:", error);
+                            // If we can't verify, logout and re-login to be safe
+                            yield this.magicClient.logout();
+                            yield this.magicClient.loginWithEmailOTP(email);
+                        }
+                    }
+                    else {
+                        // Not logged in, trigger Magic OTP login
+                        console.log(`🔐 Not logged in. Triggering Magic OTP for: ${email}`);
+                        yield this.magicClient.loginWithEmailOTP(email);
+                    }
+                }
+                catch (error) {
+                    console.error("Error logging in to Magic:", error);
+                    throw new Error("Failed to login with Magic Link. Please try again.");
+                }
+            });
+        }
         getWalletAddress() {
             return __awaiter(this, arguments, void 0, function* (forceRefresh = false) {
                 // Use cached value unless force refresh is requested
@@ -734,6 +938,229 @@
         clearCache() {
             this.walletAddress = null;
             this.balances = [];
+        }
+        /**
+         * Execute same brand redemption transaction
+         * Used when the selected reward is from the same brand as the offer
+         */
+        executeSameBrandRedemption(rewardAddress, rewardId, amount, offerId, redemptionMethodId, variantId) {
+            return __awaiter(this, void 0, void 0, function* () {
+                let pushTransactionRef = null;
+                try {
+                    if (!this.magicClient) {
+                        throw new Error("Magic is not configured");
+                    }
+                    if (!this.meProtocolToken) {
+                        throw new Error("ME Protocol token not available. Please login first.");
+                    }
+                    // Validate amount
+                    if (!amount || amount === "undefined" || isNaN(Number(amount))) {
+                        throw new Error("Invalid amount value for transaction");
+                    }
+                    console.log("Same-brand transaction params:", { amount });
+                    // Get Magic provider and signer
+                    const provider = yield this.magicClient.getProvider();
+                    const web3Provider = new ethers.ethers.providers.Web3Provider(provider);
+                    const accounts = yield web3Provider.listAccounts();
+                    const signer = web3Provider.getSigner(accounts[0]);
+                    console.log("SIGNER", yield signer.getAddress());
+                    // Prepare transaction
+                    const rewardAmount = ethers.ethers.utils.parseEther(amount);
+                    // Call runtime SDK
+                    const result = yield runtimeSdk.same_brand_reward_redeption_magic(rewardAddress, rewardAmount, ethers.ethers.BigNumber.from(this.chainId), signer, this.runtimeUrl);
+                    const hash = result.hash;
+                    console.log("FROM", result.from);
+                    // Push transaction to runtime
+                    pushTransactionRef = yield this.redemptionAPI.pushTransaction({
+                        params: {
+                            from: result.from,
+                            data: result.data,
+                            nonce: result.nonce.toString(),
+                            r: result.r,
+                            s: result.s,
+                            v: result.v.toString(),
+                            hash: result.hash
+                        }
+                    }, this.meProtocolToken);
+                    if (!pushTransactionRef) {
+                        throw new Error("No data returned from push transaction");
+                    }
+                    // Process order
+                    const order = yield this.processOrder(pushTransactionRef.result, hash, rewardId, amount, offerId, redemptionMethodId, OrderVerifier.RUNTIME, variantId);
+                    return order;
+                }
+                catch (error) {
+                    // Refund if transaction was pushed but order processing failed
+                    if ((pushTransactionRef === null || pushTransactionRef === void 0 ? void 0 : pushTransactionRef.result) && this.meProtocolToken) {
+                        try {
+                            yield this.redemptionAPI.refundTask({ spend_data: pushTransactionRef.result }, this.meProtocolToken);
+                        }
+                        catch (refundError) {
+                            console.error("Error refunding task:", refundError);
+                        }
+                    }
+                    throw error;
+                }
+            });
+        }
+        /**
+         * Execute cross brand redemption transaction
+         * Used when the selected reward is from a different brand than the offer
+         */
+        executeCrossBrandRedemption(rewardAddress, rewardId, amount, neededAmount, brandRewardAddress, offerId, redemptionMethodId, variantId) {
+            return __awaiter(this, void 0, void 0, function* () {
+                let pushTransactionRef = null;
+                try {
+                    if (!this.magicClient) {
+                        throw new Error("Magic is not configured");
+                    }
+                    if (!this.meProtocolToken) {
+                        throw new Error("ME Protocol token not available. Please login first.");
+                    }
+                    if (!this.walletAddress) {
+                        throw new Error("Wallet address not available");
+                    }
+                    // Validate amounts
+                    if (!neededAmount || neededAmount === "undefined" || isNaN(Number(neededAmount))) {
+                        throw new Error("Invalid needed amount value for transaction");
+                    }
+                    if (!amount || amount === "undefined" || isNaN(Number(amount))) {
+                        throw new Error("Invalid amount value for transaction");
+                    }
+                    console.log("Cross-brand transaction params:", { neededAmount, amount });
+                    // Get Magic provider and signer
+                    const provider = yield this.magicClient.getProvider();
+                    const web3Provider = new ethers.ethers.providers.Web3Provider(provider);
+                    const accounts = yield web3Provider.listAccounts();
+                    const signer = web3Provider.getSigner(accounts[0]);
+                    // Prepare spend info
+                    const amountOfRewardAtHand = ethers.ethers.utils.parseEther(neededAmount);
+                    const expectedAmountOfTargetedReward = ethers.ethers.utils.parseEther(amount);
+                    const spendInfo = {
+                        rewardAtHand: rewardAddress,
+                        targettedReward: brandRewardAddress,
+                        amountOfRewardAtHand,
+                        expectedAmountOfTargetedReward,
+                    };
+                    console.log("SPEND REWARD MAGIC", rewardAddress, amountOfRewardAtHand, this.openRewardDiamond, signer, this.runtimeUrl, spendInfo);
+                    // Call runtime SDK
+                    const result = yield runtimeSdk.spend_reward_magic(rewardAddress, amountOfRewardAtHand, this.openRewardDiamond, ethers.ethers.BigNumber.from(this.chainId), signer, this.runtimeUrl);
+                    // Push transaction to runtime
+                    pushTransactionRef = yield this.redemptionAPI.pushTransaction({
+                        params: {
+                            from: result.from,
+                            data: result.data,
+                            nonce: result.nonce.toString(),
+                            r: result.r,
+                            s: result.s,
+                            v: result.v.toString(),
+                            hash: result.hash
+                        }
+                    }, this.meProtocolToken);
+                    if (!pushTransactionRef) {
+                        throw new Error("No data returned from push transaction");
+                    }
+                    // Get vault permit
+                    const vaultParams = {
+                        owner: pushTransactionRef.owner,
+                        count: ethers.ethers.BigNumber.from(pushTransactionRef.count),
+                        globalHash: pushTransactionRef.globalHash,
+                        prefixedHash: pushTransactionRef.prefixedHash,
+                        r: pushTransactionRef.sig.r,
+                        s: pushTransactionRef.sig.s,
+                        v: pushTransactionRef.sig.v,
+                        reward: pushTransactionRef.reward,
+                        spender: pushTransactionRef.spender,
+                        value: ethers.ethers.BigNumber.from(pushTransactionRef.value),
+                    };
+                    console.log("DATUM", spendInfo, vaultParams, this.openRewardDiamond, this.rpcUrl);
+                    const datum = yield protocolCore.usersServiceWithPermit.spendRewardsOnAnotherBrandWithVaultPermit(spendInfo, vaultParams, this.openRewardDiamond, this.rpcUrl);
+                    if (!(datum === null || datum === void 0 ? void 0 : datum.data)) {
+                        throw new Error("No data returned from vault permit");
+                    }
+                    console.log("RELAY", {
+                        from: this.walletAddress,
+                        data: datum.data,
+                        to: this.openRewardDiamond,
+                    }, signer, this.meApiKey, this.apiV1Url, this.gelatoApiKey, this.rpcUrl, this.chainId, this.openRewardDiamond, this.brandId);
+                    // Relay via Gelato
+                    const { taskId } = yield protocolCore.relay({
+                        from: this.walletAddress,
+                        data: datum.data,
+                        to: this.openRewardDiamond,
+                    }, signer, this.meApiKey, this.apiV1Url, this.gelatoApiKey, this.rpcUrl, this.chainId, this.openRewardDiamond, this.brandId, false, "");
+                    // Process order
+                    const order = yield this.processOrder(pushTransactionRef.result, taskId, rewardId, amount, offerId, redemptionMethodId, OrderVerifier.GELATO, variantId);
+                    return order;
+                }
+                catch (error) {
+                    // Refund if transaction was pushed but order processing failed
+                    if ((pushTransactionRef === null || pushTransactionRef === void 0 ? void 0 : pushTransactionRef.result) && this.meProtocolToken) {
+                        try {
+                            yield this.redemptionAPI.refundTask({ spend_data: pushTransactionRef.result }, this.meProtocolToken);
+                        }
+                        catch (refundError) {
+                            console.error("Error refunding task:", refundError);
+                        }
+                    }
+                    throw error;
+                }
+            });
+        }
+        /**
+         * Process order after successful transaction
+         */
+        processOrder(spendData, taskId, rewardId, amount, offerId, redemptionMethodId, verifier, variantId) {
+            return __awaiter(this, void 0, void 0, function* () {
+                if (!this.meProtocolToken) {
+                    throw new Error("ME Protocol token not available");
+                }
+                const payload = {
+                    task_id: taskId,
+                    reward_id: rewardId,
+                    target_reward_id: rewardId, // Same for now, adjust if needed
+                    verifier,
+                    spend_data: spendData,
+                    offer_id: offerId,
+                    amount,
+                    redemption_method_id: redemptionMethodId,
+                    offer_variants: variantId ? [variantId] : [],
+                };
+                const response = yield this.redemptionAPI.processOrder(payload, this.meProtocolToken);
+                this.currentOrder = response.order;
+                return response.order;
+            });
+        }
+        /**
+         * Get checkout URL for the redeemed offer
+         */
+        getCheckoutUrl(brandId, productVariantIdOnBrandSite) {
+            return __awaiter(this, void 0, void 0, function* () {
+                if (!this.currentOrder) {
+                    throw new Error("No order available. Please redeem an offer first.");
+                }
+                if (!this.meProtocolToken) {
+                    throw new Error("ME Protocol token not available");
+                }
+                const payload = {
+                    brandId,
+                    discountCode: this.currentOrder.coupon.code,
+                    productVariantIdOnBrandSite,
+                };
+                return yield this.redemptionAPI.getCheckoutUrl(payload, this.meProtocolToken);
+            });
+        }
+        /**
+         * Get current order
+         */
+        getCurrentOrder() {
+            return this.currentOrder;
+        }
+        /**
+         * Clear current order
+         */
+        clearCurrentOrder() {
+            this.currentOrder = null;
         }
         /**
          * Logout - REMOVED: Users should stay logged in
@@ -1059,6 +1486,72 @@
     }
 
     /**
+     * Redemption API
+     * Handles transaction, order processing, and checkout endpoints
+     */
+    class RedemptionAPI extends BaseAPI {
+        /**
+         * Push signed transaction to runtime
+         */
+        pushTransaction(payload, token) {
+            return __awaiter(this, void 0, void 0, function* () {
+                try {
+                    const result = yield this.post(`${this.env.API_URL}runtime/push-transaction`, payload, { "x-access-token": token });
+                    return result.data;
+                }
+                catch (error) {
+                    console.error("Error pushing transaction:", error);
+                    throw error;
+                }
+            });
+        }
+        /**
+         * Process order after successful transaction
+         */
+        processOrder(payload, token) {
+            return __awaiter(this, void 0, void 0, function* () {
+                try {
+                    const result = yield this.post(`${this.env.API_URL}orders/sdk/process-order`, payload, { "x-access-token": token });
+                    return result.data;
+                }
+                catch (error) {
+                    console.error("Error processing order:", error);
+                    throw error;
+                }
+            });
+        }
+        /**
+         * Generate Shopify checkout URL with discount code
+         */
+        getCheckoutUrl(payload, token) {
+            return __awaiter(this, void 0, void 0, function* () {
+                try {
+                    const result = yield this.post(`${this.env.API_V1_URL}order/shopify/checkout-url`, payload, { Authorization: `Bearer ${token}` });
+                    return result.data.url;
+                }
+                catch (error) {
+                    console.error("Error getting checkout URL:", error);
+                    throw error;
+                }
+            });
+        }
+        /**
+         * Refund task if transaction fails
+         */
+        refundTask(payload, token) {
+            return __awaiter(this, void 0, void 0, function* () {
+                try {
+                    yield this.post(`${this.env.API_URL}runtime/refund-task`, payload, { "x-access-token": token });
+                }
+                catch (error) {
+                    console.error("Error refunding task:", error);
+                    throw error;
+                }
+            });
+        }
+    }
+
+    /**
      * Unified API Client
      * Combines all domain-specific API clients into a single facade
      */
@@ -1074,6 +1567,7 @@
             this._brandAPI = new BrandAPI(config, env);
             this._rewardAPI = new RewardAPI(config, env);
             this._authAPI = new AuthAPI(config, env);
+            this._redemptionAPI = new RedemptionAPI(config, env);
         }
         // ===== API Access (for services) =====
         get brandAPI() {
@@ -1081,6 +1575,9 @@
         }
         get offerAPI() {
             return this._offerAPI;
+        }
+        get redemptionAPI() {
+            return this._redemptionAPI;
         }
         // ===== User Info =====
         getUserEmail() {
@@ -1736,22 +2233,6 @@
             });
         }
     }
-
-    /**
-     * Offer Types
-     * All types related to offers and products
-     */
-    /**
-     * Redemption method types
-     */
-    var RedemptionMethodType;
-    (function (RedemptionMethodType) {
-        RedemptionMethodType["FIXED_AMOUNT_OFF"] = "FIXED_AMOUNT_OFF";
-        RedemptionMethodType["FIXED_PERCENTAGE_OFF"] = "FIXED_PERCENTAGE_OFF";
-        RedemptionMethodType["VARIABLE_AMOUNT_OFF"] = "VARIABLE_AMOUNT_OFF";
-        RedemptionMethodType["VARIABLE_PERCENTAGE_OFF"] = "VARIABLE_PERCENTAGE_OFF";
-        RedemptionMethodType["FREE_SHIPPING"] = "FREE_SHIPPING";
-    })(RedemptionMethodType || (RedemptionMethodType = {}));
 
     /**
      * Discount Utility
@@ -2443,14 +2924,199 @@
     }
 
     /**
+     * Redemption View
+     * Renders the redemption flow UI (Review, Processing, Complete steps)
+     */
+    class RedemptionView {
+        /**
+         * Render review step (show offer, selected reward, amount needed)
+         */
+        renderReviewStep(offerDetail, selectedReward, swapAmount, selectedVariant) {
+            const variantName = selectedVariant ? selectedVariant.variant.name : "Default";
+            const originalPrice = selectedVariant
+                ? parseFloat(selectedVariant.variant.price)
+                : parseFloat(offerDetail.originalPrice);
+            const finalPrice = getDiscountedPrice(originalPrice, offerDetail.redemptionMethod);
+            const isAffordable = selectedReward.balance >= swapAmount.amountNeeded;
+            return `
+      <div class="me-agent-redemption-container">
+        <div class="me-agent-step-indicator">
+          <div class="me-agent-step active">Review</div>
+          <div class="me-agent-step-line"></div>
+          <div class="me-agent-step">Processing</div>
+          <div class="me-agent-step-line"></div>
+          <div class="me-agent-step">Complete</div>
+        </div>
+
+        <div class="me-agent-redemption-content">
+          <div class="me-agent-offer-summary-card">
+            <img src="${offerDetail.coverImage}" alt="${offerDetail.name}" class="me-agent-offer-summary-image" />
+            <div class="me-agent-offer-summary-details">
+              <h3 class="me-agent-offer-summary-title">${offerDetail.name}${variantName !== "Default" ? ` - ${variantName}` : ""}</h3>
+              <div class="me-agent-offer-summary-price">
+                <span class="me-agent-price-final">$${typeof finalPrice === "number" ? finalPrice.toFixed(2) : finalPrice}</span>
+                ${typeof finalPrice === "number" ? `<span class="me-agent-price-original">$${originalPrice.toFixed(2)}</span>` : ""}
+              </div>
+            </div>
+            <div class="me-agent-offer-summary-discount">
+              ${Math.round(parseFloat(offerDetail.discountPercentage))}% OFF
+            </div>
+          </div>
+
+          <div class="me-agent-reward-selection">
+            <label class="me-agent-section-label">Pay With</label>
+            <div class="me-agent-selected-reward-card">
+              <img src="${selectedReward.reward.image}" alt="${selectedReward.reward.name}" class="me-agent-reward-icon" />
+              <div class="me-agent-reward-info">
+                <div class="me-agent-reward-name">${selectedReward.reward.name}</div>
+                <div class="me-agent-reward-balance">Balance: ${selectedReward.balance.toFixed(2)} ${selectedReward.reward.symbol}</div>
+              </div>
+              <div class="me-agent-reward-amount">
+                <div class="me-agent-amount-needed">${swapAmount.amountNeeded.toFixed(2)} ${selectedReward.reward.symbol}</div>
+              </div>
+            </div>
+            ${!isAffordable ? `
+              <div class="me-agent-error-message">
+                Insufficient balance. You need ${swapAmount.amountNeeded.toFixed(2)} ${selectedReward.reward.symbol} but only have ${selectedReward.balance.toFixed(2)}.
+              </div>
+            ` : ""}
+            <button class="me-agent-change-reward-btn">Use another reward</button>
+          </div>
+
+          <button class="me-agent-redeem-btn" ${!isAffordable ? "disabled" : ""}>
+            Redeem Offer
+          </button>
+        </div>
+      </div>
+    `;
+        }
+        /**
+         * Render processing step (show loading during transaction)
+         */
+        renderProcessingStep(offerDetail) {
+            return `
+      <div class="me-agent-redemption-container">
+        <div class="me-agent-step-indicator">
+          <div class="me-agent-step completed">Review</div>
+          <div class="me-agent-step-line"></div>
+          <div class="me-agent-step active">Processing</div>
+          <div class="me-agent-step-line"></div>
+          <div class="me-agent-step">Complete</div>
+        </div>
+
+        <div class="me-agent-redemption-content">
+          <div class="me-agent-processing-animation">
+            <div class="me-agent-spinner"></div>
+            <h3>Processing your redemption...</h3>
+            <p>Please wait while we complete your transaction. This may take a few moments.</p>
+          </div>
+        </div>
+      </div>
+    `;
+        }
+        /**
+         * Render complete step (show success message and checkout button)
+         */
+        renderCompleteStep(order, offerDetail) {
+            return `
+      <div class="me-agent-redemption-container">
+        <div class="me-agent-step-indicator">
+          <div class="me-agent-step completed">Review</div>
+          <div class="me-agent-step-line"></div>
+          <div class="me-agent-step completed">Processing</div>
+          <div class="me-agent-step-line"></div>
+          <div class="me-agent-step active">Complete</div>
+        </div>
+
+        <div class="me-agent-redemption-content">
+          <div class="me-agent-success-animation">
+            <div class="me-agent-success-icon">✓</div>
+            <h3>Redemption Successful!</h3>
+            <p>Thank you for redeeming. Your redemption details have been sent to your email.</p>
+          </div>
+
+          <div class="me-agent-coupon-details-card">
+            <div class="me-agent-coupon-label">Your Discount Code</div>
+            <div class="me-agent-coupon-code">
+              <span class="me-agent-coupon-code-text">${order.coupon.code}</span>
+              <button class="me-agent-copy-coupon-btn" data-code="${order.coupon.code}">Copy</button>
+            </div>
+            <div class="me-agent-coupon-discount">
+              ${order.coupon.discountValue || "Discount applied"}
+            </div>
+          </div>
+
+          <button class="me-agent-use-coupon-btn" data-order-id="${order.id}">
+            Use Coupon
+          </button>
+        </div>
+      </div>
+    `;
+        }
+        /**
+         * Render error state
+         */
+        renderError(error) {
+            return `
+      <div class="me-agent-redemption-container">
+        <div class="me-agent-error-state">
+          <div class="me-agent-error-icon">✕</div>
+          <h3>Redemption Failed</h3>
+          <p>${error}</p>
+          <button class="me-agent-try-again-btn">Try Again</button>
+        </div>
+      </div>
+    `;
+        }
+        /**
+         * Render loading state (when fetching data)
+         */
+        renderLoading() {
+            return `
+      <div class="me-agent-redemption-container">
+        <div class="me-agent-loading-state">
+          <div class="me-agent-spinner"></div>
+          <p>Loading redemption details...</p>
+        </div>
+      </div>
+    `;
+        }
+        /**
+         * Render reward selection list (for "Use another reward" modal)
+         */
+        renderRewardList(rewards, currentRewardId) {
+            return `
+      <div class="me-agent-reward-list">
+        <h3 class="me-agent-reward-list-title">Select a reward</h3>
+        <div class="me-agent-reward-list-items">
+          ${rewards
+            .map((reward) => `
+            <div class="me-agent-reward-list-item ${reward.reward.id === currentRewardId ? "selected" : ""}" data-reward-id="${reward.reward.id}">
+              <img src="${reward.reward.image}" alt="${reward.reward.name}" class="me-agent-reward-list-icon" />
+              <div class="me-agent-reward-list-info">
+                <div class="me-agent-reward-list-name">${reward.reward.name}</div>
+                <div class="me-agent-reward-list-balance">Balance: ${reward.balance.toFixed(2)} ${reward.reward.symbol}</div>
+              </div>
+              <div class="me-agent-reward-list-check">✓</div>
+            </div>
+          `)
+            .join("")}
+        </div>
+      </div>
+    `;
+        }
+    }
+
+    /**
      * Detail Panel Controller
      * Orchestrates the detail panel and routes between different views
      */
     class DetailPanelController {
-        constructor(config, offerService, brandService, onClose) {
+        constructor(config, offerService, brandService, redemptionService, onClose) {
             this.config = config;
             this.offerService = offerService;
             this.brandService = brandService;
+            this.redemptionService = redemptionService;
             this.onClose = onClose;
             this.isVisible = false;
             this.currentView = null;
@@ -2462,12 +3128,17 @@
             this.selectedVariant = null;
             this.quantity = 1;
             this.currentBrandsWithOffers = [];
+            // Redemption state
+            this.userBalances = [];
+            this.selectedReward = null;
+            this.swapAmount = null;
             // Initialize views
             this.offerGridView = new OfferGridView();
             this.offerDetailView = new OfferDetailView();
             this.brandListView = new BrandListView();
             this.brandOffersView = new BrandOffersView();
             this.categoryGridView = new CategoryGridView();
+            this.redemptionView = new RedemptionView();
             // Create DOM elements
             this.wrapper = document.createElement("div");
             this.wrapper.className = "me-agent-detail-panel-wrapper";
@@ -2914,9 +3585,16 @@
          * Attach action button listeners (like, share, add to cart)
          */
         attachActionListeners() {
+            const redeemBtn = this.content.querySelector('[data-action="redeem"]');
             const likeBtn = this.content.querySelector('[data-action="like"]');
             const shareBtn = this.content.querySelector('[data-action="share"]');
             const cartBtn = this.content.querySelector('[data-action="add-to-cart"]');
+            // Redeem button
+            redeemBtn === null || redeemBtn === void 0 ? void 0 : redeemBtn.addEventListener("click", () => {
+                if (this.currentOfferDetail) {
+                    this.handleRedemption();
+                }
+            });
             likeBtn === null || likeBtn === void 0 ? void 0 : likeBtn.addEventListener("click", () => {
                 if (this.currentOfferDetail && this.config.onLikeUnlike) {
                     const isLiked = likeBtn.getAttribute("data-liked") === "true";
@@ -2936,6 +3614,335 @@
                 if (this.currentOfferDetail && this.config.onAddToCart) {
                     this.config.onAddToCart(this.currentOfferDetail);
                 }
+            });
+        }
+        /**
+         * Handle redemption button click
+         */
+        handleRedemption() {
+            return __awaiter(this, void 0, void 0, function* () {
+                if (!this.currentOfferDetail)
+                    return;
+                try {
+                    // Show loading
+                    this.content.innerHTML = this.redemptionView.renderLoading();
+                    // Step 1: Check if email is available
+                    const email = this.redemptionService.getEmail();
+                    if (!email) {
+                        throw new Error("Email is required for redemption. Please configure the SDK with an email address.");
+                    }
+                    // Step 2: Ensure Magic is logged in (will trigger OTP if needed)
+                    yield this.redemptionService.ensureMagicLogin(email);
+                    // Step 3: Login to ME Protocol
+                    yield this.redemptionService.loginToMEProtocol();
+                    // Step 4: Fetch user's reward balances
+                    this.userBalances = yield this.redemptionService.fetchBalances();
+                    if (this.userBalances.length === 0) {
+                        this.content.innerHTML = `
+          <div class="me-agent-error-message">
+            <p>You don't have any reward tokens yet.</p>
+            <button class="me-agent-try-again-btn" data-action="back">Go Back</button>
+          </div>
+        `;
+                        this.attachBackButtonListener();
+                        return;
+                    }
+                    // Step 3: Select default reward (offer's reward if available, else first reward)
+                    this.selectedReward = this.findDefaultReward();
+                    // Step 4: Show redemption review (with loading state for amount)
+                    this.swapAmount = { amount: 0, amountNeeded: 0, checkAffordability: false }; // Placeholder
+                    this.showRedemptionReview();
+                    // Step 5: Calculate swap amount in background and update UI
+                    yield this.calculateAndUpdateSwapAmount();
+                }
+                catch (error) {
+                    console.error("Redemption error:", error);
+                    this.content.innerHTML = this.redemptionView.renderError(error instanceof Error ? error.message : "Failed to start redemption");
+                    this.attachRedemptionRetryListener();
+                }
+            });
+        }
+        /**
+         * Find default reward to use for redemption
+         */
+        findDefaultReward() {
+            if (!this.currentOfferDetail)
+                throw new Error("No offer selected");
+            // Try to find the offer's reward
+            const offerReward = this.userBalances.find((r) => r.reward.id === this.currentOfferDetail.reward.id);
+            if (offerReward)
+                return offerReward;
+            // Otherwise use first reward
+            return this.userBalances[0];
+        }
+        /**
+         * Calculate swap amount needed for redemption
+         */
+        calculateSwapAmount() {
+            return __awaiter(this, void 0, void 0, function* () {
+                var _a;
+                if (!this.currentOfferDetail || !this.selectedReward)
+                    return;
+                const variant = this.selectedVariant || ((_a = this.currentOfferDetail.offerVariants) === null || _a === void 0 ? void 0 : _a[0]);
+                const variantId = variant === null || variant === void 0 ? void 0 : variant.id;
+                this.swapAmount = yield this.redemptionService.calculateSwapAmount(this.selectedReward.reward.contractAddress, this.currentOfferDetail, variantId);
+            });
+        }
+        /**
+         * Calculate swap amount and update the UI with result or error
+         */
+        calculateAndUpdateSwapAmount() {
+            return __awaiter(this, void 0, void 0, function* () {
+                if (!this.currentOfferDetail || !this.selectedReward)
+                    return;
+                const amountElement = this.content.querySelector('.me-agent-amount-needed');
+                const redeemButton = this.content.querySelector('.me-agent-redeem-btn');
+                if (!amountElement)
+                    return;
+                try {
+                    // Show loading
+                    amountElement.innerHTML = `
+        <span style="display: flex; align-items: center; gap: 8px;">
+          <span style="animation: spin 1s linear infinite;">⏳</span>
+          Loading...
+        </span>
+      `;
+                    // Calculate amount
+                    yield this.calculateSwapAmount();
+                    // Check if view was changed during calculation
+                    if (!this.swapAmount || this.content.querySelector('.me-agent-redemption-container') === null) {
+                        return;
+                    }
+                    // Update with actual amount
+                    amountElement.textContent = `${this.swapAmount.amountNeeded.toFixed(2)} ${this.selectedReward.reward.symbol}`;
+                    amountElement.style.color = '';
+                    // Enable/disable button based on affordability
+                    if (redeemButton) {
+                        const isAffordable = this.selectedReward.balance >= this.swapAmount.amountNeeded;
+                        redeemButton.disabled = !isAffordable;
+                        // Show insufficient balance message if needed
+                        if (!isAffordable) {
+                            const errorMsg = this.content.querySelector('.me-agent-error-message');
+                            if (!errorMsg) {
+                                const rewardSelection = this.content.querySelector('.me-agent-reward-selection');
+                                if (rewardSelection) {
+                                    const errorDiv = document.createElement('div');
+                                    errorDiv.className = 'me-agent-error-message';
+                                    errorDiv.innerHTML = `
+                <p>Insufficient balance. You need ${this.swapAmount.amountNeeded.toFixed(2)} ${this.selectedReward.reward.symbol} but only have ${this.selectedReward.balance.toFixed(2)}.</p>
+              `;
+                                    rewardSelection.appendChild(errorDiv);
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (error) {
+                    console.error("Error calculating swap amount:", error);
+                    // Show error in red
+                    amountElement.innerHTML = `<span style="color: #ef4444;">Failed to fetch needed amount</span>`;
+                    // Disable redeem button
+                    if (redeemButton) {
+                        redeemButton.disabled = true;
+                    }
+                }
+            });
+        }
+        /**
+         * Show redemption review step
+         */
+        showRedemptionReview() {
+            var _a;
+            if (!this.currentOfferDetail || !this.selectedReward || !this.swapAmount)
+                return;
+            const variant = this.selectedVariant || ((_a = this.currentOfferDetail.offerVariants) === null || _a === void 0 ? void 0 : _a[0]);
+            this.viewStack.push({
+                type: "redemption-review",
+                title: "Review Redemption",
+                data: {
+                    offer: this.currentOfferDetail,
+                    reward: this.selectedReward,
+                    swapAmount: this.swapAmount,
+                    variant,
+                },
+            });
+            this.content.innerHTML = this.redemptionView.renderReviewStep(this.currentOfferDetail, this.selectedReward, this.swapAmount, variant);
+            this.updateHeader("Review Redemption");
+            this.attachRedemptionReviewListeners();
+        }
+        /**
+         * Attach listeners for redemption review step
+         */
+        attachRedemptionReviewListeners() {
+            // Change reward button
+            const changeRewardBtn = this.content.querySelector(".me-agent-change-reward-btn");
+            changeRewardBtn === null || changeRewardBtn === void 0 ? void 0 : changeRewardBtn.addEventListener("click", () => {
+                this.showRewardSelectionList();
+            });
+            // Redeem button
+            const redeemBtn = this.content.querySelector(".me-agent-redeem-btn");
+            redeemBtn === null || redeemBtn === void 0 ? void 0 : redeemBtn.addEventListener("click", () => __awaiter(this, void 0, void 0, function* () {
+                yield this.executeRedemption();
+            }));
+        }
+        /**
+         * Show list of available rewards for selection
+         */
+        showRewardSelectionList() {
+            if (!this.userBalances.length)
+                return;
+            const listHTML = `
+      <div class="me-agent-reward-list">
+        <h3 class="me-agent-reward-list-title">Select a reward</h3>
+        <div class="me-agent-reward-list-items">
+          ${this.userBalances
+            .map((reward) => {
+            var _a;
+            return `
+            <div class="me-agent-reward-list-item ${reward.reward.id === ((_a = this.selectedReward) === null || _a === void 0 ? void 0 : _a.reward.id) ? "selected" : ""}" 
+                 data-reward-id="${reward.reward.id}">
+              <img src="${reward.reward.image}" alt="${reward.reward.name}" class="me-agent-reward-list-icon" />
+              <div class="me-agent-reward-list-info">
+                <p class="me-agent-reward-list-name">${reward.reward.name}</p>
+                <p class="me-agent-reward-list-balance">Balance: ${reward.balance.toFixed(2)} ${reward.reward.symbol}</p>
+              </div>
+              <span class="me-agent-reward-list-check">✓</span>
+            </div>
+          `;
+        })
+            .join("")}
+        </div>
+      </div>
+    `;
+            // Insert before redeem button
+            const redeemBtn = this.content.querySelector(".me-agent-redeem-btn");
+            if (redeemBtn && redeemBtn.parentElement) {
+                const tempDiv = document.createElement("div");
+                tempDiv.innerHTML = listHTML;
+                redeemBtn.parentElement.insertBefore(tempDiv.firstElementChild, redeemBtn);
+            }
+            // Attach listeners
+            const rewardItems = this.content.querySelectorAll(".me-agent-reward-list-item");
+            rewardItems.forEach((item) => {
+                item.addEventListener("click", () => __awaiter(this, void 0, void 0, function* () {
+                    const rewardId = item.getAttribute("data-reward-id");
+                    if (rewardId) {
+                        yield this.selectReward(rewardId);
+                    }
+                }));
+            });
+        }
+        /**
+         * Select a different reward
+         */
+        selectReward(rewardId) {
+            return __awaiter(this, void 0, void 0, function* () {
+                const reward = this.userBalances.find((r) => r.reward.id === rewardId);
+                if (!reward)
+                    return;
+                this.selectedReward = reward;
+                this.swapAmount = { amount: 0, amountNeeded: 0, checkAffordability: false }; // Reset to loading state
+                this.showRedemptionReview();
+                yield this.calculateAndUpdateSwapAmount();
+            });
+        }
+        /**
+         * Execute the redemption transaction
+         */
+        executeRedemption() {
+            return __awaiter(this, void 0, void 0, function* () {
+                var _a;
+                if (!this.currentOfferDetail || !this.selectedReward || !this.swapAmount)
+                    return;
+                try {
+                    // Show processing step
+                    this.content.innerHTML = this.redemptionView.renderProcessingStep(this.currentOfferDetail);
+                    this.updateHeader("Processing");
+                    const variant = this.selectedVariant || ((_a = this.currentOfferDetail.offerVariants) === null || _a === void 0 ? void 0 : _a[0]);
+                    const variantId = variant === null || variant === void 0 ? void 0 : variant.id;
+                    // Determine if same-brand or cross-brand redemption
+                    const isSameBrand = this.selectedReward.reward.contractAddress === this.currentOfferDetail.reward.contractAddress;
+                    let order;
+                    if (isSameBrand) {
+                        // Same brand redemption
+                        order = yield this.redemptionService.executeSameBrandRedemption(this.selectedReward.reward.contractAddress, this.selectedReward.reward.id, this.swapAmount.amount.toString(), this.currentOfferDetail.id, this.currentOfferDetail.redemptionMethod.id, variantId);
+                    }
+                    else {
+                        // Cross brand redemption
+                        order = yield this.redemptionService.executeCrossBrandRedemption(this.selectedReward.reward.contractAddress, this.selectedReward.reward.id, this.swapAmount.amount.toString(), this.swapAmount.amountNeeded.toString(), this.currentOfferDetail.reward.contractAddress, this.currentOfferDetail.id, this.currentOfferDetail.redemptionMethod.id, variantId);
+                    }
+                    // Show complete step
+                    this.showRedemptionComplete(order);
+                }
+                catch (error) {
+                    console.error("Redemption transaction error:", error);
+                    this.content.innerHTML = this.redemptionView.renderError(error instanceof Error ? error.message : "Redemption failed. Please try again.");
+                    this.updateHeader("Error");
+                    this.attachRedemptionRetryListener();
+                }
+            });
+        }
+        /**
+         * Show redemption complete step
+         */
+        showRedemptionComplete(order) {
+            if (!this.currentOfferDetail)
+                return;
+            this.content.innerHTML = this.redemptionView.renderCompleteStep(order, this.currentOfferDetail);
+            this.updateHeader("Complete");
+            this.attachRedemptionCompleteListeners(order);
+        }
+        /**
+         * Attach listeners for redemption complete step
+         */
+        attachRedemptionCompleteListeners(order) {
+            // Copy coupon button
+            const copyBtn = this.content.querySelector('[data-action="copy-coupon"]');
+            copyBtn === null || copyBtn === void 0 ? void 0 : copyBtn.addEventListener("click", () => {
+                const couponCode = copyBtn.getAttribute("data-coupon-code");
+                if (couponCode) {
+                    navigator.clipboard.writeText(couponCode);
+                    copyBtn.textContent = "Copied!";
+                    setTimeout(() => {
+                        copyBtn.textContent = "Copy";
+                    }, 2000);
+                }
+            });
+            // Use coupon button
+            const useCouponBtn = this.content.querySelector('[data-action="use-coupon"]');
+            useCouponBtn === null || useCouponBtn === void 0 ? void 0 : useCouponBtn.addEventListener("click", () => __awaiter(this, void 0, void 0, function* () {
+                var _a, _b;
+                try {
+                    if (!this.currentOfferDetail)
+                        return;
+                    const variant = this.selectedVariant || ((_a = this.currentOfferDetail.offerVariants) === null || _a === void 0 ? void 0 : _a[0]);
+                    const checkoutUrl = yield this.redemptionService.getCheckoutUrl(this.currentOfferDetail.brand.id, ((_b = variant === null || variant === void 0 ? void 0 : variant.variant) === null || _b === void 0 ? void 0 : _b.id) || "" // Use variant ID as the product variant ID
+                    );
+                    // Open checkout in new tab
+                    window.open(checkoutUrl, "_blank");
+                }
+                catch (error) {
+                    console.error("Error getting checkout URL:", error);
+                    alert("Failed to generate checkout URL. Please use the coupon code manually.");
+                }
+            }));
+        }
+        /**
+         * Attach retry listener for redemption errors
+         */
+        attachRedemptionRetryListener() {
+            const retryBtn = this.content.querySelector('[data-action="retry-redemption"]');
+            retryBtn === null || retryBtn === void 0 ? void 0 : retryBtn.addEventListener("click", () => {
+                this.handleRedemption();
+            });
+        }
+        /**
+         * Attach back button listener
+         */
+        attachBackButtonListener() {
+            const backBtn = this.content.querySelector('[data-action="back"]');
+            backBtn === null || backBtn === void 0 ? void 0 : backBtn.addEventListener("click", () => {
+                this.goBack();
             });
         }
         /**
@@ -3139,7 +4146,10 @@
             this.offerService = new OfferService(apiClient.offerAPI);
             this.brandService = new BrandService(apiClient.brandAPI, apiClient.offerAPI);
             // Initialize detail panel controller
-            this.detailPanelController = new DetailPanelController(config, this.offerService, this.brandService, () => this.hideDetailPanel());
+            if (!this.redemptionService) {
+                throw new Error("RedemptionService is required for DetailPanelController");
+            }
+            this.detailPanelController = new DetailPanelController(config, this.offerService, this.brandService, this.redemptionService, () => this.hideDetailPanel());
             this.element = this.create();
             this.messagesContainer = this.element.querySelector(".me-agent-messages");
             this.inputElement = this.element.querySelector(".me-agent-input");
@@ -3624,6 +4634,40 @@
          */
         getElement() {
             return this.element;
+        }
+        // ============================================
+        // Dev Mode Helper Methods
+        // ============================================
+        /**
+         * Show offer detail (for dev mode)
+         */
+        devShowOfferDetail(offerCode, sessionId) {
+            return __awaiter(this, void 0, void 0, function* () {
+                // Maximize if not already
+                if (!this.isMaximized) {
+                    this.toggleMaximize();
+                    yield new Promise((resolve) => setTimeout(resolve, 300));
+                }
+                // Show detail panel
+                this.element.classList.add("has-detail-panel");
+                yield this.detailPanelController.showOfferDetail(offerCode, sessionId);
+                // Show chat
+                this.show();
+            });
+        }
+        /**
+         * Show brand list (for dev mode)
+         */
+        devShowBrandList() {
+            // For now, we'll need sample data or fetch from API
+            console.warn("Dev: Brand list requires data - use AI chat to trigger");
+        }
+        /**
+         * Show category grid (for dev mode)
+         */
+        devShowCategoryGrid() {
+            // For now, we'll need sample data or fetch from API
+            console.warn("Dev: Category grid requires data - use AI chat to trigger");
         }
     }
 
@@ -5941,6 +6985,611 @@
       align-items: flex-start;
     }
   }
+
+  /* ===== Redemption Styles ===== */
+  .me-agent-redemption-container {
+    padding: 24px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .me-agent-step-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+  }
+
+  .me-agent-step {
+    flex: 1;
+    text-align: center;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #666;
+    background: #F5F5F5;
+    transition: all 0.3s ease;
+  }
+
+  .me-agent-step.active {
+    background: #0F0F0F;
+    color: white;
+  }
+
+  .me-agent-step.completed {
+    background: #4CAF50;
+    color: white;
+  }
+
+  .me-agent-step-line {
+    flex: 0.5;
+    height: 2px;
+    background: #E5E5E5;
+    margin: 0 8px;
+  }
+
+  .me-agent-redemption-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .me-agent-offer-summary-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: white;
+    border: 1px solid #E5E5E5;
+    border-radius: 12px;
+    position: relative;
+  }
+
+  .me-agent-offer-summary-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+
+  .me-agent-offer-summary-details {
+    flex: 1;
+  }
+
+  .me-agent-offer-summary-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    color: #0F0F0F;
+  }
+
+  .me-agent-offer-summary-price {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .me-agent-price-final {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0F0F0F;
+  }
+
+  .me-agent-price-original {
+    font-size: 16px;
+    color: #999;
+    text-decoration: line-through;
+  }
+
+  .me-agent-offer-summary-discount {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: #FF4444;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .me-agent-reward-selection {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .me-agent-selected-reward-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: white;
+    border: 1px solid #E5E5E5;
+    border-radius: 12px;
+  }
+
+  .me-agent-reward-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .me-agent-reward-info {
+    flex: 1;
+  }
+
+  .me-agent-reward-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #0F0F0F;
+    margin-bottom: 4px;
+  }
+
+  .me-agent-reward-balance {
+    font-size: 14px;
+    color: #666;
+  }
+
+  .me-agent-reward-amount {
+    text-align: right;
+  }
+
+  .me-agent-amount-needed {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0F0F0F;
+  }
+
+  .me-agent-change-reward-btn {
+    width: fit-content;
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid #E5E5E5;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #0F0F0F;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .me-agent-change-reward-btn:hover {
+    background: #F5F5F5;
+  }
+
+  .me-agent-redeem-btn {
+    width: 100%;
+    padding: 16px;
+    background: #0F0F0F;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .me-agent-redeem-btn:hover:not(:disabled) {
+    background: #333;
+  }
+
+  .me-agent-redeem-btn:disabled {
+    background: #CCC;
+    cursor: not-allowed;
+  }
+
+  .me-agent-processing-animation {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    text-align: center;
+  }
+
+  .me-agent-processing-animation h3 {
+    margin: 24px 0 8px 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #0F0F0F;
+  }
+
+  .me-agent-processing-animation p {
+    margin: 0;
+    font-size: 14px;
+    color: #666;
+  }
+
+  .me-agent-success-animation {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    text-align: center;
+  }
+
+  .me-agent-success-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #4CAF50;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    font-weight: 700;
+  }
+
+  .me-agent-success-animation h3 {
+    margin: 24px 0 8px 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #0F0F0F;
+  }
+
+  .me-agent-success-animation p {
+    margin: 0;
+    font-size: 14px;
+    color: #666;
+  }
+
+  .me-agent-coupon-details-card {
+    padding: 24px;
+    background: white;
+    border: 2px dashed #E5E5E5;
+    border-radius: 12px;
+    text-align: center;
+  }
+
+  .me-agent-coupon-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 12px;
+  }
+
+  .me-agent-coupon-code {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .me-agent-coupon-code-text {
+    font-size: 24px;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    color: #0F0F0F;
+    letter-spacing: 2px;
+  }
+
+  .me-agent-copy-coupon-btn {
+    padding: 6px 12px;
+    background: #F5F5F5;
+    border: 1px solid #E5E5E5;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #0F0F0F;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .me-agent-copy-coupon-btn:hover {
+    background: #E5E5E5;
+  }
+
+  .me-agent-coupon-discount {
+    font-size: 14px;
+    color: #666;
+  }
+
+  .me-agent-use-coupon-btn {
+    width: 100%;
+    padding: 16px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .me-agent-use-coupon-btn:hover {
+    background: #45A049;
+  }
+
+  .me-agent-error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    text-align: center;
+  }
+
+  .me-agent-error-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #FF4444;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    font-weight: 700;
+  }
+
+  .me-agent-error-state h3 {
+    margin: 24px 0 8px 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #0F0F0F;
+  }
+
+  .me-agent-error-state p {
+    margin: 0 0 24px 0;
+    font-size: 14px;
+    color: #666;
+  }
+
+  .me-agent-try-again-btn {
+    padding: 12px 24px;
+    background: #0F0F0F;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .me-agent-try-again-btn:hover {
+    background: #333;
+  }
+
+  .me-agent-loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    text-align: center;
+  }
+
+  .me-agent-loading-state p {
+    margin: 24px 0 0 0;
+    font-size: 14px;
+    color: #666;
+  }
+
+  .me-agent-error-message {
+    padding: 12px;
+    background: #FFE5E5;
+    border: 1px solid #FF4444;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #FF4444;
+  }
+
+  .me-agent-reward-list {
+    padding: 24px;
+  }
+
+  .me-agent-reward-list-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 16px 0;
+    color: #0F0F0F;
+  }
+
+  .me-agent-reward-list-items {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .me-agent-reward-list-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: white;
+    border: 2px solid #E5E5E5;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .me-agent-reward-list-item:hover {
+    border-color: #0F0F0F;
+  }
+
+  .me-agent-reward-list-item.selected {
+    border-color: #0F0F0F;
+    background: #F5F5F5;
+  }
+
+  .me-agent-reward-list-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .me-agent-reward-list-info {
+    flex: 1;
+  }
+
+  .me-agent-reward-list-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #0F0F0F;
+    margin-bottom: 4px;
+  }
+
+  .me-agent-reward-list-balance {
+    font-size: 14px;
+    color: #666;
+  }
+
+  .me-agent-reward-list-check {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #0F0F0F;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .me-agent-reward-list-item.selected .me-agent-reward-list-check {
+    opacity: 1;
+  }
+
+  /* ============================================
+     DEV HELPER STYLES
+     ============================================ */
+  .me-agent-dev-help-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100000;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .me-agent-dev-help-modal {
+    background: white;
+    border-radius: 16px;
+    padding: 0;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideInUp 0.3s ease;
+  }
+
+  .me-agent-dev-help-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px;
+    border-bottom: 1px solid #E5E5E5;
+  }
+
+  .me-agent-dev-help-header h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #0F0F0F;
+  }
+
+  .me-agent-dev-help-close {
+    background: none;
+    border: none;
+    font-size: 32px;
+    line-height: 1;
+    cursor: pointer;
+    color: #666;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+  }
+
+  .me-agent-dev-help-close:hover {
+    background: #F5F5F5;
+    color: #0F0F0F;
+  }
+
+  .me-agent-dev-help-content {
+    padding: 24px;
+  }
+
+  .me-agent-dev-shortcut {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid #F5F5F5;
+  }
+
+  .me-agent-dev-shortcut:last-child {
+    border-bottom: none;
+  }
+
+  .me-agent-dev-shortcut kbd {
+    background: linear-gradient(180deg, #FAFAFA 0%, #F0F0F0 100%);
+    border: 1px solid #D4D4D4;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: #0F0F0F;
+    min-width: 40px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .me-agent-dev-shortcut span {
+    flex: 1;
+    color: #525252;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .me-agent-dev-help-footer {
+    padding: 16px 24px;
+    background: #F9F9F9;
+    border-radius: 0 0 16px 16px;
+    text-align: center;
+  }
+
+  .me-agent-dev-help-footer small {
+    color: #888;
+    font-size: 12px;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 `;
     /**
      * Inject styles into the document
@@ -5958,91 +7607,153 @@
     }
 
     /**
-     * Environment types
+     * Development Helper
+     * Provides keyboard shortcuts for testing SDK features in dev mode
      */
-    exports.Environment = void 0;
-    (function (Environment) {
-        Environment["DEV"] = "dev";
-        Environment["STAGING"] = "staging";
-        Environment["PROD"] = "prod";
-    })(exports.Environment || (exports.Environment = {}));
-    /**
-     * Supported Networks
-     */
-    exports.SupportedNetwork = void 0;
-    (function (SupportedNetwork) {
-        SupportedNetwork["SEPOLIA"] = "sepolia";
-        SupportedNetwork["HEDERA"] = "hedera";
-        SupportedNetwork["BASE"] = "base";
-        SupportedNetwork["POLYGON"] = "polygon";
-    })(exports.SupportedNetwork || (exports.SupportedNetwork = {}));
-    // Development environment
-    const DEV_CONFIG = {
-        API_URL: 'https://paas.meappbounty.com/v1/api/',
-        AGENT_BASE_URL: 'https://fastapi-proxy-580283507238.us-central1.run.app',
-        ME_API_KEY: 'hl3elmtvji75or71j4xy5e',
-        API_V1_URL: 'https://api.meappbounty.com/',
-        MAGIC_PUBLISHABLE_API_KEY: 'pk_live_FB79F672A43B8AC2',
-        RUNTIME_URL: 'https://runtime.meappbounty.com',
-        GELATO_API_KEY: 'g1UFyiAfIyq_m_M3Cn3LWIO6VQpjVTIbeCV7XLzWGb4_',
-    };
-    // Staging environment
-    const STAGING_CONFIG = {
-        API_URL: 'https://paas-staging.meappbounty.com/v1/api/',
-        AGENT_BASE_URL: 'https://fastapi-proxy-staging-580283507238.us-central1.run.app',
-        ME_API_KEY: 'staging_key',
-        API_V1_URL: 'https://api-staging.meappbounty.com/',
-        MAGIC_PUBLISHABLE_API_KEY: 'pk_live_STAGING_KEY',
-        RUNTIME_URL: 'https://runtime-staging.meappbounty.com',
-        GELATO_API_KEY: 'staging_gelato_key',
-    };
-    // Production environment
-    const PROD_CONFIG = {
-        API_URL: 'https://paas.meappbounty.com/v1/api/',
-        AGENT_BASE_URL: 'https://fastapi-proxy.meappbounty.com',
-        ME_API_KEY: 'prod_key',
-        API_V1_URL: 'https://api.meappbounty.com/',
-        MAGIC_PUBLISHABLE_API_KEY: 'pk_live_PROD_KEY',
-        RUNTIME_URL: 'https://runtime.meappbounty.com',
-        GELATO_API_KEY: 'prod_gelato_key',
-    };
-    const ENV_CONFIGS = {
-        [exports.Environment.DEV]: DEV_CONFIG,
-        [exports.Environment.STAGING]: STAGING_CONFIG,
-        [exports.Environment.PROD]: PROD_CONFIG,
-    };
-    const NETWORK_CONFIGS = {
-        [exports.SupportedNetwork.SEPOLIA]: {
-            CHAIN_ID: '11155111',
-            RPC_URL: 'https://eth-sepolia.g.alchemy.com/v2/Ytq0aV34dWOA9X6gWhl_6trwmUTb58Ip',
-            OPEN_REWARD_DIAMOND: '0xacd3379d449ad0042a12f4fa88bc183948f7f472',
-        },
-        [exports.SupportedNetwork.HEDERA]: {
-            CHAIN_ID: '296',
-            RPC_URL: 'https://testnet.hashio.io/api',
-            OPEN_REWARD_DIAMOND: '0x3b03a7980bfe38c9daa4c346ccf495eb24e16782',
-        },
-        [exports.SupportedNetwork.BASE]: {
-            CHAIN_ID: '11155111', // Using Sepolia for now
-            RPC_URL: 'https://eth-sepolia.g.alchemy.com/v2/Ytq0aV34dWOA9X6gWhl_6trwmUTb58Ip',
-            OPEN_REWARD_DIAMOND: '0xacd3379d449ad0042a12f4fa88bc183948f7f472',
-        },
-        [exports.SupportedNetwork.POLYGON]: {
-            CHAIN_ID: '11155111', // Using Sepolia for now
-            RPC_URL: 'https://eth-sepolia.g.alchemy.com/v2/Ytq0aV34dWOA9X6gWhl_6trwmUTb58Ip',
-            OPEN_REWARD_DIAMOND: '0xacd3379d449ad0042a12f4fa88bc183948f7f472',
-        },
-    };
-    /**
-     * Get environment configuration based on environment and network
-     */
-    const getEnv = (environment = exports.Environment.DEV, network = exports.SupportedNetwork.SEPOLIA) => {
-        const envConfig = ENV_CONFIGS[environment] || ENV_CONFIGS[exports.Environment.DEV];
-        const networkConfig = NETWORK_CONFIGS[network] || NETWORK_CONFIGS[exports.SupportedNetwork.SEPOLIA];
-        return Object.assign(Object.assign({}, envConfig), networkConfig);
-    };
-    // Default environment (Dev + Sepolia)
-    getEnv(exports.Environment.DEV, exports.SupportedNetwork.SEPOLIA);
+    class DevHelper {
+        constructor(enabled, callbacks) {
+            this.enabled = false;
+            this.callbacks = {};
+            this.helpVisible = false;
+            this.helpOverlay = null;
+            this.enabled = enabled;
+            this.callbacks = callbacks;
+            if (this.enabled) {
+                this.initialize();
+                console.log("🔧 Dev Mode Enabled - Press 'H' for shortcuts help");
+            }
+        }
+        initialize() {
+            document.addEventListener("keydown", (e) => this.handleKeyPress(e));
+        }
+        handleKeyPress(e) {
+            // Ignore if user is typing in an input/textarea
+            const target = e.target;
+            if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
+                return;
+            }
+            // Toggle help with 'H'
+            if (e.key === "h" || e.key === "H") {
+                this.toggleHelp();
+                return;
+            }
+            // Close help with Escape
+            if (e.key === "Escape" && this.helpVisible) {
+                this.hideHelp();
+                return;
+            }
+            // Offer Detail - Press 'O'
+            if (e.key === "o" || e.key === "O") {
+                e.preventDefault();
+                this.showTestOfferDetail();
+                return;
+            }
+            // Brand List - Press 'B'
+            if (e.key === "b" || e.key === "B") {
+                e.preventDefault();
+                this.showTestBrandList();
+                return;
+            }
+            // Category Grid - Press 'C'
+            if (e.key === "c" || e.key === "C") {
+                e.preventDefault();
+                this.showTestCategoryGrid();
+                return;
+            }
+        }
+        showTestOfferDetail() {
+            if (this.callbacks.onShowOfferDetail) {
+                console.log("🔧 Dev: Opening test offer details (930991_SPSW)");
+                // Use a dummy session ID for dev testing
+                this.callbacks.onShowOfferDetail("930991_SPSW", "dev-session-" + Date.now());
+            }
+        }
+        showTestBrandList() {
+            if (this.callbacks.onShowBrandList) {
+                console.log("🔧 Dev: Opening test brand list");
+                this.callbacks.onShowBrandList();
+            }
+        }
+        showTestCategoryGrid() {
+            if (this.callbacks.onShowCategoryGrid) {
+                console.log("🔧 Dev: Opening test category grid");
+                this.callbacks.onShowCategoryGrid();
+            }
+        }
+        toggleHelp() {
+            if (this.helpVisible) {
+                this.hideHelp();
+            }
+            else {
+                this.showHelp();
+            }
+        }
+        showHelp() {
+            if (this.helpOverlay)
+                return;
+            this.helpOverlay = document.createElement("div");
+            this.helpOverlay.className = "me-agent-dev-help-overlay";
+            this.helpOverlay.innerHTML = `
+      <div class="me-agent-dev-help-modal">
+        <div class="me-agent-dev-help-header">
+          <h3>🔧 Dev Mode Shortcuts</h3>
+          <button class="me-agent-dev-help-close">×</button>
+        </div>
+        <div class="me-agent-dev-help-content">
+          <div class="me-agent-dev-shortcut">
+            <kbd>H</kbd>
+            <span>Toggle this help menu</span>
+          </div>
+          <div class="me-agent-dev-shortcut">
+            <kbd>O</kbd>
+            <span>Open test offer details (930991_SPSW)</span>
+          </div>
+          <div class="me-agent-dev-shortcut">
+            <kbd>B</kbd>
+            <span>Open brand list (signup earnings)</span>
+          </div>
+          <div class="me-agent-dev-shortcut">
+            <kbd>C</kbd>
+            <span>Open category grid (purchase earnings)</span>
+          </div>
+          <div class="me-agent-dev-shortcut">
+            <kbd>ESC</kbd>
+            <span>Close this help menu</span>
+          </div>
+        </div>
+        <div class="me-agent-dev-help-footer">
+          <small>Shortcuts only work when not typing in inputs</small>
+        </div>
+      </div>
+    `;
+            document.body.appendChild(this.helpOverlay);
+            this.helpVisible = true;
+            // Attach close button listener
+            const closeBtn = this.helpOverlay.querySelector(".me-agent-dev-help-close");
+            closeBtn === null || closeBtn === void 0 ? void 0 : closeBtn.addEventListener("click", () => this.hideHelp());
+            // Close on overlay click
+            this.helpOverlay.addEventListener("click", (e) => {
+                if (e.target === this.helpOverlay) {
+                    this.hideHelp();
+                }
+            });
+        }
+        hideHelp() {
+            if (this.helpOverlay) {
+                this.helpOverlay.remove();
+                this.helpOverlay = null;
+                this.helpVisible = false;
+            }
+        }
+        /**
+         * Clean up and remove event listeners
+         */
+        destroy() {
+            this.hideHelp();
+            // Note: Can't easily remove the keydown listener without storing a reference
+            // but this is only for dev mode, so it's acceptable
+        }
+    }
 
     /**
      * Main SDK Class
@@ -6052,6 +7763,7 @@
             this.redemptionService = null;
             this.button = null;
             this.chat = null;
+            this.devHelper = null;
             this.initialized = false;
             this.isOpen = false;
             this.validateConfig(config);
@@ -6068,11 +7780,11 @@
             this.sessionService = new SessionService(sessionAPI, chatAPI);
             this.messageParser = new MessageParser();
             // Initialize RedemptionService with network-specific configuration
-            this.redemptionService = new RedemptionService(authAPI, rewardAPI, {
+            this.redemptionService = new RedemptionService(authAPI, rewardAPI, this.apiClient.redemptionAPI, {
                 apiKey: this.env.MAGIC_PUBLISHABLE_API_KEY,
                 chainId: this.env.CHAIN_ID,
                 rpcUrl: this.env.RPC_URL,
-            }, this.env.OPEN_REWARD_DIAMOND);
+            }, this.env.OPEN_REWARD_DIAMOND, parseInt(this.env.CHAIN_ID, 10), this.env.RPC_URL, this.env.RUNTIME_URL, this.env.ME_API_KEY, this.env.API_V1_URL, this.env.GELATO_API_KEY, this.config.brandId || "");
         }
         /**
          * Validate configuration
@@ -6102,6 +7814,23 @@
                     this.chat.mount();
                     // Show welcome message
                     this.chat.showWelcome();
+                    // Initialize dev helper if dev mode is enabled
+                    if (this.config.devMode) {
+                        this.devHelper = new DevHelper(true, {
+                            onShowOfferDetail: (offerCode, sessionId) => {
+                                var _a;
+                                (_a = this.chat) === null || _a === void 0 ? void 0 : _a.devShowOfferDetail(offerCode, sessionId);
+                            },
+                            onShowBrandList: () => {
+                                var _a;
+                                (_a = this.chat) === null || _a === void 0 ? void 0 : _a.devShowBrandList();
+                            },
+                            onShowCategoryGrid: () => {
+                                var _a;
+                                (_a = this.chat) === null || _a === void 0 ? void 0 : _a.devShowCategoryGrid();
+                            },
+                        });
+                    }
                     this.initialized = true;
                 }
                 catch (error) {

@@ -11,6 +11,7 @@ export declare class MeAgentSDK {
     private apiClient;
     private button;
     private chat;
+    private devHelper;
     private initialized;
     private isOpen;
     constructor(config: MeAgentConfig);

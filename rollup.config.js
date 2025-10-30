@@ -2,6 +2,8 @@ import typescript from '@rollup/plugin-typescript';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import terser from '@rollup/plugin-terser';
+import json from '@rollup/plugin-json';
+import nodePolyfills from 'rollup-plugin-polyfill-node';
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -14,10 +16,31 @@ export default [
       format: 'umd',
       name: 'MeAgent',
       sourcemap: true,
+      globals: {
+        'ethers': 'ethers',
+        '@developeruche/runtime-sdk': 'RuntimeSDK',
+        '@developeruche/protocol-core': 'ProtocolCore',
+      },
     },
+    external: ['ethers', '@developeruche/runtime-sdk', '@developeruche/protocol-core'],
     plugins: [
-      resolve(),
-      commonjs(),
+      nodePolyfills(),
+      resolve({
+        browser: true,
+        preferBuiltins: false,
+      }),
+      commonjs({
+        transformMixedEsModules: true,
+        defaultIsModuleExports: (id) => {
+          if (id.includes('js-sha3')) {
+            return true;
+          }
+          return 'auto';
+        },
+        requireReturnsDefault: 'auto',
+        esmExternals: false,
+      }),
+      json(),
       typescript({
         tsconfig: './tsconfig.json',
         declaration: true,
@@ -33,10 +56,31 @@ export default [
       format: 'umd',
       name: 'MeAgent',
       sourcemap: true,
+      globals: {
+        'ethers': 'ethers',
+        '@developeruche/runtime-sdk': 'RuntimeSDK',
+        '@developeruche/protocol-core': 'ProtocolCore',
+      },
     },
+    external: ['ethers', '@developeruche/runtime-sdk', '@developeruche/protocol-core'],
     plugins: [
-      resolve(),
-      commonjs(),
+      nodePolyfills(),
+      resolve({
+        browser: true,
+        preferBuiltins: false,
+      }),
+      commonjs({
+        transformMixedEsModules: true,
+        defaultIsModuleExports: (id) => {
+          if (id.includes('js-sha3')) {
+            return true;
+          }
+          return 'auto';
+        },
+        requireReturnsDefault: 'auto',
+        esmExternals: false,
+      }),
+      json(),
       typescript({
         tsconfig: './tsconfig.json',
       }),

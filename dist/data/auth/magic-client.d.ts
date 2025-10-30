@@ -49,4 +49,12 @@ export declare class MagicClient {
      * Get wallet address (shortcut method)
      */
     getWalletAddress(): Promise<string>;
+    /**
+     * Get Web3 provider for signing transactions
+     */
+    getProvider(): Promise<any>;
+    /**
+     * Get the Magic instance (for advanced usage)
+     */
+    getMagicInstance(): any;
 }
