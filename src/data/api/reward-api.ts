@@ -17,7 +17,11 @@ export class RewardAPI extends BaseAPI {
     try {
       const result = await this.get<{ data: any[] }>(
         `${this.env.API_URL}reward/sdk/balances?walletAddress=${walletAddress}`,
-        { "x-access-token": token }
+        {
+          "x-access-token": token,
+          Authorization: `Bearer ${token}`,
+          "x-public-key": this.env.ME_API_KEY,
+        }
       );
       return result.data || [];
     } catch (error) {
@@ -37,7 +41,11 @@ export class RewardAPI extends BaseAPI {
       const result = await this.post<{ data: SwapAmountResponse }>(
         `${this.env.API_URL}reward/sdk/swap-amount`,
         payload,
-        { "x-access-token": token }
+        {
+          "x-access-token": token,
+          Authorization: `Bearer ${token}`,
+          "x-public-key": this.env.ME_API_KEY,
+        }
       );
       return result.data;
     } catch (error) {

@@ -741,7 +741,7 @@ export class DetailPanelController {
 
     const variant =
       this.selectedVariant || this.currentOfferDetail.offerVariants?.[0];
-    const variantId = variant?.id;
+    const variantId = variant?.variant?.id || variant?.variantId;
 
     this.swapAmount = await this.redemptionService.calculateSwapAmount(
       this.selectedReward.reward.contractAddress,

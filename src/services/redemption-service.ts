@@ -20,7 +20,10 @@ import {
   SpendData,
 } from "../types";
 import { ethers } from "ethers";
-import { same_brand_reward_redeption_magic, spend_reward_magic } from "@developeruche/runtime-sdk";
+import {
+  same_brand_reward_redeption_magic,
+  spend_reward_magic,
+} from "@developeruche/runtime-sdk";
 import { relay, usersServiceWithPermit } from "@developeruche/protocol-core";
 
 export class RedemptionService {
@@ -139,7 +142,9 @@ export class RedemptionService {
             await this.magicClient.logout();
             await this.magicClient.loginWithEmailOTP(email);
           } else {
-            console.log(`✅ Already logged in with correct email: ${loggedInEmail}`);
+            console.log(
+              `✅ Already logged in with correct email: ${loggedInEmail}`
+            );
           }
         } catch (error) {
           console.error("Error verifying logged-in email:", error);
@@ -321,7 +326,11 @@ export class RedemptionService {
         offerDetail.offerVariants &&
         offerDetail.offerVariants.length > 0
       ) {
-        variantId = offerDetail.offerVariants[0].id;
+        // Use the underlying product variant id, not the offerVariant id
+        variantId =
+          offerDetail.offerVariants[0].variant?.id ||
+          offerDetail.offerVariants[0].variantId ||
+          undefined;
       }
 
       const payload: SwapAmountPayload = {
@@ -439,16 +448,16 @@ export class RedemptionService {
 
       // Push transaction to runtime
       pushTransactionRef = await this.redemptionAPI.pushTransaction(
-        { 
-          params: { 
+        {
+          params: {
             from: result.from,
             data: result.data,
             nonce: result.nonce.toString(),
             r: result.r,
             s: result.s,
             v: result.v.toString(),
-            hash: result.hash
-          } 
+            hash: result.hash,
+          },
         },
         this.meProtocolToken
       );
@@ -516,7 +525,11 @@ export class RedemptionService {
       }
 
       // Validate amounts
-      if (!neededAmount || neededAmount === "undefined" || isNaN(Number(neededAmount))) {
+      if (
+        !neededAmount ||
+        neededAmount === "undefined" ||
+        isNaN(Number(neededAmount))
+      ) {
         throw new Error("Invalid needed amount value for transaction");
       }
 
@@ -543,7 +556,15 @@ export class RedemptionService {
         expectedAmountOfTargetedReward,
       };
 
-      console.log("SPEND REWARD MAGIC", rewardAddress, amountOfRewardAtHand, this.openRewardDiamond, signer, this.runtimeUrl, spendInfo);
+      console.log(
+        "SPEND REWARD MAGIC",
+        rewardAddress,
+        amountOfRewardAtHand,
+        this.openRewardDiamond,
+        signer,
+        this.runtimeUrl,
+        spendInfo
+      );
 
       // Call runtime SDK
       const result = await spend_reward_magic(
@@ -557,16 +578,16 @@ export class RedemptionService {
 
       // Push transaction to runtime
       pushTransactionRef = await this.redemptionAPI.pushTransaction(
-        { 
-          params: { 
+        {
+          params: {
             from: result.from,
             data: result.data,
             nonce: result.nonce.toString(),
             r: result.r,
             s: result.s,
             v: result.v.toString(),
-            hash: result.hash
-          } 
+            hash: result.hash,
+          },
         },
         this.meProtocolToken
       );
@@ -589,14 +610,21 @@ export class RedemptionService {
         value: ethers.BigNumber.from(pushTransactionRef.value),
       };
 
-      console.log("DATUM", spendInfo, vaultParams, this.openRewardDiamond, this.rpcUrl);
-
-      const datum = await usersServiceWithPermit.spendRewardsOnAnotherBrandWithVaultPermit(
+      console.log(
+        "DATUM",
         spendInfo,
         vaultParams,
         this.openRewardDiamond,
         this.rpcUrl
       );
+
+      const datum =
+        await usersServiceWithPermit.spendRewardsOnAnotherBrandWithVaultPermit(
+          spendInfo,
+          vaultParams,
+          this.openRewardDiamond,
+          this.rpcUrl
+        );
 
       if (!datum?.data) {
         throw new Error("No data returned from vault permit");

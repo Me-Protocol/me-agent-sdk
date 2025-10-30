@@ -880,6 +880,7 @@
          */
         calculateSwapAmount(selectedRewardAddress, offerDetail, selectedVariantId) {
             return __awaiter(this, void 0, void 0, function* () {
+                var _a;
                 try {
                     const walletAddress = yield this.getWalletAddress();
                     if (!this.meProtocolToken) {
@@ -890,7 +891,11 @@
                     if (!variantId &&
                         offerDetail.offerVariants &&
                         offerDetail.offerVariants.length > 0) {
-                        variantId = offerDetail.offerVariants[0].id;
+                        // Use the underlying product variant id, not the offerVariant id
+                        variantId =
+                            ((_a = offerDetail.offerVariants[0].variant) === null || _a === void 0 ? void 0 : _a.id) ||
+                                offerDetail.offerVariants[0].variantId ||
+                                undefined;
                     }
                     const payload = {
                         walletAddress,
@@ -979,8 +984,8 @@
                             r: result.r,
                             s: result.s,
                             v: result.v.toString(),
-                            hash: result.hash
-                        }
+                            hash: result.hash,
+                        },
                     }, this.meProtocolToken);
                     if (!pushTransactionRef) {
                         throw new Error("No data returned from push transaction");
@@ -1021,7 +1026,9 @@
                         throw new Error("Wallet address not available");
                     }
                     // Validate amounts
-                    if (!neededAmount || neededAmount === "undefined" || isNaN(Number(neededAmount))) {
+                    if (!neededAmount ||
+                        neededAmount === "undefined" ||
+                        isNaN(Number(neededAmount))) {
                         throw new Error("Invalid needed amount value for transaction");
                     }
                     if (!amount || amount === "undefined" || isNaN(Number(amount))) {
@@ -1054,8 +1061,8 @@
                             r: result.r,
                             s: result.s,
                             v: result.v.toString(),
-                            hash: result.hash
-                        }
+                            hash: result.hash,
+                        },
                     }, this.meProtocolToken);
                     if (!pushTransactionRef) {
                         throw new Error("No data returned from push transaction");
@@ -1434,7 +1441,11 @@
         fetchRewardBalances(walletAddress, token) {
             return __awaiter(this, void 0, void 0, function* () {
                 try {
-                    const result = yield this.get(`${this.env.API_URL}reward/sdk/balances?walletAddress=${walletAddress}`, { "x-access-token": token });
+                    const result = yield this.get(`${this.env.API_URL}reward/sdk/balances?walletAddress=${walletAddress}`, {
+                        "x-access-token": token,
+                        Authorization: `Bearer ${token}`,
+                        "x-public-key": this.env.ME_API_KEY,
+                    });
                     return result.data || [];
                 }
                 catch (error) {
@@ -1449,7 +1460,11 @@
         fetchSwapAmount(payload, token) {
             return __awaiter(this, void 0, void 0, function* () {
                 try {
-                    const result = yield this.post(`${this.env.API_URL}reward/sdk/swap-amount`, payload, { "x-access-token": token });
+                    const result = yield this.post(`${this.env.API_URL}reward/sdk/swap-amount`, payload, {
+                        "x-access-token": token,
+                        Authorization: `Bearer ${token}`,
+                        "x-public-key": this.env.ME_API_KEY,
+                    });
                     return result.data;
                 }
                 catch (error) {
@@ -3926,11 +3941,11 @@
          */
         calculateSwapAmount() {
             return __awaiter(this, void 0, void 0, function* () {
-                var _a;
+                var _a, _b;
                 if (!this.currentOfferDetail || !this.selectedReward)
                     return;
                 const variant = this.selectedVariant || ((_a = this.currentOfferDetail.offerVariants) === null || _a === void 0 ? void 0 : _a[0]);
-                const variantId = variant === null || variant === void 0 ? void 0 : variant.id;
+                const variantId = ((_b = variant === null || variant === void 0 ? void 0 : variant.variant) === null || _b === void 0 ? void 0 : _b.id) || (variant === null || variant === void 0 ? void 0 : variant.variantId);
                 this.swapAmount = yield this.redemptionService.calculateSwapAmount(this.selectedReward.reward.contractAddress, this.currentOfferDetail, variantId);
             });
         }
