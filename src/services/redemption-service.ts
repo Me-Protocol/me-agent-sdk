@@ -20,11 +20,20 @@ import {
   SpendData,
 } from "../types";
 import { ethers } from "ethers";
-import {
-  same_brand_reward_redeption_magic,
-  spend_reward_magic,
-} from "@developeruche/runtime-sdk";
-import { relay, usersServiceWithPermit } from "@developeruche/protocol-core";
+
+// Declare window globals for externalized dependencies
+declare global {
+  interface Window {
+    OpenRewardSDK: {
+      same_brand_reward_redeption_magic: any;
+      spend_reward_magic: any;
+    };
+    MeProtocolSDK: {
+      relay: any;
+      usersServiceWithPermit: any;
+    };
+  }
+}
 
 export class RedemptionService {
   private magicClient: MagicClient | null = null;
@@ -434,14 +443,39 @@ export class RedemptionService {
       // Prepare transaction
       const rewardAmount = ethers.utils.parseEther(amount);
 
-      // Call runtime SDK
-      const result = await same_brand_reward_redeption_magic(
+      // Validate all parameters
+      if (!rewardAddress || rewardAddress === "undefined") {
+        throw new Error(`Invalid reward address: ${rewardAddress}`);
+      }
+      if (!this.runtimeUrl) {
+        throw new Error("Runtime URL is not configured");
+      }
+
+      console.log("same_brand_reward_redeption_magic params:", {
         rewardAddress,
-        rewardAmount,
-        ethers.BigNumber.from(this.chainId),
-        signer,
-        this.runtimeUrl
-      );
+        rewardAmount: rewardAmount.toString(),
+        rewardAmountHex: rewardAmount.toHexString(),
+        chainId: this.chainId,
+        runtimeUrl: this.runtimeUrl,
+        signerAddress: signer,
+      });
+
+      // Call runtime SDK
+      if (!window.OpenRewardSDK?.same_brand_reward_redeption_magic) {
+        throw new Error(
+          "OpenRewardSDK not loaded. Please ensure @developeruche/runtime-sdk is loaded before the ME Agent SDK."
+        );
+      }
+      const result =
+        await window.OpenRewardSDK.same_brand_reward_redeption_magic(
+          rewardAddress,
+          rewardAmount,
+          ethers.BigNumber.from(this.chainId),
+          signer,
+          this.runtimeUrl
+        );
+
+      console.log("RESULT", result);
 
       const hash = result.hash;
       console.log("FROM", result.from);
@@ -567,11 +601,16 @@ export class RedemptionService {
       );
 
       // Call runtime SDK
-      const result = await spend_reward_magic(
+      if (!window.OpenRewardSDK?.spend_reward_magic) {
+        throw new Error(
+          "OpenRewardSDK not loaded. Please ensure @developeruche/runtime-sdk is loaded before the ME Agent SDK."
+        );
+      }
+      const result = await window.OpenRewardSDK.spend_reward_magic(
         rewardAddress,
         amountOfRewardAtHand,
         this.openRewardDiamond,
-        ethers.BigNumber.from(this.chainId),
+        this.chainId, // Pass as number, not BigNumber
         signer,
         this.runtimeUrl
       );
@@ -618,8 +657,13 @@ export class RedemptionService {
         this.rpcUrl
       );
 
+      if (!window.MeProtocolSDK?.usersServiceWithPermit) {
+        throw new Error(
+          "MeProtocolSDK not loaded. Please ensure @developeruche/protocol-core is loaded before the ME Agent SDK."
+        );
+      }
       const datum =
-        await usersServiceWithPermit.spendRewardsOnAnotherBrandWithVaultPermit(
+        await window.MeProtocolSDK.usersServiceWithPermit.spendRewardsOnAnotherBrandWithVaultPermit(
           spendInfo,
           vaultParams,
           this.openRewardDiamond,
@@ -648,7 +692,12 @@ export class RedemptionService {
       );
 
       // Relay via Gelato
-      const { taskId } = await relay(
+      if (!window.MeProtocolSDK?.relay) {
+        throw new Error(
+          "MeProtocolSDK not loaded. Please ensure @developeruche/protocol-core is loaded before the ME Agent SDK."
+        );
+      }
+      const { taskId } = await window.MeProtocolSDK.relay(
         {
           from: this.walletAddress,
           data: datum.data,

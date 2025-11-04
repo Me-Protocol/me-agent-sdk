@@ -26,14 +26,38 @@
         <section class="demo-section">
           <h3>Features</h3>
           <ul>
-            <li>✨ Easy integration with a single script tag</li>
+            <li>✨ Easy integration with CDN</li>
             <li>💬 AI-powered chat assistant</li>
             <li>🎨 Beautiful, modern UI</li>
             <li>🔒 Secure authentication with Magic Link</li>
-            <li>🎁 Reward redemption system</li>
-            <li>🛍️ Product recommendations</li>
+            <li>🎁 Complete blockchain redemption flow</li>
+            <li>🛍️ Same-brand & cross-brand reward swaps</li>
             <li>📱 Fully responsive design</li>
+            <li>⚡ Lightweight (~354KB minified)</li>
           </ul>
+        </section>
+
+        <section class="demo-section">
+          <h3>🔗 Dependencies</h3>
+          <p>
+            This demo includes full redemption functionality powered by
+            blockchain. The following dependencies are loaded:
+          </p>
+          <ul style="list-style-type: none; padding-left: 0">
+            <li>
+              ✅ <strong>ethers.js</strong> - Blockchain wallet interactions
+            </li>
+            <li>
+              ✅ <strong>Runtime SDK</strong> - ME Protocol redemption logic
+            </li>
+            <li>
+              ✅ <strong>Protocol Core</strong> - Token swaps & relay operations
+            </li>
+          </ul>
+          <p style="margin-top: 1rem; font-size: 0.9rem; color: #666">
+            Without these, chat and browsing still work, but redemption features
+            will be disabled.
+          </p>
         </section>
 
         <section class="demo-section">
@@ -65,8 +89,13 @@
 
         <section class="demo-section">
           <h3>Quick Start</h3>
-          <p>Add the SDK to your HTML page:</p>
-          <pre><code>&lt;!-- Load the SDK --&gt;
+          <p>Add the SDK to your HTML page with blockchain dependencies:</p>
+          <pre><code>&lt;!-- Load blockchain dependencies (required for redemption) --&gt;
+&lt;script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"&gt;&lt;/script&gt;
+&lt;script src="https://cdn.jsdelivr.net/npm/@developeruche/runtime-sdk@0.11.7-development/dist/browser/runtime-sdk.umd.min.js"&gt;&lt;/script&gt;
+&lt;script src="https://cdn.jsdelivr.net/npm/@developeruche/protocol-core@0.10.55-ethers5/dist/index.global.js"&gt;&lt;/script&gt;
+
+&lt;!-- Load the SDK --&gt;
 &lt;script src="https://cdn.jsdelivr.net/gh/Me-Protocol/me-agent-sdk@main/dist/me-agent-sdk.min.js"&gt;&lt;/script&gt;
 
 &lt;!-- Initialize --&gt;
@@ -79,6 +108,10 @@
     network: MeAgent.Network.SEPOLIA
   });
 &lt;/script&gt;</code></pre>
+          <p style="margin-top: 1rem; font-size: 0.9rem; color: #666">
+            <strong>Note:</strong> Dependencies must be loaded in this exact
+            order for redemption features to work.
+          </p>
         </section>
       </main>
 
@@ -94,6 +127,11 @@
         </p>
       </footer>
     </div>
+
+    <!-- Load blockchain dependencies (required for redemption) -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@developeruche/runtime-sdk@0.11.7-development/dist/browser/runtime-sdk.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@developeruche/protocol-core@0.10.55-ethers5/dist/index.global.js"></script>
 
     <!-- Load the SDK from jsDelivr CDN -->
     <script src="https://cdn.jsdelivr.net/gh/Me-Protocol/me-agent-sdk@main/dist/me-agent-sdk.min.js"></script>

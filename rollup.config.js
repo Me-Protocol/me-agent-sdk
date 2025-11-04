@@ -1,28 +1,32 @@
-import typescript from '@rollup/plugin-typescript';
-import resolve from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
-import terser from '@rollup/plugin-terser';
-import json from '@rollup/plugin-json';
-import nodePolyfills from 'rollup-plugin-polyfill-node';
+import typescript from "@rollup/plugin-typescript";
+import resolve from "@rollup/plugin-node-resolve";
+import commonjs from "@rollup/plugin-commonjs";
+import terser from "@rollup/plugin-terser";
+import json from "@rollup/plugin-json";
+import nodePolyfills from "rollup-plugin-polyfill-node";
 
 const production = !process.env.ROLLUP_WATCH;
 
 export default [
   // UMD build
   {
-    input: 'src/index.ts',
+    input: "src/index.ts",
     output: {
-      file: 'dist/me-agent-sdk.js',
-      format: 'umd',
-      name: 'MeAgent',
+      file: "dist/me-agent-sdk.js",
+      format: "umd",
+      name: "MeAgent",
       sourcemap: true,
       globals: {
-        'ethers': 'ethers',
-        '@developeruche/runtime-sdk': 'RuntimeSDK',
-        '@developeruche/protocol-core': 'ProtocolCore',
+        ethers: "ethers",
+        "@developeruche/runtime-sdk": "OpenRewardSDK",
+        "@developeruche/protocol-core": "MeProtocolSDK",
       },
     },
-    external: ['ethers', '@developeruche/runtime-sdk', '@developeruche/protocol-core'],
+    external: [
+      "ethers",
+      "@developeruche/runtime-sdk",
+      "@developeruche/protocol-core",
+    ],
     plugins: [
       nodePolyfills(),
       resolve({
@@ -32,37 +36,41 @@ export default [
       commonjs({
         transformMixedEsModules: true,
         defaultIsModuleExports: (id) => {
-          if (id.includes('js-sha3')) {
+          if (id.includes("js-sha3")) {
             return true;
           }
-          return 'auto';
+          return "auto";
         },
-        requireReturnsDefault: 'auto',
+        requireReturnsDefault: "auto",
         esmExternals: false,
       }),
       json(),
       typescript({
-        tsconfig: './tsconfig.json',
+        tsconfig: "./tsconfig.json",
         declaration: true,
-        declarationDir: './dist',
+        declarationDir: "./dist",
       }),
     ],
   },
   // Minified UMD build
   {
-    input: 'src/index.ts',
+    input: "src/index.ts",
     output: {
-      file: 'dist/me-agent-sdk.min.js',
-      format: 'umd',
-      name: 'MeAgent',
+      file: "dist/me-agent-sdk.min.js",
+      format: "umd",
+      name: "MeAgent",
       sourcemap: true,
       globals: {
-        'ethers': 'ethers',
-        '@developeruche/runtime-sdk': 'RuntimeSDK',
-        '@developeruche/protocol-core': 'ProtocolCore',
+        ethers: "ethers",
+        "@developeruche/runtime-sdk": "OpenRewardSDK",
+        "@developeruche/protocol-core": "MeProtocolSDK",
       },
     },
-    external: ['ethers', '@developeruche/runtime-sdk', '@developeruche/protocol-core'],
+    external: [
+      "ethers",
+      "@developeruche/runtime-sdk",
+      "@developeruche/protocol-core",
+    ],
     plugins: [
       nodePolyfills(),
       resolve({
@@ -72,20 +80,19 @@ export default [
       commonjs({
         transformMixedEsModules: true,
         defaultIsModuleExports: (id) => {
-          if (id.includes('js-sha3')) {
+          if (id.includes("js-sha3")) {
             return true;
           }
-          return 'auto';
+          return "auto";
         },
-        requireReturnsDefault: 'auto',
+        requireReturnsDefault: "auto",
         esmExternals: false,
       }),
       json(),
       typescript({
-        tsconfig: './tsconfig.json',
+        tsconfig: "./tsconfig.json",
       }),
       production && terser(),
     ],
   },
 ];
-
