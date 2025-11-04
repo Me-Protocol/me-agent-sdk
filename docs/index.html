@@ -95,17 +95,19 @@
 &lt;script src="https://cdn.jsdelivr.net/npm/@developeruche/runtime-sdk@0.11.7-development/dist/browser/runtime-sdk.umd.min.js"&gt;&lt;/script&gt;
 &lt;script src="https://cdn.jsdelivr.net/npm/@developeruche/protocol-core@0.10.55-ethers5/dist/index.global.js"&gt;&lt;/script&gt;
 
-&lt;!-- Load the SDK --&gt;
-&lt;script src="https://cdn.jsdelivr.net/gh/Me-Protocol/me-agent-sdk@main/dist/me-agent-sdk.min.js"&gt;&lt;/script&gt;
+&lt;!-- Load the SDK from npm --&gt;
+&lt;script src="https://cdn.jsdelivr.net/npm/me-agent-sdk/dist/me-agent-sdk.min.js"&gt;&lt;/script&gt;
 
 &lt;!-- Initialize --&gt;
 &lt;script&gt;
-  MeAgent.init({
-    emailAddress: 'user@example.com',
-    brandId: 'your-brand-id',
-    userId: 'your-user-id',
-    environment: MeAgent.Environment.DEV,
-    network: MeAgent.Network.SEPOLIA
+  window.addEventListener("DOMContentLoaded", async () => {
+    await MeAgent.init({
+      emailAddress: 'user@example.com',
+      brandId: 'your-brand-id',
+      userId: 'your-user-id',
+      environment: MeAgent.Environment.DEV,
+      network: MeAgent.Network.SEPOLIA
+    });
   });
 &lt;/script&gt;</code></pre>
           <p style="margin-top: 1rem; font-size: 0.9rem; color: #666">
@@ -133,8 +135,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@developeruche/runtime-sdk@0.11.7-development/dist/browser/runtime-sdk.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@developeruche/protocol-core@0.10.55-ethers5/dist/index.global.js"></script>
 
-    <!-- Load the SDK from jsDelivr CDN -->
-    <script src="https://cdn.jsdelivr.net/gh/Me-Protocol/me-agent-sdk@main/dist/me-agent-sdk.min.js"></script>
+    <!-- Load the SDK from npm via jsDelivr -->
+    <script src="https://cdn.jsdelivr.net/npm/me-agent-sdk/dist/me-agent-sdk.min.js"></script>
 
     <!-- Initialize the SDK -->
     <script>

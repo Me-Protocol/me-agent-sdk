@@ -26,21 +26,25 @@ AI-powered chatbot widget that can be embedded on any website. Built with TypeSc
 For basic functionality including AI chat and offer browsing:
 
 ```html
-<!-- Load SDK -->
-<script src="https://cdn.jsdelivr.net/gh/Me-Protocol/me-agent-sdk@main/dist/me-agent-sdk.min.js"></script>
+<!-- Load SDK from npm -->
+<script src="https://cdn.jsdelivr.net/npm/me-agent-sdk/dist/me-agent-sdk.min.js"></script>
 
 <!-- Initialize -->
 <script>
-  MeAgent.init({
-    emailAddress: "user@example.com", // optional
-    brandId: "your-brand-id", // optional
-    userId: "user-123", // optional
-    position: "bottom-right", // optional: 'bottom-right' or 'bottom-left'
-    environment: MeAgent.Environment.DEV, // optional: DEV, STAGING, or PROD
-    network: MeAgent.Network.SEPOLIA, // optional: SEPOLIA, HEDERA, BASE, or POLYGON
+  window.addEventListener("DOMContentLoaded", async () => {
+    await MeAgent.init({
+      emailAddress: "user@example.com", // optional
+      brandId: "your-brand-id", // optional
+      userId: "user-123", // optional
+      position: "bottom-right", // optional: 'bottom-right' or 'bottom-left'
+      environment: MeAgent.Environment.DEV, // optional: DEV, STAGING, or PROD
+      network: MeAgent.Network.SEPOLIA, // optional: SEPOLIA, HEDERA, BASE, or POLYGON
+    });
   });
 </script>
 ```
+
+**Global Variable:** The SDK exposes `window.MeAgent` for browser usage.
 
 ### Full Setup (with Redemption)
 
@@ -52,18 +56,20 @@ For complete functionality including blockchain redemption, load the required de
 <script src="https://cdn.jsdelivr.net/npm/@developeruche/runtime-sdk@0.11.7-development/dist/browser/runtime-sdk.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@developeruche/protocol-core@0.10.55-ethers5/dist/index.global.js"></script>
 
-<!-- Load SDK -->
-<script src="https://cdn.jsdelivr.net/gh/Me-Protocol/me-agent-sdk@main/dist/me-agent-sdk.min.js"></script>
+<!-- Load SDK from npm -->
+<script src="https://cdn.jsdelivr.net/npm/me-agent-sdk/dist/me-agent-sdk.min.js"></script>
 
 <!-- Initialize -->
 <script>
-  MeAgent.init({
-    emailAddress: "user@example.com", // required for redemption
-    brandId: "your-brand-id",
-    userId: "user-123",
-    position: "bottom-right",
-    environment: MeAgent.Environment.DEV,
-    network: MeAgent.Network.SEPOLIA,
+  window.addEventListener("DOMContentLoaded", async () => {
+    await MeAgent.init({
+      emailAddress: "user@example.com", // required for redemption
+      brandId: "your-brand-id",
+      userId: "user-123",
+      position: "bottom-right",
+      environment: MeAgent.Environment.DEV,
+      network: MeAgent.Network.SEPOLIA,
+    });
   });
 </script>
 ```
@@ -72,9 +78,18 @@ For complete functionality including blockchain redemption, load the required de
 
 **CDN Options:**
 
-- Latest from main branch: `@main/dist/me-agent-sdk.min.js`
-- Specific version (recommended for production): `@v1.0.0/dist/me-agent-sdk.min.js`
-- Unminified for development: `@main/dist/me-agent-sdk.js`
+**jsDelivr (Recommended):**
+
+- Latest version: `https://cdn.jsdelivr.net/npm/me-agent-sdk/dist/me-agent-sdk.min.js`
+- Specific version: `https://cdn.jsdelivr.net/npm/me-agent-sdk@1.0.0/dist/me-agent-sdk.min.js`
+- Unminified (dev): `https://cdn.jsdelivr.net/npm/me-agent-sdk/dist/me-agent-sdk.js`
+
+**unpkg:**
+
+- Latest version: `https://unpkg.com/me-agent-sdk/dist/me-agent-sdk.min.js`
+- Specific version: `https://unpkg.com/me-agent-sdk@1.0.0/dist/me-agent-sdk.min.js`
+
+**Global Variable:** The SDK exposes `window.MeAgent` for browser usage. All methods and constants are available on this global object.
 
 ### Via npm
 
@@ -381,18 +396,20 @@ For detailed architecture information, see [ARCHITECTURE_GUIDE.md](./ARCHITECTUR
     <script src="https://cdn.jsdelivr.net/npm/@developeruche/runtime-sdk@0.11.7-development/dist/browser/runtime-sdk.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@developeruche/protocol-core@0.10.55-ethers5/dist/index.global.js"></script>
 
-    <!-- Load ME Agent SDK -->
-    <script src="https://cdn.jsdelivr.net/gh/Me-Protocol/me-agent-sdk@main/dist/me-agent-sdk.min.js"></script>
+    <!-- Load ME Agent SDK from npm -->
+    <script src="https://cdn.jsdelivr.net/npm/me-agent-sdk/dist/me-agent-sdk.min.js"></script>
 
     <!-- Initialize SDK -->
     <script>
-      MeAgent.init({
-        emailAddress: "user@example.com",
-        brandId: "your-brand-id",
-        userId: "user-123",
-        position: "bottom-right",
-        environment: MeAgent.Environment.DEV,
-        network: MeAgent.Network.SEPOLIA,
+      window.addEventListener("DOMContentLoaded", async () => {
+        await MeAgent.init({
+          emailAddress: "user@example.com",
+          brandId: "your-brand-id",
+          userId: "user-123",
+          position: "bottom-right",
+          environment: MeAgent.Environment.DEV,
+          network: MeAgent.Network.SEPOLIA,
+        });
       });
     </script>
   </body>
@@ -406,7 +423,8 @@ For detailed architecture information, see [ARCHITECTURE_GUIDE.md](./ARCHITECTUR
 | ethers.js     | 5.7.2              | `https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js`                                               |
 | Runtime SDK   | 0.11.7-development | `https://cdn.jsdelivr.net/npm/@developeruche/runtime-sdk@0.11.7-development/dist/browser/runtime-sdk.umd.min.js` |
 | Protocol Core | 0.10.55-ethers5    | `https://cdn.jsdelivr.net/npm/@developeruche/protocol-core@0.10.55-ethers5/dist/index.global.js`                 |
-| ME Agent SDK  | latest             | `https://cdn.jsdelivr.net/gh/Me-Protocol/me-agent-sdk@main/dist/me-agent-sdk.min.js`                             |
+| ME Agent SDK  | latest             | `https://cdn.jsdelivr.net/npm/me-agent-sdk/dist/me-agent-sdk.min.js`                                             |
+| ME Agent SDK  | 1.0.0              | `https://cdn.jsdelivr.net/npm/me-agent-sdk@1.0.0/dist/me-agent-sdk.min.js`                                       |
 
 ### Load Order (Important!)
 
