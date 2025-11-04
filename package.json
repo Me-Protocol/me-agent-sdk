@@ -1,5 +1,5 @@
 {
-  "name": "me-agent-sdk",
+  "name": "@codemobii/me-agent-sdk",
   "version": "1.0.0",
   "description": "AI Chatbot SDK - Embeddable chatbot widget for any website",
   "type": "module",
