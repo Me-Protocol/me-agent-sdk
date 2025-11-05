@@ -1102,7 +1102,18 @@ export class DetailPanelController {
       '[data-action="retry-redemption"]'
     );
     retryBtn?.addEventListener("click", () => {
-      this.handleRedemption();
+      // If we already have user balances and selected reward, go back to review step
+      // Otherwise, restart the entire redemption flow
+      if (
+        this.userBalances.length > 0 &&
+        this.selectedReward &&
+        this.currentOfferDetail
+      ) {
+        this.showRedemptionReview();
+        this.calculateAndUpdateSwapAmount();
+      } else {
+        this.handleRedemption();
+      }
     });
   }
 

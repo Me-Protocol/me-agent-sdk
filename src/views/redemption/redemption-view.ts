@@ -307,7 +307,7 @@ export class RedemptionView {
           <div class="me-agent-error-icon">✕</div>
           <h3>Redemption Failed</h3>
           <p>${error}</p>
-          <button class="me-agent-try-again-btn">Try Again</button>
+          <button class="me-agent-try-again-btn" data-action="retry-redemption">Try Again</button>
         </div>
       </div>
     `;
