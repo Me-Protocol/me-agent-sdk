@@ -26,37 +26,42 @@
         <section class="demo-section">
           <h3>Features</h3>
           <ul>
-            <li>✨ Easy integration with CDN</li>
+            <li>✨ Single script tag - no dependencies required</li>
             <li>💬 AI-powered chat assistant</li>
             <li>🎨 Beautiful, modern UI</li>
             <li>🔒 Secure authentication with Magic Link</li>
             <li>🎁 Complete blockchain redemption flow</li>
             <li>🛍️ Same-brand & cross-brand reward swaps</li>
             <li>📱 Fully responsive design</li>
-            <li>⚡ Lightweight (~354KB minified)</li>
+            <li>⚡ Standalone bundle (~1.7MB, includes all dependencies)</li>
           </ul>
         </section>
 
         <section class="demo-section">
-          <h3>🔗 Dependencies</h3>
+          <h3>🔗 Bundled Dependencies</h3>
           <p>
-            This demo includes full redemption functionality powered by
-            blockchain. The following dependencies are loaded:
+            This SDK is a standalone bundle built with Webpack that includes all
+            necessary blockchain dependencies:
           </p>
           <ul style="list-style-type: none; padding-left: 0">
             <li>
-              ✅ <strong>ethers.js</strong> - Blockchain wallet interactions
+              ✅ <strong>ethers.js v5.7.2</strong> - Blockchain wallet
+              interactions
             </li>
             <li>
-              ✅ <strong>Runtime SDK</strong> - ME Protocol redemption logic
+              ✅ <strong>web3 v1.10.0</strong> - Web3 provider for Magic wallet
             </li>
             <li>
-              ✅ <strong>Protocol Core</strong> - Token swaps & relay operations
+              ✅ <strong>Runtime SDK v0.11.8</strong> - ME Protocol redemption
+              logic
             </li>
+            <li>
+              ✅ <strong>Protocol Core v0.10.55</strong> - Token swaps & relay
+            </li>
+            <li>✅ <strong>Gelato Relay SDK</strong> - Gasless transactions</li>
           </ul>
           <p style="margin-top: 1rem; font-size: 0.9rem; color: #666">
-            Without these, chat and browsing still work, but redemption features
-            will be disabled.
+            Everything works out of the box - just load one script!
           </p>
         </section>
 
@@ -89,13 +94,10 @@
 
         <section class="demo-section">
           <h3>Quick Start</h3>
-          <p>Add the SDK to your HTML page with blockchain dependencies:</p>
-          <pre><code>&lt;!-- Load blockchain dependencies (required for redemption) --&gt;
-&lt;script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"&gt;&lt;/script&gt;
-&lt;script src="https://cdn.jsdelivr.net/npm/@developeruche/runtime-sdk@0.11.7-development/dist/browser/runtime-sdk.umd.min.js"&gt;&lt;/script&gt;
-&lt;script src="https://cdn.jsdelivr.net/npm/@developeruche/protocol-core@0.10.55-ethers5/dist/index.global.js"&gt;&lt;/script&gt;
-
-&lt;!-- Load the SDK from npm --&gt;
+          <p>
+            Add the SDK to your HTML page (standalone - no dependencies needed):
+          </p>
+          <pre><code>&lt;!-- Load the SDK from npm CDN --&gt;
 &lt;script src="https://cdn.jsdelivr.net/npm/me-agent-sdk/dist/me-agent-sdk.min.js"&gt;&lt;/script&gt;
 
 &lt;!-- Initialize --&gt;
@@ -111,8 +113,8 @@
   });
 &lt;/script&gt;</code></pre>
           <p style="margin-top: 1rem; font-size: 0.9rem; color: #666">
-            <strong>Note:</strong> Dependencies must be loaded in this exact
-            order for redemption features to work.
+            <strong>That's it!</strong> The SDK includes all blockchain
+            dependencies bundled with Webpack.
           </p>
         </section>
       </main>
@@ -130,12 +132,7 @@
       </footer>
     </div>
 
-    <!-- Load blockchain dependencies (required for redemption) -->
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@developeruche/runtime-sdk@0.11.7-development/dist/browser/runtime-sdk.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@developeruche/protocol-core@0.10.55-ethers5/dist/index.global.js"></script>
-
-    <!-- Load the SDK from npm via jsDelivr -->
+    <!-- Load the standalone SDK (Webpack bundle - includes all dependencies) -->
     <script src="https://cdn.jsdelivr.net/npm/me-agent-sdk/dist/me-agent-sdk.min.js"></script>
 
     <!-- Initialize the SDK -->

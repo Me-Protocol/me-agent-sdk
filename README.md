@@ -9,31 +9,31 @@ AI-powered chatbot widget that can be embedded on any website. Built with TypeSc
 
 ## Features
 
-- 🚀 **Easy Integration**: Single script tag integration
+- 🚀 **Easy Integration**: Single script tag integration - no dependencies required
 - 💬 **AI-Powered Chat**: Real-time streaming responses with offer recommendations
 - 🎨 **Modern UI**: Beautiful, customizable interface with smooth animations
 - 📱 **Fully Responsive**: Works perfectly on desktop and mobile
 - 🔧 **Configurable**: Customize position, environment, network and more
 - 🔐 **Magic Link Authentication**: Built-in wallet authentication for blockchain redemption
-- ⚡ **Lightweight**: Small bundle size (~354KB minified) with external dependencies for blockchain features
+- ⚡ **Standalone Bundle**: All dependencies included (~1.7MB minified, includes ethers, web3, runtime-sdk, protocol-core)
 - 🛍️ **Smart Redemption**: Same-brand and cross-brand reward token swapping
 - 🎯 **Product Discovery**: AI-powered offer search, category browsing, and brand exploration
 
 ## Installation
 
-### Basic Setup (Chat & Offers)
+### CDN Usage (Recommended)
 
-For basic functionality including AI chat and offer browsing:
+The SDK is a standalone bundle with all blockchain dependencies included. Just load one script:
 
 ```html
-<!-- Load SDK from npm -->
+<!-- Load SDK from npm CDN -->
 <script src="https://cdn.jsdelivr.net/npm/me-agent-sdk/dist/me-agent-sdk.min.js"></script>
 
 <!-- Initialize -->
 <script>
   window.addEventListener("DOMContentLoaded", async () => {
     await MeAgent.init({
-      emailAddress: "user@example.com", // optional
+      emailAddress: "user@example.com", // optional (required for redemption)
       brandId: "your-brand-id", // optional
       userId: "user-123", // optional
       position: "bottom-right", // optional: 'bottom-right' or 'bottom-left'
@@ -45,36 +45,6 @@ For basic functionality including AI chat and offer browsing:
 ```
 
 **Global Variable:** The SDK exposes `window.MeAgent` for browser usage.
-
-### Full Setup (with Redemption)
-
-For complete functionality including blockchain redemption, load the required dependencies first:
-
-```html
-<!-- Load blockchain dependencies (required for redemption) -->
-<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@developeruche/runtime-sdk@0.11.7-development/dist/browser/runtime-sdk.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@developeruche/protocol-core@0.10.55-ethers5/dist/index.global.js"></script>
-
-<!-- Load SDK from npm -->
-<script src="https://cdn.jsdelivr.net/npm/me-agent-sdk/dist/me-agent-sdk.min.js"></script>
-
-<!-- Initialize -->
-<script>
-  window.addEventListener("DOMContentLoaded", async () => {
-    await MeAgent.init({
-      emailAddress: "user@example.com", // required for redemption
-      brandId: "your-brand-id",
-      userId: "user-123",
-      position: "bottom-right",
-      environment: MeAgent.Environment.DEV,
-      network: MeAgent.Network.SEPOLIA,
-    });
-  });
-</script>
-```
-
-**Important:** The dependencies must be loaded in this exact order for redemption to work correctly.
 
 **CDN Options:**
 
@@ -97,7 +67,7 @@ For complete functionality including blockchain redemption, load the required de
 npm install me-agent-sdk
 ```
 
-**Basic usage:**
+**Usage:**
 
 ```javascript
 import MeAgent, { Environment, SupportedNetwork } from "me-agent-sdk";
@@ -112,42 +82,15 @@ MeAgent.init({
 });
 ```
 
-**With redemption (install additional dependencies):**
+**Note:** The npm package is built with Webpack and includes all blockchain dependencies bundled together:
 
-```bash
-npm install ethers@5.7.2 @developeruche/runtime-sdk@0.11.7-development @developeruche/protocol-core@0.10.55-ethers5
-```
+- ethers.js v5.7.2
+- web3 v1.10.0
+- @developeruche/runtime-sdk v0.11.8
+- @developeruche/protocol-core v0.10.55
+- @gelatonetwork/relay-sdk
 
-### External Dependencies
-
-The SDK uses external dependencies for blockchain redemption to keep the bundle size small:
-
-- **ethers.js v5.7.2** - Blockchain transactions and wallet interactions
-- **@developeruche/runtime-sdk** - ME Protocol runtime for reward redemption logic
-- **@developeruche/protocol-core** - ME Protocol core for token swaps and relay operations
-
-**CDN Links:**
-
-```html
-<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@developeruche/runtime-sdk@0.11.7-development/dist/browser/runtime-sdk.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@developeruche/protocol-core@0.10.55-ethers5/dist/index.global.js"></script>
-```
-
-**What works without dependencies:**
-
-- ✅ AI Chat
-- ✅ Offer browsing and search
-- ✅ Category exploration
-- ✅ Brand discovery
-- ✅ Offer detail viewing
-
-**What requires all dependencies:**
-
-- ❌ Offer redemption (blockchain transactions)
-- ❌ Reward token swaps
-- ❌ Wallet authentication and management
-- ❌ Coupon code generation via blockchain
+No additional packages needed - everything works out of the box!
 
 ## Configuration Options
 
@@ -260,26 +203,13 @@ The SDK integrates with ME Protocol for:
 
 If redemption features aren't working, verify:
 
-1. **All dependencies are loaded in the correct order:**
+1. **SDK is properly loaded:**
 
    ```html
-   <!-- 1. ethers.js first -->
-   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-   <!-- 2. Runtime SDK -->
-   <script src="https://cdn.jsdelivr.net/npm/@developeruche/runtime-sdk@0.11.7-development/dist/browser/runtime-sdk.umd.min.js"></script>
-   <!-- 3. Protocol Core -->
-   <script src="https://cdn.jsdelivr.net/npm/@developeruche/protocol-core@0.10.55-ethers5/dist/index.global.js"></script>
-   <!-- 4. ME Agent SDK last -->
-   <script src="...me-agent-sdk.min.js"></script>
+   <script src="https://cdn.jsdelivr.net/npm/me-agent-sdk/dist/me-agent-sdk.min.js"></script>
    ```
 
-2. **Check browser console for errors:**
-
-   - `RuntimeSDK is not defined` - Runtime SDK not loaded or loaded after ME Agent SDK
-   - `ProtocolCore is not defined` - Protocol Core not loaded or loaded after ME Agent SDK
-   - `ethers is not defined` - ethers.js not loaded
-
-3. **Email address is provided:**
+2. **Email address is provided:**
 
    ```javascript
    MeAgent.init({
@@ -288,16 +218,18 @@ If redemption features aren't working, verify:
    });
    ```
 
-4. **Using supported browser** - See Browser Support section below
+3. **Using supported browser** - See Browser Support section below
+
+4. **Check browser console for errors** - Look for authentication or network errors
 
 ### CDN Loading Issues
 
-If dependencies fail to load from CDN:
+If the SDK fails to load from CDN:
 
 - Check your internet connection
 - Verify firewall/proxy settings aren't blocking cdn.jsdelivr.net
-- Check browser console for specific CDN errors
-- Try using specific versions instead of `@latest`
+- Try using unpkg as an alternative: `https://unpkg.com/me-agent-sdk/dist/me-agent-sdk.min.js`
+- Use a specific version instead of `@latest`
 
 ## Browser Support
 
@@ -336,22 +268,17 @@ npm run serve
 npm run dev:full
 ```
 
-### External Dependencies
+### Bundled Dependencies
 
-The SDK externalizes these blockchain libraries to reduce bundle size:
+The SDK is built with Webpack and includes these blockchain libraries:
 
 - `ethers` v5.7.2 - Blockchain interactions and wallet management
-- `@developeruche/runtime-sdk` v0.11.7-development - ME Protocol runtime for redemption logic
-- `@developeruche/protocol-core` v0.10.55-ethers5 - ME Protocol core for token swaps and relay
+- `web3` v1.10.0 - Web3 provider for Magic wallet
+- `@developeruche/runtime-sdk` v0.11.8 - ME Protocol runtime for redemption logic
+- `@developeruche/protocol-core` v0.10.55 - ME Protocol core for token swaps and relay
+- `@gelatonetwork/relay-sdk` - Gelato relay for gasless transactions
 
-**For CDN usage:**
-Load these scripts before the SDK (see [Full Setup](#full-setup-with-redemption) section).
-
-**For npm usage:**
-
-```bash
-npm install ethers@5.7.2 @developeruche/runtime-sdk@0.11.7-development @developeruche/protocol-core@0.10.55-ethers5
-```
+Everything is bundled together - no external dependencies needed!
 
 ### Project Structure
 
@@ -391,12 +318,7 @@ For detailed architecture information, see [ARCHITECTURE_GUIDE.md](./ARCHITECTUR
   <body>
     <!-- Your website content -->
 
-    <!-- Load blockchain dependencies (in this order) -->
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@developeruche/runtime-sdk@0.11.7-development/dist/browser/runtime-sdk.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@developeruche/protocol-core@0.10.55-ethers5/dist/index.global.js"></script>
-
-    <!-- Load ME Agent SDK from npm -->
+    <!-- Load ME Agent SDK (standalone - includes all dependencies) -->
     <script src="https://cdn.jsdelivr.net/npm/me-agent-sdk/dist/me-agent-sdk.min.js"></script>
 
     <!-- Initialize SDK -->
@@ -416,25 +338,13 @@ For detailed architecture information, see [ARCHITECTURE_GUIDE.md](./ARCHITECTUR
 </html>
 ```
 
-### Dependency URLs
+### CDN URLs
 
-| Package       | Version            | CDN URL                                                                                                          |
-| ------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------- |
-| ethers.js     | 5.7.2              | `https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js`                                               |
-| Runtime SDK   | 0.11.7-development | `https://cdn.jsdelivr.net/npm/@developeruche/runtime-sdk@0.11.7-development/dist/browser/runtime-sdk.umd.min.js` |
-| Protocol Core | 0.10.55-ethers5    | `https://cdn.jsdelivr.net/npm/@developeruche/protocol-core@0.10.55-ethers5/dist/index.global.js`                 |
-| ME Agent SDK  | latest             | `https://cdn.jsdelivr.net/npm/me-agent-sdk/dist/me-agent-sdk.min.js`                                             |
-| ME Agent SDK  | 1.0.0              | `https://cdn.jsdelivr.net/npm/me-agent-sdk@1.0.0/dist/me-agent-sdk.min.js`                                       |
-
-### Load Order (Important!)
-
-```
-1. ethers.js          ← Must be first
-2. Runtime SDK        ← Second
-3. Protocol Core      ← Third
-4. ME Agent SDK       ← Last
-5. Your init code     ← After all scripts loaded
-```
+| Package      | Version | CDN URL                                                                    |
+| ------------ | ------- | -------------------------------------------------------------------------- |
+| ME Agent SDK | latest  | `https://cdn.jsdelivr.net/npm/me-agent-sdk/dist/me-agent-sdk.min.js`       |
+| ME Agent SDK | 1.0.0   | `https://cdn.jsdelivr.net/npm/me-agent-sdk@1.0.0/dist/me-agent-sdk.min.js` |
+| unpkg (alt)  | latest  | `https://unpkg.com/me-agent-sdk/dist/me-agent-sdk.min.js`                  |
 
 ## License
 
