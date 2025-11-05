@@ -2360,49 +2360,68 @@ export const styles = `
   .me-agent-step-indicator {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     margin-bottom: 60px;
     width: 100%;
+    position: relative;
+    padding: 0px;
   }
 
   .me-agent-step-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
     position: relative;
+    z-index: 2;
+    flex: 0 0 auto;
   }
 
   .me-agent-step-circle {
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
-    border: 2px solid #D1D5DB;
-    background: white;
+    border: 2px solid #E5E7EB;
+    background: #F9FAFB;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
-    z-index: 1;
+    position: relative;
   }
 
-  .me-agent-step-circle.active {
-    background: white;
+  .me-agent-step-item.active .me-agent-step-circle {
+    background: #0F0F0F;
     border-color: #0F0F0F;
   }
 
-  .me-agent-step-circle.completed {
-    background: #10B981;
-    border-color: #10B981;
+  .me-agent-step-item.completed .me-agent-step-circle {
+    background: #0F0F0F;
+    border-color: #0F0F0F;
+  }
+
+  .me-agent-step-item.completed .me-agent-step-circle::after {
+    content: '';
+    width: 25px;
+    height: 25px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
   }
 
   .me-agent-step-label {
     font-size: 14px;
     color: #9CA3AF;
     font-weight: 400;
+    white-space: nowrap;
   }
 
-  .me-agent-step-label.active {
+  .me-agent-step-item.active .me-agent-step-label {
+    color: #0F0F0F;
+    font-weight: 600;
+  }
+
+  .me-agent-step-item.completed .me-agent-step-label {
     color: #0F0F0F;
     font-weight: 500;
   }
@@ -2411,7 +2430,13 @@ export const styles = `
     flex: 1;
     height: 2px;
     background: #E5E7EB;
-    margin: 0 12px 24px 12px;
+    margin: 0 16px;
+    margin-bottom: 32px;
+    position: relative;
+  }
+
+  .me-agent-step-line.completed {
+    background: #0F0F0F;
   }
 
   .me-agent-redemption-content {
@@ -2669,7 +2694,7 @@ export const styles = `
     width: 64px;
     height: 64px;
     border-radius: 50%;
-    background: #4CAF50;
+    background: #0F0F0F;
     color: white;
     display: flex;
     align-items: center;
@@ -2746,7 +2771,7 @@ export const styles = `
   .me-agent-use-coupon-btn {
     width: 100%;
     padding: 16px;
-    background: #4CAF50;
+    background: #0F0F0F;
     color: white;
     border: none;
     border-radius: 12px;
@@ -2757,7 +2782,8 @@ export const styles = `
   }
 
   .me-agent-use-coupon-btn:hover {
-    background: #45A049;
+    background: #0F0F0F;
+    opacity: 0.8;
   }
 
   .me-agent-error-state {

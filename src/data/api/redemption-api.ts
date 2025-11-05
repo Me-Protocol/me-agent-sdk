@@ -44,7 +44,7 @@ export class RedemptionAPI extends BaseAPI {
   ): Promise<ProcessOrderResponse> {
     try {
       const result = await this.post<{ data: ProcessOrderResponse }>(
-        `${this.env.API_URL}orders/sdk/process-order`,
+        `${this.env.API_URL}orders/process-order`,
         payload,
         { "x-access-token": token }
       );
@@ -78,20 +78,14 @@ export class RedemptionAPI extends BaseAPI {
   /**
    * Refund task if transaction fails
    */
-  async refundTask(
-    payload: RefundTaskPayload,
-    token: string
-  ): Promise<void> {
+  async refundTask(payload: RefundTaskPayload, token: string): Promise<void> {
     try {
-      await this.post(
-        `${this.env.API_URL}runtime/refund-task`,
-        payload,
-        { "x-access-token": token }
-      );
+      await this.post(`${this.env.API_URL}runtime/refund-task`, payload, {
+        "x-access-token": token,
+      });
     } catch (error) {
       console.error("Error refunding task:", error);
       throw error;
     }
   }
 }
-

@@ -99,9 +99,9 @@ export class RedemptionView {
         </div>
 
         <div class="me-agent-step-indicator">
-          <div class="me-agent-step-item">
-            <div class="me-agent-step-circle active"></div>
-            <div class="me-agent-step-label active">Review</div>
+          <div class="me-agent-step-item active completed">
+            <div class="me-agent-step-circle"></div>
+            <div class="me-agent-step-label">Review</div>
           </div>
           <div class="me-agent-step-line"></div>
           <div class="me-agent-step-item">
@@ -217,11 +217,20 @@ export class RedemptionView {
     return `
       <div class="me-agent-redemption-container">
         <div class="me-agent-step-indicator">
-          <div class="me-agent-step completed">Review</div>
+          <div class="me-agent-step-item completed">
+            <div class="me-agent-step-circle"></div>
+            <div class="me-agent-step-label">Review</div>
+          </div>
+          <div class="me-agent-step-line completed"></div>
+          <div class="me-agent-step-item active completed">
+            <div class="me-agent-step-circle"></div>
+            <div class="me-agent-step-label">Processing</div>
+          </div>
           <div class="me-agent-step-line"></div>
-          <div class="me-agent-step active">Processing</div>
-          <div class="me-agent-step-line"></div>
-          <div class="me-agent-step">Complete</div>
+          <div class="me-agent-step-item">
+            <div class="me-agent-step-circle"></div>
+            <div class="me-agent-step-label">Complete</div>
+          </div>
         </div>
 
         <div class="me-agent-redemption-content">
@@ -242,11 +251,20 @@ export class RedemptionView {
     return `
       <div class="me-agent-redemption-container">
         <div class="me-agent-step-indicator">
-          <div class="me-agent-step completed">Review</div>
-          <div class="me-agent-step-line"></div>
-          <div class="me-agent-step completed">Processing</div>
-          <div class="me-agent-step-line"></div>
-          <div class="me-agent-step active">Complete</div>
+          <div class="me-agent-step-item completed">
+            <div class="me-agent-step-circle"></div>
+            <div class="me-agent-step-label">Review</div>
+          </div>
+          <div class="me-agent-step-line completed"></div>
+          <div class="me-agent-step-item completed">
+            <div class="me-agent-step-circle"></div>
+            <div class="me-agent-step-label">Processing</div>
+          </div>
+          <div class="me-agent-step-line completed"></div>
+          <div class="me-agent-step-item active completed">
+            <div class="me-agent-step-circle"></div>
+            <div class="me-agent-step-label">Complete</div>
+          </div>
         </div>
 
         <div class="me-agent-redemption-content">
@@ -271,7 +289,7 @@ export class RedemptionView {
             </div>
           </div>
 
-          <button class="me-agent-use-coupon-btn" data-order-id="${order.id}">
+          <button class="me-agent-use-coupon-btn">
             Use Coupon
           </button>
         </div>

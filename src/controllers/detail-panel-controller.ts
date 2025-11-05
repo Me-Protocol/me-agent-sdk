@@ -1013,40 +1013,83 @@ export class DetailPanelController {
    */
   private attachRedemptionCompleteListeners(order: any): void {
     // Copy coupon button
-    const copyBtn = this.content.querySelector('[data-action="copy-coupon"]');
-    copyBtn?.addEventListener("click", () => {
-      const couponCode = copyBtn.getAttribute("data-coupon-code");
+    const copyBtn = this.content.querySelector(".me-agent-copy-coupon-btn");
+    copyBtn?.addEventListener("click", async () => {
+      const couponCode = copyBtn.getAttribute("data-code");
       if (couponCode) {
-        navigator.clipboard.writeText(couponCode);
-        copyBtn.textContent = "Copied!";
-        setTimeout(() => {
-          copyBtn.textContent = "Copy";
-        }, 2000);
+        try {
+          await navigator.clipboard.writeText(couponCode);
+          copyBtn.textContent = "Copied!";
+          setTimeout(() => {
+            copyBtn.textContent = "Copy";
+          }, 2000);
+        } catch (error) {
+          console.error("Failed to copy:", error);
+          // Fallback for older browsers
+          const textArea = document.createElement("textarea");
+          textArea.value = couponCode;
+          textArea.style.position = "fixed";
+          textArea.style.left = "-999999px";
+          document.body.appendChild(textArea);
+          textArea.select();
+          try {
+            document.execCommand("copy");
+            copyBtn.textContent = "Copied!";
+            setTimeout(() => {
+              copyBtn.textContent = "Copy";
+            }, 2000);
+          } catch (err) {
+            console.error("Fallback copy failed:", err);
+          }
+          document.body.removeChild(textArea);
+        }
       }
     });
 
     // Use coupon button
-    const useCouponBtn = this.content.querySelector(
-      '[data-action="use-coupon"]'
-    );
+    const useCouponBtn = this.content.querySelector(".me-agent-use-coupon-btn");
     useCouponBtn?.addEventListener("click", async () => {
       try {
-        if (!this.currentOfferDetail) return;
+        if (!this.currentOfferDetail) {
+          alert("Offer details not available.");
+          return;
+        }
 
+        // Show loading state
+        const originalText = useCouponBtn.textContent;
+        useCouponBtn.textContent = "Generating checkout...";
+        (useCouponBtn as HTMLButtonElement).disabled = true;
+
+        // Get the variant that was redeemed
         const variant =
           this.selectedVariant || this.currentOfferDetail.offerVariants?.[0];
+
+        if (!variant?.variant?.variantIdOnBrandSite) {
+          throw new Error("Product variant ID not available");
+        }
+
         const checkoutUrl = await this.redemptionService.getCheckoutUrl(
           this.currentOfferDetail.brand.id,
-          variant?.variant?.id || "" // Use variant ID as the product variant ID
+          variant.variant.variantIdOnBrandSite
         );
 
         // Open checkout in new tab
         window.open(checkoutUrl, "_blank");
+
+        // Reset button state
+        useCouponBtn.textContent = originalText;
+        (useCouponBtn as HTMLButtonElement).disabled = false;
       } catch (error) {
         console.error("Error getting checkout URL:", error);
         alert(
-          "Failed to generate checkout URL. Please use the coupon code manually."
+          error instanceof Error
+            ? error.message
+            : "Failed to generate checkout URL. Please use the coupon code manually."
         );
+
+        // Reset button state
+        useCouponBtn.textContent = "Use Coupon";
+        (useCouponBtn as HTMLButtonElement).disabled = false;
       }
     });
   }

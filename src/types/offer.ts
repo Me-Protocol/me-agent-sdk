@@ -57,6 +57,7 @@ export interface OfferVariant {
     price: string;
     description: string | null;
     inventory: number;
+    variantIdOnBrandSite: string;
     productImages: Array<{
       url: string;
     }>;
