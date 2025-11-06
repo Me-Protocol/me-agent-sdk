@@ -4,6 +4,18 @@ import { OfferDetail } from "./offer";
 /**
  * SDK Configuration options
  */
+/**
+ * Cart item structure
+ */
+export interface CartItem {
+  /** Offer code/ID */
+  offerCode: string;
+  /** Variant ID (if applicable) */
+  variantId?: string;
+  /** Quantity */
+  quantity?: number;
+}
+
 export interface MeAgentConfig {
   /** User email address (optional) */
   emailAddress?: string;
@@ -18,13 +30,23 @@ export interface MeAgentConfig {
   /** Network to use - defaults to 'sepolia' */
   network?: SupportedNetwork;
   /** Callback when user clicks "Add to Cart" on offer details (optional) */
-  onAddToCart?: (offer: OfferDetail) => void;
+  onAddToCart?: (
+    offer: OfferDetail,
+    variantId?: string
+  ) => void | Promise<void>;
+  /** Callback when user clicks "Remove from Cart" on offer details (optional) */
+  onRemoveFromCart?: (
+    offerCode: string,
+    variantId?: string
+  ) => void | Promise<void>;
   /** Callback when user clicks share button on offer details (optional) */
   onShare?: (offer: OfferDetail) => void;
   /** Callback when user clicks like/unlike button on offer details (optional) */
   onLikeUnlike?: (offer: OfferDetail, isLiked: boolean) => void;
   /** Initial liked state for offers - map of offer IDs to liked status (optional) */
   likedOffers?: Record<string, boolean>;
+  /** Cart items - array of items currently in cart (optional) */
+  cartItems?: CartItem[];
   /** Enable dev mode shortcuts (defaults to false) */
   devMode?: boolean;
 }

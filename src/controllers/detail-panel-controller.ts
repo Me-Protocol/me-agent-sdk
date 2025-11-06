@@ -315,11 +315,18 @@ export class DetailPanelController {
       this.currentOfferDetail = detail;
       this.selectedVariant = detail.offerVariants?.[0] || null;
 
+      // Check if offer is in cart
+      const isInCart = this.isOfferInCart(
+        detail.offerCode,
+        this.selectedVariant?.variant?.id
+      );
+
       // Render offer detail
       this.content.innerHTML = this.offerDetailView.render(
         detail,
         this.selectedVariant,
-        this.config
+        this.config,
+        isInCart
       );
 
       this.currentView = "offer-detail";
@@ -617,6 +624,23 @@ export class DetailPanelController {
   }
 
   /**
+   * Check if an offer is in cart
+   */
+  private isOfferInCart(offerCode: string, variantId?: string): boolean {
+    if (!this.config.cartItems) return false;
+
+    return this.config.cartItems.some((item) => {
+      if (item.offerCode !== offerCode) return false;
+      // If variantId is specified, check if it matches
+      if (variantId) {
+        return item.variantId === variantId;
+      }
+      // If no variantId, just match by offer code
+      return true;
+    });
+  }
+
+  /**
    * Attach action button listeners (like, share, add to cart)
    */
   private attachActionListeners(): void {
@@ -649,9 +673,33 @@ export class DetailPanelController {
       }
     });
 
-    cartBtn?.addEventListener("click", () => {
-      if (this.currentOfferDetail && this.config.onAddToCart) {
-        this.config.onAddToCart(this.currentOfferDetail);
+    cartBtn?.addEventListener("click", async () => {
+      if (!this.currentOfferDetail) return;
+
+      const isInCart = cartBtn.getAttribute("data-in-cart") === "true";
+      const variantId = this.selectedVariant?.variant?.id;
+
+      if (isInCart) {
+        // Remove from cart
+        if (this.config.onRemoveFromCart) {
+          await this.config.onRemoveFromCart(
+            this.currentOfferDetail.offerCode,
+            variantId
+          );
+          // Update button state
+          cartBtn.setAttribute("data-in-cart", "false");
+          cartBtn.querySelector(".me-agent-action-label")!.textContent =
+            "Add to Cart";
+        }
+      } else {
+        // Add to cart
+        if (this.config.onAddToCart) {
+          await this.config.onAddToCart(this.currentOfferDetail, variantId);
+          // Update button state
+          cartBtn.setAttribute("data-in-cart", "true");
+          cartBtn.querySelector(".me-agent-action-label")!.textContent =
+            "Remove from Cart";
+        }
       }
     });
   }

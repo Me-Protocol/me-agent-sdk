@@ -1248,6 +1248,8 @@ export const styles = `
     background-position: center;
     background-color: #f3f4f6;
     border-radius: 12px;
+    object-fit: cover;
+    object-position: center;
   }
 
   .me-agent-carousel-image.active {

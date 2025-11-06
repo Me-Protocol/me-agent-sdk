@@ -92,4 +92,9 @@ if (typeof window !== "undefined") {
 
 export default MeAgent;
 export { MeAgentSDK } from "./sdk";
-export { MeAgentConfig, SupportedNetwork, Environment } from "./types";
+export {
+  MeAgentConfig,
+  CartItem,
+  SupportedNetwork,
+  Environment,
+} from "./types";

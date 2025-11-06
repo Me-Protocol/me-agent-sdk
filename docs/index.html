@@ -172,6 +172,9 @@ MeAgent.toggle();</code></pre>
     <script>
       window.addEventListener("DOMContentLoaded", async () => {
         try {
+          // Demo cart state
+          let demoCart = [];
+
           await MeAgent.init({
             emailAddress: "colourjim+chillguy@gmail.com",
             brandId: "demo-brand",
@@ -179,11 +182,29 @@ MeAgent.toggle();</code></pre>
             position: "bottom-right",
             environment: MeAgent.Environment.DEV,
             network: MeAgent.Network.SEPOLIA,
-            // Optional callbacks for demo
-            onAddToCart: (offer) => {
-              console.log("Add to cart clicked:", offer);
+            // Optional cart callbacks
+            onAddToCart: async (offer, variantId) => {
+              console.log("Adding to cart:", offer, "variant:", variantId);
+              demoCart.push({ offerCode: offer.offerCode, variantId });
               alert(`Added "${offer.name}" to cart!`);
             },
+            onRemoveFromCart: async (offerCode, variantId) => {
+              console.log(
+                "Removing from cart:",
+                offerCode,
+                "variant:",
+                variantId
+              );
+              demoCart = demoCart.filter(
+                (item) =>
+                  !(
+                    item.offerCode === offerCode && item.variantId === variantId
+                  )
+              );
+              alert("Removed from cart!");
+            },
+            cartItems: demoCart,
+            // Optional social callbacks
             onShare: (offer) => {
               console.log("Share clicked:", offer);
               if (navigator.share) {

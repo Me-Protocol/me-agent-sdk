@@ -23,7 +23,8 @@ export class OfferDetailView {
   render(
     detail: OfferDetail,
     selectedVariant: OfferVariant | null,
-    config: { likedOffers?: Record<string, boolean> }
+    config: { likedOffers?: Record<string, boolean> },
+    isInCart: boolean = false
   ): string {
     const currentVariant = selectedVariant || detail.offerVariants?.[0] || null;
     const variantData = currentVariant?.variant;
@@ -40,7 +41,7 @@ export class OfferDetailView {
         )}
         ${this.renderTabs(detail)}
       </div>
-      ${this.renderActions(detail, config.likedOffers?.[detail.id])}
+      ${this.renderActions(detail, config.likedOffers?.[detail.id], isInCart)}
     `;
   }
 
@@ -362,7 +363,11 @@ export class OfferDetailView {
   /**
    * Render action buttons
    */
-  private renderActions(detail: OfferDetail, isLiked: boolean = false): string {
+  private renderActions(
+    detail: OfferDetail,
+    isLiked: boolean = false,
+    isInCart: boolean = false
+  ): string {
     return `
       <div class="me-agent-detail-bottom-actions">
         <div class="me-agent-detail-bottom-actions-content">
@@ -372,8 +377,8 @@ export class OfferDetailView {
               Redeem Now
             </button>
             <div class="me-agent-secondary-actions">
-              <button class="me-agent-add-to-cart-button" data-action="add-to-cart">
-                Add To Cart
+              <button class="me-agent-add-to-cart-button" data-action="add-to-cart" data-in-cart="${isInCart}">
+                ${isInCart ? "Remove from Cart" : "Add to Cart"}
               </button>
               <button class="me-agent-action-button" data-action="like" data-liked="${isLiked}">
                 ${isLiked ? getHeartFilledIcon() : getHeartIcon()}
