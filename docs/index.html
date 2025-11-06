@@ -166,7 +166,10 @@ MeAgent.toggle();</code></pre>
     </div>
 
     <!-- Load the standalone SDK (Webpack bundle - includes all dependencies) -->
-    <script src="https://cdn.jsdelivr.net/npm/me-agent-sdk/dist/me-agent-sdk.min.js"></script>
+    <!-- For local development, use the local build -->
+    <script src="../dist/me-agent-sdk.min.js"></script>
+    <!-- For production, use CDN: -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/me-agent-sdk/dist/me-agent-sdk.min.js"></script> -->
 
     <!-- Initialize the SDK -->
     <script>

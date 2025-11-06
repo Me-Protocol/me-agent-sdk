@@ -401,9 +401,12 @@ For detailed architecture information, see [ARCHITECTURE_GUIDE.md](./ARCHITECTUR
 
 **Local Testing**:
 
-1. Run `npm run serve` to start a local server
-2. Open `http://localhost:5500` in your browser
-3. The example includes ethers.js via CDN for full redemption functionality
+1. Build the SDK: `npm run build`
+2. Run `npm run serve` to start a local server
+3. Open `http://localhost:5500` in your browser
+4. The example uses the local build from `dist/me-agent-sdk.min.js`
+
+**Note**: The `docs/index.html` and `example/index.html` files load the SDK from the local `dist/` folder for development. When deploying to production (GitHub Pages, CDN), update the script tag to use the CDN URL.
 
 ## Quick Reference
 
