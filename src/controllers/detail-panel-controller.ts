@@ -1085,10 +1085,18 @@ export class DetailPanelController {
           throw new Error("Product variant ID not available");
         }
 
-        const checkoutUrl = await this.redemptionService.getCheckoutUrl(
+        let checkoutUrl = await this.redemptionService.getCheckoutUrl(
           this.currentOfferDetail.brand.id,
           variant.variant.variantIdOnBrandSite
         );
+
+        // Ensure URL has protocol
+        if (
+          !checkoutUrl.startsWith("http://") &&
+          !checkoutUrl.startsWith("https://")
+        ) {
+          checkoutUrl = "https://" + checkoutUrl;
+        }
 
         // Open checkout in new tab
         window.open(checkoutUrl, "_blank");

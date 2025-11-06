@@ -53,7 +53,9 @@ export class BrandListView {
         </div>
         <div class="me-agent-brand-actions">
           <div class="me-agent-brand-reward-amount">
-            ${formatNumber(points)} <span class="me-agent-brand-reward-symbol">${rewardSymbol}</span>
+            ${formatNumber(
+              points
+            )} <span class="me-agent-brand-reward-symbol">${rewardSymbol}</span>
           </div>
           <a 
             href="${signupUrl}" 
@@ -73,8 +75,13 @@ export class BrandListView {
    * Build signup URL with callback
    */
   private buildSignupUrl(brand: Brand, origin: string): string {
-    const baseUrl = brand.shopifyStoreUrl || brand.websiteUrl || "";
+    let baseUrl = brand.shopifyStoreUrl || brand.websiteUrl || "";
     if (!baseUrl) return "#";
+
+    // Ensure URL has protocol
+    if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
+      baseUrl = "https://" + baseUrl;
+    }
 
     try {
       const url = new URL(baseUrl);

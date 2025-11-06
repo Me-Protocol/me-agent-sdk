@@ -12,10 +12,19 @@ export const styles = `
   /* Clash Display font - embedded */
   ${clashDisplayFonts}
 
-  /* Container for all SDK elements */
-  .me-agent-container * {
-    box-sizing: border-box;
+  /* Global Font Family - Apply Manrope to all SDK elements */
+  .me-agent-button,
+  .me-agent-button *,
+  .me-agent-chat,
+  .me-agent-chat *,
+  .me-agent-detail-panel,
+  .me-agent-detail-panel *,
+  .me-agent-bottom-sheet,
+  .me-agent-bottom-sheet * {
     font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    font-weight: 500 !important;
   }
 
   /* Floating Button */
@@ -872,7 +881,7 @@ export const styles = `
   }
 
   .me-agent-brand-name {
-    font-family: 'Clash Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: 'Clash Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
     font-size: 24px;
     font-weight: 500;
     color: #000000;
@@ -893,7 +902,7 @@ export const styles = `
   }
 
   .me-agent-brand-reward-amount {
-    font-family: 'Clash Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: 'Clash Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
     font-size: 24px;
     font-weight: 600;
     color: #000000;
@@ -1042,7 +1051,7 @@ export const styles = `
   }
 
   .me-agent-brand-offers-name {
-    font-family: 'Clash Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: 'Clash Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
     font-size: 24px;
     font-weight: 500;
     color: #000000;
@@ -2751,7 +2760,7 @@ export const styles = `
   .me-agent-coupon-code-text {
     font-size: 24px;
     font-weight: 700;
-    font-family: 'Courier New', monospace;
+    font-family: 'Courier New', monospace !important;
     color: #0F0F0F;
     letter-spacing: 2px;
   }
@@ -3125,7 +3134,7 @@ export const styles = `
     border: 1px solid #D4D4D4;
     border-radius: 6px;
     padding: 8px 12px;
-    font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+    font-family: 'SF Mono', 'Monaco', 'Courier New', monospace !important;
     font-size: 14px;
     font-weight: 600;
     color: #0F0F0F;
