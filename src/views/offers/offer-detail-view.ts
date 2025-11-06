@@ -23,7 +23,12 @@ export class OfferDetailView {
   render(
     detail: OfferDetail,
     selectedVariant: OfferVariant | null,
-    config: { likedOffers?: Record<string, boolean> },
+    config: {
+      likedOffers?: Record<string, boolean>;
+      onAddToCart?: Function;
+      onLikeUnlike?: Function;
+      onShare?: Function;
+    },
     isInCart: boolean = false
   ): string {
     const currentVariant = selectedVariant || detail.offerVariants?.[0] || null;
@@ -41,7 +46,12 @@ export class OfferDetailView {
         )}
         ${this.renderTabs(detail)}
       </div>
-      ${this.renderActions(detail, config.likedOffers?.[detail.id], isInCart)}
+      ${this.renderActions(
+        detail,
+        config.likedOffers?.[detail.id],
+        isInCart,
+        config
+      )}
     `;
   }
 
@@ -366,8 +376,16 @@ export class OfferDetailView {
   private renderActions(
     detail: OfferDetail,
     isLiked: boolean = false,
-    isInCart: boolean = false
+    isInCart: boolean = false,
+    config?: {
+      onAddToCart?: Function;
+      onLikeUnlike?: Function;
+      onShare?: Function;
+    }
   ): string {
+    const hasSecondaryActions =
+      config?.onAddToCart || config?.onLikeUnlike || config?.onShare;
+
     return `
       <div class="me-agent-detail-bottom-actions">
         <div class="me-agent-detail-bottom-actions-content">
@@ -376,17 +394,41 @@ export class OfferDetailView {
             <button class="me-agent-redeem-button" data-action="redeem">
               Redeem Now
             </button>
-            <div class="me-agent-secondary-actions">
-              <button class="me-agent-add-to-cart-button" data-action="add-to-cart" data-in-cart="${isInCart}">
-                ${isInCart ? "Remove from Cart" : "Add to Cart"}
-              </button>
-              <button class="me-agent-action-button" data-action="like" data-liked="${isLiked}">
-                ${isLiked ? getHeartFilledIcon() : getHeartIcon()}
-              </button>
-              <button class="me-agent-action-button" data-action="share">
-                ${getShareIcon()}
-              </button>
-            </div>
+            ${
+              hasSecondaryActions
+                ? `
+              <div class="me-agent-secondary-actions">
+                ${
+                  config?.onAddToCart
+                    ? `
+                  <button class="me-agent-add-to-cart-button" data-action="add-to-cart" data-in-cart="${isInCart}">
+                    ${isInCart ? "Remove from Cart" : "Add to Cart"}
+                  </button>
+                `
+                    : ""
+                }
+                ${
+                  config?.onLikeUnlike
+                    ? `
+                  <button class="me-agent-action-button" data-action="like" data-liked="${isLiked}">
+                    ${isLiked ? getHeartFilledIcon() : getHeartIcon()}
+                  </button>
+                `
+                    : ""
+                }
+                ${
+                  config?.onShare
+                    ? `
+                  <button class="me-agent-action-button" data-action="share">
+                    ${getShareIcon()}
+                  </button>
+                `
+                    : ""
+                }
+              </div>
+            `
+                : ""
+            }
           </div>
         </div>
       </div>

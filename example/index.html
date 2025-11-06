@@ -124,18 +124,98 @@
     <script>
       window.addEventListener("DOMContentLoaded", async () => {
         try {
+          // Demo cart state
+          let demoCart = [];
+
           await MeAgent.init({
             emailAddress: "colourjim+bosco@gmail.com",
             brandId: "demo-brand",
-            userId: "512bf2b0-4c75-4dff-b418-6ad58f882da5",
+            userId: "demo-user-001",
             position: "bottom-right",
             environment: MeAgent.Environment.DEV,
             network: MeAgent.Network.SEPOLIA,
             devMode: true,
+            // Optional cart callbacks
+            onAddToCart: async (offer, variantId) => {
+              console.log("Adding to cart:", offer, "variant:", variantId);
+              demoCart.push({ offerCode: offer.offerCode, variantId });
+
+              // Update SDK's cart state
+              MeAgent.updateCartItems(demoCart);
+
+              alert(`Added "${offer.name}" to cart!`);
+            },
+            onRemoveFromCart: async (offerCode, variantId) => {
+              console.log(
+                "Removing from cart:",
+                offerCode,
+                "variant:",
+                variantId
+              );
+              demoCart = demoCart.filter(
+                (item) =>
+                  !(
+                    item.offerCode === offerCode && item.variantId === variantId
+                  )
+              );
+
+              // Update SDK's cart state
+              MeAgent.updateCartItems(demoCart);
+
+              alert("Removed from cart!");
+            },
+            cartItems: demoCart,
+            // Optional social callbacks
+            onShare: (offer) => {
+              console.log("Share clicked:", offer);
+              if (navigator.share) {
+                navigator.share({
+                  title: offer.name,
+                  text: offer.description,
+                  url: window.location.href,
+                });
+              } else {
+                alert("Share: " + offer.name);
+              }
+            },
+            onLikeUnlike: (offer, isLiked) => {
+              console.log("Like/Unlike clicked:", offer, isLiked);
+
+              // Update liked state (for demo purposes, using a simple object)
+              if (!window.demoLikedOffers) {
+                window.demoLikedOffers = {};
+              }
+              window.demoLikedOffers[offer.id] = isLiked;
+
+              // Update SDK's liked state
+              MeAgent.updateLikedOffers(window.demoLikedOffers);
+
+              alert(`${isLiked ? "Liked" : "Unliked"}: ${offer.name}`);
+            },
+            likedOffers: {},
           });
           console.log("MeAgent SDK initialized successfully");
           console.log("Environment:", MeAgent.Environment.DEV);
           console.log("Network:", MeAgent.Network.SEPOLIA);
+
+          // Add event listeners for programmatic control buttons
+          document
+            .getElementById("openChatBtn")
+            ?.addEventListener("click", () => {
+              MeAgent.open();
+            });
+
+          document
+            .getElementById("closeChatBtn")
+            ?.addEventListener("click", () => {
+              MeAgent.close();
+            });
+
+          document
+            .getElementById("toggleChatBtn")
+            ?.addEventListener("click", () => {
+              MeAgent.toggle();
+            });
         } catch (error) {
           console.error("Failed to initialize MeAgent SDK:", error);
         }

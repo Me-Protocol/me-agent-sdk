@@ -21,7 +21,12 @@ import { BrandListView } from "../views/brands/brand-list-view";
 import { BrandOffersView } from "../views/brands/brand-offers-view";
 import { CategoryGridView } from "../views/categories/category-grid-view";
 import { RedemptionView } from "../views/redemption/redemption-view";
-import { getChevronLeftIcon, getCloseIcon } from "../views/shared/icons";
+import {
+  getChevronLeftIcon,
+  getCloseIcon,
+  getHeartIcon,
+  getHeartFilledIcon,
+} from "../views/shared/icons";
 import { BottomSheet } from "../views/components/bottom-sheet";
 
 /**
@@ -661,9 +666,9 @@ export class DetailPanelController {
         const isLiked = likeBtn.getAttribute("data-liked") === "true";
         this.config.onLikeUnlike(this.currentOfferDetail, !isLiked);
         likeBtn.setAttribute("data-liked", (!isLiked).toString());
-        likeBtn.querySelector(".me-agent-action-icon")!.textContent = !isLiked
-          ? "❤️"
-          : "♡";
+
+        // Update button icon
+        likeBtn.innerHTML = !isLiked ? getHeartFilledIcon() : getHeartIcon();
       }
     });
 
@@ -688,8 +693,7 @@ export class DetailPanelController {
           );
           // Update button state
           cartBtn.setAttribute("data-in-cart", "false");
-          cartBtn.querySelector(".me-agent-action-label")!.textContent =
-            "Add to Cart";
+          cartBtn.textContent = "Add to Cart";
         }
       } else {
         // Add to cart
@@ -697,8 +701,7 @@ export class DetailPanelController {
           await this.config.onAddToCart(this.currentOfferDetail, variantId);
           // Update button state
           cartBtn.setAttribute("data-in-cart", "true");
-          cartBtn.querySelector(".me-agent-action-label")!.textContent =
-            "Remove from Cart";
+          cartBtn.textContent = "Remove from Cart";
         }
       }
     });
@@ -1212,11 +1215,18 @@ export class DetailPanelController {
     if (variant) {
       this.selectedVariant = variant;
 
+      // Check if offer is in cart
+      const isInCart = this.isOfferInCart(
+        this.currentOfferDetail.offerCode,
+        variant.variant?.id
+      );
+
       // Re-render
       this.content.innerHTML = this.offerDetailView.render(
         this.currentOfferDetail,
         this.selectedVariant,
-        this.config
+        this.config,
+        isInCart
       );
       this.attachOfferDetailListeners();
     }
