@@ -165,6 +165,50 @@ export class MeAgentSDK {
   }
 
   /**
+   * Programmatically open the chat widget
+   * @public
+   */
+  open(): void {
+    if (!this.initialized) {
+      console.warn("MeAgent SDK: Cannot open chat before initialization");
+      return;
+    }
+    if (!this.isOpen) {
+      this.isOpen = true;
+      this.chat?.show();
+      this.button?.hide();
+    }
+  }
+
+  /**
+   * Programmatically close the chat widget
+   * @public
+   */
+  close(): void {
+    if (!this.initialized) {
+      console.warn("MeAgent SDK: Cannot close chat before initialization");
+      return;
+    }
+    if (this.isOpen) {
+      this.isOpen = false;
+      this.chat?.hide();
+      this.button?.show();
+    }
+  }
+
+  /**
+   * Programmatically toggle the chat widget
+   * @public
+   */
+  toggle(): void {
+    if (!this.initialized) {
+      console.warn("MeAgent SDK: Cannot toggle chat before initialization");
+      return;
+    }
+    this.toggleChat();
+  }
+
+  /**
    * Send a message
    */
   private async sendMessage(content: string): Promise<void> {

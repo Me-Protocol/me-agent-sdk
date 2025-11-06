@@ -67,6 +67,44 @@ function App() {
 export default App;
 ```
 
+## 🎮 Programmatic Control
+
+You can control the chat widget programmatically:
+
+```jsx
+const [sdkInstance, setSdkInstance] = useState(null);
+
+useEffect(() => {
+  const sdk = new MeAgentSDK({ ... });
+  await sdk.init();
+  setSdkInstance(sdk); // Store instance
+}, []);
+
+// Open the chat programmatically
+const handleOpenChat = () => {
+  sdkInstance.open();
+};
+
+// Close the chat
+const handleCloseChat = () => {
+  sdkInstance.close();
+};
+
+// Toggle the chat
+const handleToggleChat = () => {
+  sdkInstance.toggle();
+};
+```
+
+### Available Methods
+
+| Method | Description |
+|--------|-------------|
+| `sdk.open()` | Programmatically open the chat widget |
+| `sdk.close()` | Programmatically close the chat widget |
+| `sdk.toggle()` | Toggle the chat widget open/closed |
+| `sdk.destroy()` | Clean up and remove the SDK |
+
 ## ⚙️ Configuration Options
 
 | Option | Type | Required | Description |

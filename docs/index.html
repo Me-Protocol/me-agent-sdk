@@ -117,6 +117,39 @@
             dependencies bundled with Webpack.
           </p>
         </section>
+
+        <section class="demo-section">
+          <h3>🎮 Programmatic Control</h3>
+          <p>Control the chat widget programmatically using SDK methods:</p>
+          <pre><code>// After initialization
+await MeAgent.init({ ... });
+
+// Open the chat widget
+MeAgent.open();
+
+// Close the chat widget
+MeAgent.close();
+
+// Toggle the chat widget
+MeAgent.toggle();</code></pre>
+
+          <div style="margin-top: 1.5rem">
+            <h4 style="margin-bottom: 0.5rem">Try it:</h4>
+            <div class="demo-buttons">
+              <button id="openChatBtn" class="demo-button">Open Chat</button>
+              <button id="closeChatBtn" class="demo-button">Close Chat</button>
+              <button id="toggleChatBtn" class="demo-button">
+                Toggle Chat
+              </button>
+            </div>
+          </div>
+
+          <p style="margin-top: 1rem; font-size: 0.9rem; color: #666">
+            <strong>Common use cases:</strong> Auto-open on page load, open
+            after form submission, deep link integration, help button
+            integration, and more.
+          </p>
+        </section>
       </main>
 
       <footer class="demo-footer">
@@ -171,6 +204,25 @@
           console.log("MeAgent SDK initialized successfully");
           console.log("Environment:", MeAgent.Environment.DEV);
           console.log("Network:", MeAgent.Network.SEPOLIA);
+
+          // Add event listeners for programmatic control buttons
+          document
+            .getElementById("openChatBtn")
+            ?.addEventListener("click", () => {
+              MeAgent.open();
+            });
+
+          document
+            .getElementById("closeChatBtn")
+            ?.addEventListener("click", () => {
+              MeAgent.close();
+            });
+
+          document
+            .getElementById("toggleChatBtn")
+            ?.addEventListener("click", () => {
+              MeAgent.toggle();
+            });
         } catch (error) {
           console.error("Failed to initialize MeAgent SDK:", error);
         }

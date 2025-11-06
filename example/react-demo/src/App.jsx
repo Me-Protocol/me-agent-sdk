@@ -4,6 +4,7 @@ import { MeAgentSDK } from "me-agent-sdk";
 function App() {
   const [sdkInitialized, setSdkInitialized] = useState(false);
   const [error, setError] = useState(null);
+  const [sdkInstance, setSdkInstance] = useState(null);
 
   useEffect(() => {
     // Initialize MeAgent SDK when component mounts
@@ -19,6 +20,7 @@ function App() {
         });
 
         await sdk.init();
+        setSdkInstance(sdk);
         setSdkInitialized(true);
         console.log("✅ MeAgent SDK initialized in React app!");
       } catch (err) {
@@ -34,6 +36,27 @@ function App() {
       console.log("🧹 Component unmounting");
     };
   }, []);
+
+  // Handler to programmatically open the chat
+  const handleOpenChat = () => {
+    if (sdkInstance) {
+      sdkInstance.open();
+    }
+  };
+
+  // Handler to close the chat
+  const handleCloseChat = () => {
+    if (sdkInstance) {
+      sdkInstance.close();
+    }
+  };
+
+  // Handler to toggle the chat
+  const handleToggleChat = () => {
+    if (sdkInstance) {
+      sdkInstance.toggle();
+    }
+  };
 
   return (
     <div style={styles.container}>
@@ -59,6 +82,27 @@ function App() {
 
           {error && <div style={styles.errorBadge}>❌ Error: {error}</div>}
         </section>
+
+        {sdkInitialized && (
+          <section style={styles.section}>
+            <h3>🎮 Programmatic Control</h3>
+            <p>
+              You can control the chat widget programmatically using SDK
+              methods:
+            </p>
+            <div style={styles.buttonGroup}>
+              <button style={styles.demoButton} onClick={handleOpenChat}>
+                📖 Open Chat
+              </button>
+              <button style={styles.demoButton} onClick={handleCloseChat}>
+                ❌ Close Chat
+              </button>
+              <button style={styles.demoButton} onClick={handleToggleChat}>
+                🔄 Toggle Chat
+              </button>
+            </div>
+          </section>
+        )}
 
         <section style={styles.section}>
           <h3>Installation Steps</h3>
@@ -117,6 +161,23 @@ function App() {
 }
 
 export default App;`}</pre>
+        </section>
+
+        <section style={styles.codeSection}>
+          <h3>3. Programmatic Control</h3>
+          <pre style={styles.code}>{`// Store SDK instance in state
+const [sdkInstance, setSdkInstance] = useState(null);
+
+useEffect(() => {
+  const sdk = new MeAgentSDK({ ... });
+  await sdk.init();
+  setSdkInstance(sdk); // Save instance
+}, []);
+
+// Use methods to control the chat
+const openChat = () => sdkInstance.open();
+const closeChat = () => sdkInstance.close();
+const toggleChat = () => sdkInstance.toggle();`}</pre>
         </section>
 
         <section style={styles.section}>
@@ -276,6 +337,24 @@ const styles = {
     fontSize: "2.5em",
     display: "block",
     marginBottom: "12px",
+  },
+  buttonGroup: {
+    display: "flex",
+    gap: "12px",
+    marginTop: "20px",
+    flexWrap: "wrap",
+  },
+  demoButton: {
+    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    color: "white",
+    border: "none",
+    padding: "12px 24px",
+    borderRadius: "8px",
+    fontSize: "1em",
+    fontWeight: "600",
+    cursor: "pointer",
+    transition: "transform 0.2s, box-shadow 0.2s",
+    boxShadow: "0 2px 8px rgba(102, 126, 234, 0.3)",
   },
   footer: {
     background: "white",

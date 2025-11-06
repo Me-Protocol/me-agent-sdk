@@ -7,6 +7,9 @@ import { MeAgentConfig, SupportedNetwork, Environment } from "./types";
 export interface MeAgentGlobal {
   init: (config: MeAgentConfig) => Promise<void>;
   destroy: () => void;
+  open: () => void;
+  close: () => void;
+  toggle: () => void;
   Network: typeof SupportedNetwork;
   Environment: typeof Environment;
 }
@@ -38,10 +41,46 @@ function destroy(): void {
   }
 }
 
+/**
+ * Open the chat widget programmatically
+ */
+function open(): void {
+  if (sdkInstance) {
+    sdkInstance.open();
+  } else {
+    console.warn("MeAgent: SDK not initialized. Call MeAgent.init() first.");
+  }
+}
+
+/**
+ * Close the chat widget programmatically
+ */
+function close(): void {
+  if (sdkInstance) {
+    sdkInstance.close();
+  } else {
+    console.warn("MeAgent: SDK not initialized. Call MeAgent.init() first.");
+  }
+}
+
+/**
+ * Toggle the chat widget programmatically
+ */
+function toggle(): void {
+  if (sdkInstance) {
+    sdkInstance.toggle();
+  } else {
+    console.warn("MeAgent: SDK not initialized. Call MeAgent.init() first.");
+  }
+}
+
 // Export for UMD build
 const MeAgent: MeAgentGlobal = {
   init,
   destroy,
+  open,
+  close,
+  toggle,
   Network: SupportedNetwork,
   Environment: Environment,
 };

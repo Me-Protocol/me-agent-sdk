@@ -135,6 +135,106 @@ MeAgent.init({
 
 **Note:** Action buttons (Add to Cart, Like, Share) will only appear on the offer details page if their respective callback functions are provided.
 
+## Programmatic Control
+
+The SDK provides methods to programmatically control the chat widget:
+
+### Browser (CDN)
+
+```javascript
+// After initialization
+await MeAgent.init({ ... });
+
+// Open the chat widget
+MeAgent.open();
+
+// Close the chat widget
+MeAgent.close();
+
+// Toggle the chat widget
+MeAgent.toggle();
+
+// Destroy the SDK
+MeAgent.destroy();
+```
+
+### React / NPM
+
+```jsx
+import { useState, useEffect } from "react";
+import { MeAgentSDK } from "me-agent-sdk";
+
+function App() {
+  const [sdkInstance, setSdkInstance] = useState(null);
+
+  useEffect(() => {
+    const initSDK = async () => {
+      const sdk = new MeAgentSDK({
+        emailAddress: "user@example.com",
+        brandId: "your-brand",
+        userId: "user-123",
+      });
+
+      await sdk.init();
+      setSdkInstance(sdk); // Store instance for control
+    };
+
+    initSDK();
+  }, []);
+
+  // Control methods
+  const handleOpenChat = () => sdkInstance?.open();
+  const handleCloseChat = () => sdkInstance?.close();
+  const handleToggleChat = () => sdkInstance?.toggle();
+
+  return (
+    <div>
+      <button onClick={handleOpenChat}>Open Chat</button>
+      <button onClick={handleCloseChat}>Close Chat</button>
+      <button onClick={handleToggleChat}>Toggle Chat</button>
+    </div>
+  );
+}
+```
+
+### Common Use Cases
+
+**Auto-open on page load:**
+
+```javascript
+await MeAgent.init({ ... });
+MeAgent.open();
+```
+
+**Open after user action:**
+
+```javascript
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  // Process form...
+  MeAgent.open(); // Show chat for support
+});
+```
+
+**Open for first-time visitors:**
+
+```javascript
+const isFirstVisit = !localStorage.getItem("visited");
+if (isFirstVisit) {
+  MeAgent.open();
+  localStorage.setItem("visited", "true");
+}
+```
+
+**Deep link integration:**
+
+```javascript
+const params = new URLSearchParams(window.location.search);
+if (params.get("chat") === "open") {
+  MeAgent.open();
+}
+```
+
 ## Environments
 
 ```javascript
