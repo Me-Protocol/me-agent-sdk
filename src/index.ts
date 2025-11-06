@@ -10,6 +10,8 @@ export interface MeAgentGlobal {
   open: () => void;
   close: () => void;
   toggle: () => void;
+  updateCartItems: (cartItems: MeAgentConfig["cartItems"]) => void;
+  updateLikedOffers: (likedOffers: MeAgentConfig["likedOffers"]) => void;
   Network: typeof SupportedNetwork;
   Environment: typeof Environment;
 }
@@ -74,6 +76,28 @@ function toggle(): void {
   }
 }
 
+/**
+ * Update cart items dynamically
+ */
+function updateCartItems(cartItems: MeAgentConfig["cartItems"]): void {
+  if (sdkInstance) {
+    sdkInstance.updateCartItems(cartItems);
+  } else {
+    console.warn("MeAgent: SDK not initialized. Call MeAgent.init() first.");
+  }
+}
+
+/**
+ * Update liked offers dynamically
+ */
+function updateLikedOffers(likedOffers: MeAgentConfig["likedOffers"]): void {
+  if (sdkInstance) {
+    sdkInstance.updateLikedOffers(likedOffers);
+  } else {
+    console.warn("MeAgent: SDK not initialized. Call MeAgent.init() first.");
+  }
+}
+
 // Export for UMD build
 const MeAgent: MeAgentGlobal = {
   init,
@@ -81,6 +105,8 @@ const MeAgent: MeAgentGlobal = {
   open,
   close,
   toggle,
+  updateCartItems,
+  updateLikedOffers,
   Network: SupportedNetwork,
   Environment: Environment,
 };

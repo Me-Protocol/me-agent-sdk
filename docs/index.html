@@ -186,6 +186,10 @@ MeAgent.toggle();</code></pre>
             onAddToCart: async (offer, variantId) => {
               console.log("Adding to cart:", offer, "variant:", variantId);
               demoCart.push({ offerCode: offer.offerCode, variantId });
+
+              // Update SDK's cart state
+              MeAgent.updateCartItems(demoCart);
+
               alert(`Added "${offer.name}" to cart!`);
             },
             onRemoveFromCart: async (offerCode, variantId) => {
@@ -201,6 +205,10 @@ MeAgent.toggle();</code></pre>
                     item.offerCode === offerCode && item.variantId === variantId
                   )
               );
+
+              // Update SDK's cart state
+              MeAgent.updateCartItems(demoCart);
+
               alert("Removed from cart!");
             },
             cartItems: demoCart,
@@ -219,8 +227,19 @@ MeAgent.toggle();</code></pre>
             },
             onLikeUnlike: (offer, isLiked) => {
               console.log("Like/Unlike clicked:", offer, isLiked);
+
+              // Update liked state (for demo purposes, using a simple object)
+              if (!window.demoLikedOffers) {
+                window.demoLikedOffers = {};
+              }
+              window.demoLikedOffers[offer.id] = isLiked;
+
+              // Update SDK's liked state
+              MeAgent.updateLikedOffers(window.demoLikedOffers);
+
               alert(`${isLiked ? "Liked" : "Unliked"}: ${offer.name}`);
             },
+            likedOffers: {},
           });
           console.log("MeAgent SDK initialized successfully");
           console.log("Environment:", MeAgent.Environment.DEV);

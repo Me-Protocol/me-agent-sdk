@@ -94,20 +94,20 @@ No additional packages needed - everything works out of the box!
 
 ## Configuration Options
 
-| Option              | Type             | Required | Default        | Description                                                       |
-| ------------------- | ---------------- | -------- | -------------- | ----------------------------------------------------------------- |
-| `emailAddress`      | string           | No       | -              | User's email address for authentication                           |
-| `brandId`           | string           | No       | -              | Your brand identifier                                             |
-| `userId`            | string           | **Yes**  | -              | Unique user identifier (required)                                 |
-| `position`          | string           | No       | 'bottom-right' | Widget position: 'bottom-right' or 'bottom-left'                  |
-| `environment`       | Environment      | No       | DEV            | Environment: DEV, STAGING, or PROD                                |
-| `network`           | SupportedNetwork | No       | SEPOLIA        | Blockchain network: SEPOLIA, HEDERA, BASE, or POLYGON             |
-| `onAddToCart`       | function         | No       | -              | Callback when user adds an offer to cart                          |
-| `onRemoveFromCart`  | function         | No       | -              | Callback when user removes an offer from cart                     |
-| `onShare`           | function         | No       | -              | Callback when user clicks share button on offer details           |
-| `onLikeUnlike`      | function         | No       | -              | Callback when user clicks like/unlike button on offer details     |
-| `likedOffers`       | object           | No       | {}             | Initial liked state for offers (map of offer IDs to booleans)     |
-| `cartItems`         | CartItem[]       | No       | []             | Array of items currently in cart (for showing "Remove from Cart") |
+| Option             | Type             | Required | Default        | Description                                                       |
+| ------------------ | ---------------- | -------- | -------------- | ----------------------------------------------------------------- |
+| `emailAddress`     | string           | No       | -              | User's email address for authentication                           |
+| `brandId`          | string           | No       | -              | Your brand identifier                                             |
+| `userId`           | string           | **Yes**  | -              | Unique user identifier (required)                                 |
+| `position`         | string           | No       | 'bottom-right' | Widget position: 'bottom-right' or 'bottom-left'                  |
+| `environment`      | Environment      | No       | DEV            | Environment: DEV, STAGING, or PROD                                |
+| `network`          | SupportedNetwork | No       | SEPOLIA        | Blockchain network: SEPOLIA, HEDERA, BASE, or POLYGON             |
+| `onAddToCart`      | function         | No       | -              | Callback when user adds an offer to cart                          |
+| `onRemoveFromCart` | function         | No       | -              | Callback when user removes an offer from cart                     |
+| `onShare`          | function         | No       | -              | Callback when user clicks share button on offer details           |
+| `onLikeUnlike`     | function         | No       | -              | Callback when user clicks like/unlike button on offer details     |
+| `likedOffers`      | object           | No       | {}             | Initial liked state for offers (map of offer IDs to booleans)     |
+| `cartItems`        | CartItem[]       | No       | []             | Array of items currently in cart (for showing "Remove from Cart") |
 
 ### Callback Functions & Cart Management
 
@@ -117,38 +117,54 @@ The SDK supports optional callbacks for e-commerce actions on the offer details 
 // Example cart state
 let myCart = [];
 
-MeAgent.init({
+await MeAgent.init({
   // ... other config
-  
+
   // Cart Management
   onAddToCart: async (offer, variantId) => {
     console.log("Adding to cart:", offer, "variant:", variantId);
     myCart.push({ offerCode: offer.offerCode, variantId });
+
+    // Update SDK's cart state
+    MeAgent.updateCartItems(myCart);
+
     // Your add to cart logic here (e.g., API call, state update)
   },
-  
+
   onRemoveFromCart: async (offerCode, variantId) => {
     console.log("Removing from cart:", offerCode, "variant:", variantId);
     myCart = myCart.filter(
-      item => !(item.offerCode === offerCode && item.variantId === variantId)
+      (item) => !(item.offerCode === offerCode && item.variantId === variantId)
     );
+
+    // Update SDK's cart state
+    MeAgent.updateCartItems(myCart);
+
     // Your remove from cart logic here
   },
-  
-  // Pass current cart items to show correct button state
+
+  // Pass initial cart items to show correct button state
   cartItems: myCart, // Array of { offerCode, variantId?, quantity? }
-  
+
   // Social Actions
   onShare: (offer) => {
     console.log("Share clicked:", offer);
     // Your share logic here
   },
-  
+
   onLikeUnlike: (offer, isLiked) => {
     console.log(`Offer ${isLiked ? "liked" : "unliked"}:`, offer);
-    // Your like/unlike logic here
+
+    // Update your liked offers state
+    const myLikedOffers = { ...likedOffers };
+    myLikedOffers[offer.id] = isLiked;
+
+    // Update SDK's liked state
+    MeAgent.updateLikedOffers(myLikedOffers);
+
+    // Your like/unlike logic here (e.g., API call)
   },
-  
+
   likedOffers: {
     "offer-id-1": true,
     "offer-id-2": false,
@@ -160,17 +176,24 @@ MeAgent.init({
 
 ```typescript
 interface CartItem {
-  offerCode: string;     // Offer code/ID
-  variantId?: string;    // Product variant ID (if applicable)
-  quantity?: number;     // Quantity (optional)
+  offerCode: string; // Offer code/ID
+  variantId?: string; // Product variant ID (if applicable)
+  quantity?: number; // Quantity (optional)
 }
 ```
 
 **How it works:**
+
 - If an offer is in `cartItems`, the button shows "Remove from Cart"
 - If not in cart, the button shows "Add to Cart"
 - Clicking the button calls either `onAddToCart` or `onRemoveFromCart`
 - You manage your cart state, and the SDK reflects it in the UI
+
+**Important:**
+
+- After adding or removing items from your cart, call `MeAgent.updateCartItems(newCartArray)` to update the SDK's cart state.
+- After liking or unliking offers, call `MeAgent.updateLikedOffers(newLikedObject)` to update the SDK's liked state.
+- These updates ensure the UI reflects changes immediately without requiring a page refresh.
 
 **Note:** Action buttons (Add to Cart, Like, Share) will only appear on the offer details page if their respective callback functions are provided.
 
@@ -192,6 +215,12 @@ MeAgent.close();
 
 // Toggle the chat widget
 MeAgent.toggle();
+
+// Update cart items (after cart changes)
+MeAgent.updateCartItems(newCartArray);
+
+// Update liked offers (after like/unlike)
+MeAgent.updateLikedOffers(newLikedObject);
 
 // Destroy the SDK
 MeAgent.destroy();
@@ -225,6 +254,9 @@ function App() {
   const handleOpenChat = () => sdkInstance?.open();
   const handleCloseChat = () => sdkInstance?.close();
   const handleToggleChat = () => sdkInstance?.toggle();
+  const handleUpdateCart = (newCart) => sdkInstance?.updateCartItems(newCart);
+  const handleUpdateLiked = (newLiked) =>
+    sdkInstance?.updateLikedOffers(newLiked);
 
   return (
     <div>

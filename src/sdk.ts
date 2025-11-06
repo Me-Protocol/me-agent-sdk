@@ -213,6 +213,36 @@ export class MeAgentSDK {
   }
 
   /**
+   * Update cart items dynamically
+   * Call this after adding/removing items from cart to update SDK's cart state
+   */
+  updateCartItems(cartItems: MeAgentConfig["cartItems"]): void {
+    if (!this.initialized) {
+      console.warn(
+        "MeAgent SDK: Cannot update cart items before initialization"
+      );
+      return;
+    }
+    this.config.cartItems = cartItems;
+    console.log("MeAgent SDK: Cart items updated", cartItems);
+  }
+
+  /**
+   * Update liked offers dynamically
+   * Call this after liking/unliking offers to update SDK's liked state
+   */
+  updateLikedOffers(likedOffers: MeAgentConfig["likedOffers"]): void {
+    if (!this.initialized) {
+      console.warn(
+        "MeAgent SDK: Cannot update liked offers before initialization"
+      );
+      return;
+    }
+    this.config.likedOffers = likedOffers;
+    console.log("MeAgent SDK: Liked offers updated", likedOffers);
+  }
+
+  /**
    * Send a message
    */
   private async sendMessage(content: string): Promise<void> {
