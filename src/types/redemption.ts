@@ -3,6 +3,8 @@
  * All types related to reward redemption and swaps
  */
 
+import { BigNumber } from "ethers";
+
 /**
  * Reward balance data
  */
@@ -81,7 +83,7 @@ export interface TransactionSignature {
  */
 export interface SendTransactionData {
   from: string;
-  nonce: string;
+  nonce: BigNumber;
   data: string;
   r: string;
   s: string;
@@ -94,13 +96,13 @@ export interface SendTransactionData {
  */
 export interface SpendData {
   owner: string;
-  count: string;
+  count: BigNumber;
   globalHash: string;
   prefixedHash: string;
   sig: TransactionSignature;
   reward: string;
   spender: string;
-  value: string;
+  value: BigNumber;
 }
 
 /**

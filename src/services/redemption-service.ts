@@ -18,6 +18,7 @@ import {
   ProcessOrderPayload,
   PushTransactionResponse,
   SpendData,
+  SupportedNetwork,
 } from "../types";
 import { ethers } from "ethers";
 import {
@@ -403,6 +404,7 @@ export class RedemptionService {
     amount: string,
     offerId: string,
     redemptionMethodId: string,
+    brandId: string,
     variantId?: string
   ): Promise<RedemptionOrder> {
     let pushTransactionRef: PushTransactionResponse | null = null;
@@ -471,10 +473,10 @@ export class RedemptionService {
           params: {
             from: result.from,
             data: result.data,
-            nonce: result.nonce.toString(),
+            nonce: result.nonce,
             r: result.r,
             s: result.s,
-            v: result.v.toString(),
+            v: result.v,
             hash: result.hash,
           },
         },
@@ -526,6 +528,8 @@ export class RedemptionService {
     brandRewardAddress: string,
     offerId: string,
     redemptionMethodId: string,
+    brandId: string,
+    brandNetwork: string,
     variantId?: string
   ): Promise<RedemptionOrder> {
     let pushTransactionRef: PushTransactionResponse | null = null;
@@ -601,10 +605,10 @@ export class RedemptionService {
           params: {
             from: result.from,
             data: result.data,
-            nonce: result.nonce.toString(),
+            nonce: result.nonce,
             r: result.r,
             s: result.s,
-            v: result.v.toString(),
+            v: result.v,
             hash: result.hash,
           },
         },
@@ -618,7 +622,7 @@ export class RedemptionService {
       // Get vault permit
       const vaultParams = {
         owner: pushTransactionRef.owner,
-        count: ethers.BigNumber.from(pushTransactionRef.count),
+        count: pushTransactionRef.count,
         globalHash: pushTransactionRef.globalHash,
         prefixedHash: pushTransactionRef.prefixedHash,
         r: pushTransactionRef.sig.r,
@@ -626,7 +630,7 @@ export class RedemptionService {
         v: pushTransactionRef.sig.v,
         reward: pushTransactionRef.reward,
         spender: pushTransactionRef.spender,
-        value: ethers.BigNumber.from(pushTransactionRef.value),
+        value: pushTransactionRef.value,
       };
 
       console.log(
@@ -663,7 +667,8 @@ export class RedemptionService {
         this.rpcUrl,
         this.chainId,
         this.openRewardDiamond,
-        this.brandId
+        brandId,
+        pushTransactionRef
       );
 
       // Relay via Gelato
@@ -680,14 +685,15 @@ export class RedemptionService {
         this.rpcUrl,
         this.chainId,
         this.openRewardDiamond,
-        this.brandId,
+        brandId,
         false,
-        ""
+        "",
+        brandNetwork === SupportedNetwork.HEDERA
       );
 
       // Process order
       const order = await this.processOrder(
-        pushTransactionRef.result,
+        pushTransactionRef,
         taskId,
         rewardId,
         amount,

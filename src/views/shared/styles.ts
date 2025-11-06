@@ -2401,12 +2401,13 @@ export const styles = `
   }
 
   .me-agent-step-item.completed .me-agent-step-circle::after {
-    content: '';
-    width: 25px;
-    height: 25px;
-    background: white;
-    border-radius: 50%;
-    position: absolute;
+    content: '✓';
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .me-agent-step-label {

@@ -38,7 +38,19 @@ export class RedemptionView {
       originalPrice,
       offerDetail.redemptionMethod as any as RedemptionMethodInput
     );
-    const isAffordable = selectedReward.balance >= swapAmount.amountNeeded;
+    // Determine which amount to display - use amountNeeded for cross-brand, amount for same-brand
+    // For same-brand redemption, API returns amount in 'amount' field
+    // For cross-brand redemption, API returns the needed amount in 'amountNeeded' field
+    const displayAmount = swapAmount.amount || swapAmount.amountNeeded || 0;
+
+    console.log("🎯 Redemption Review - Swap Amount Data:", {
+      amount: swapAmount.amount,
+      amountNeeded: swapAmount.amountNeeded,
+      displayAmount: displayAmount,
+      symbol: selectedReward.reward.symbol,
+    });
+
+    const isAffordable = selectedReward.balance >= displayAmount;
 
     // Calculate discount percentage for display
     let discountDisplay = "";
@@ -153,7 +165,7 @@ export class RedemptionView {
                     ? `<div class="me-agent-offer-summary-discount">${discountDisplay}</div>`
                     : ""
                 }
-                <div class="me-agent-offer-amount-needed">${swapAmount.amountNeeded.toFixed(
+                <div class="me-agent-offer-amount-needed">${displayAmount.toFixed(
                   2
                 )} ${selectedReward.reward.symbol} Needed</div>
               </div>
@@ -176,7 +188,7 @@ export class RedemptionView {
                 </div>
                 <div class="me-agent-reward-amount">
                   <div class="me-agent-amount-needed">
-                    ${swapAmount.amountNeeded.toFixed(2)} ${
+                    ${displayAmount.toFixed(2)} ${
       selectedReward.reward.symbol
     } Needed
                     <span class="me-agent-status-dot ${
@@ -189,7 +201,7 @@ export class RedemptionView {
                 !isAffordable
                   ? `
                     <div class="me-agent-error-message">
-                      Insufficient balance. You need ${swapAmount.amountNeeded.toFixed(
+                      Insufficient balance. You need ${displayAmount.toFixed(
                         2
                       )} ${
                       selectedReward.reward.symbol

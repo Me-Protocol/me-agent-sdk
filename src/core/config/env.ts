@@ -47,7 +47,7 @@ const DEV_CONFIG: EnvironmentConfig = {
   API_V1_URL: "https://api.meappbounty.com/",
   MAGIC_PUBLISHABLE_API_KEY: "pk_live_FB79F672A43B8AC2",
   RUNTIME_URL: "https://runtime.meappbounty.com",
-  GELATO_API_KEY: "g1UFyiAfIyq_m_M3Cn3LWIO6VQpjVTIbeCV7XLzWGb4_",
+  GELATO_API_KEY: "MJYP1xZCxyhLQVdqj9_i0YoNybdToa5T7c_X40a1hto_",
 };
 
 // Staging environment
@@ -84,7 +84,7 @@ const NETWORK_CONFIGS: Record<SupportedNetwork, NetworkConfig> = {
     CHAIN_ID: "11155111",
     RPC_URL:
       "https://eth-sepolia.g.alchemy.com/v2/Ytq0aV34dWOA9X6gWhl_6trwmUTb58Ip",
-    OPEN_REWARD_DIAMOND: "0xd315db77e1699c05b90a648f0680d4bb5d0263b4",
+    OPEN_REWARD_DIAMOND: "0x2C123047B23809DbCCDA2d34bB5158D2563221E3",
   },
   [SupportedNetwork.HEDERA]: {
     CHAIN_ID: "296",

@@ -757,6 +757,9 @@ export class DetailPanelController {
     if (!this.currentOfferDetail || !this.selectedReward) return;
 
     const amountElement = this.content.querySelector(".me-agent-amount-needed");
+    const offerAmountElement = this.content.querySelector(
+      ".me-agent-offer-amount-needed"
+    );
     const redeemButton = this.content.querySelector(
       ".me-agent-redeem-btn"
     ) as HTMLButtonElement;
@@ -764,13 +767,17 @@ export class DetailPanelController {
     if (!amountElement) return;
 
     try {
-      // Show loading
+      // Show loading in both places
       amountElement.innerHTML = `
         <span style="display: flex; align-items: center; gap: 8px;">
           <span style="animation: spin 1s linear infinite;">⏳</span>
           Loading...
         </span>
       `;
+
+      if (offerAmountElement) {
+        offerAmountElement.textContent = "Loading...";
+      }
 
       // Calculate amount
       await this.calculateSwapAmount();
@@ -783,16 +790,25 @@ export class DetailPanelController {
         return;
       }
 
-      // Update with actual amount
-      amountElement.textContent = `${this.swapAmount.amountNeeded.toFixed(2)} ${
+      // Determine which amount to display (same logic as in the view)
+      const displayAmount =
+        this.swapAmount.amount || this.swapAmount.amountNeeded || 0;
+
+      // Update both amount displays with actual amount
+      amountElement.textContent = `${displayAmount.toFixed(2)} ${
         this.selectedReward.reward.symbol
       }`;
       (amountElement as HTMLElement).style.color = "";
 
+      if (offerAmountElement) {
+        offerAmountElement.textContent = `${displayAmount.toFixed(2)} ${
+          this.selectedReward.reward.symbol
+        } Needed`;
+      }
+
       // Enable/disable button based on affordability
       if (redeemButton) {
-        const isAffordable =
-          this.selectedReward.balance >= this.swapAmount.amountNeeded;
+        const isAffordable = this.selectedReward.balance >= displayAmount;
         redeemButton.disabled = !isAffordable;
 
         // Show insufficient balance message if needed
@@ -808,9 +824,7 @@ export class DetailPanelController {
               const errorDiv = document.createElement("div");
               errorDiv.className = "me-agent-error-message";
               errorDiv.innerHTML = `
-                <p>Insufficient balance. You need ${this.swapAmount.amountNeeded.toFixed(
-                  2
-                )} ${
+                <p>Insufficient balance. You need ${displayAmount.toFixed(2)} ${
                 this.selectedReward.reward.symbol
               } but only have ${this.selectedReward.balance.toFixed(2)}.</p>
               `;
@@ -965,6 +979,7 @@ export class DetailPanelController {
           this.swapAmount.amount.toString(),
           this.currentOfferDetail.id,
           this.currentOfferDetail.redemptionMethod.id,
+          this.currentOfferDetail.brand.id,
           variantId
         );
       } else {
@@ -977,6 +992,8 @@ export class DetailPanelController {
           this.currentOfferDetail.reward.contractAddress,
           this.currentOfferDetail.id,
           this.currentOfferDetail.redemptionMethod.id,
+          this.currentOfferDetail.brand.id,
+          this.currentOfferDetail.brand.network,
           variantId
         );
       }
