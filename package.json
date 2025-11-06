@@ -1,6 +1,6 @@
 {
   "name": "me-agent-sdk",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "AI Chatbot SDK - Embeddable chatbot widget for any website",
   "type": "module",
   "main": "dist/me-agent-sdk.js",
