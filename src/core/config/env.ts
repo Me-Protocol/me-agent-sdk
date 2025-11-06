@@ -23,7 +23,6 @@ export enum SupportedNetwork {
 interface NetworkConfig {
   CHAIN_ID: string;
   RPC_URL: string;
-  OPEN_REWARD_DIAMOND: string;
 }
 
 /**
@@ -37,6 +36,7 @@ interface EnvironmentConfig {
   RUNTIME_URL: string;
   GELATO_API_KEY: string;
   MAGIC_PUBLISHABLE_API_KEY: string;
+  OPEN_REWARD_DIAMOND: string;
 }
 
 // Development environment
@@ -47,7 +47,8 @@ const DEV_CONFIG: EnvironmentConfig = {
   API_V1_URL: "https://api.meappbounty.com/",
   MAGIC_PUBLISHABLE_API_KEY: "pk_live_FB79F672A43B8AC2",
   RUNTIME_URL: "https://runtime.meappbounty.com",
-  GELATO_API_KEY: "MJYP1xZCxyhLQVdqj9_i0YoNybdToa5T7c_X40a1hto_",
+  GELATO_API_KEY: "g1UFyiAfIyq_m_M3Cn3LWIO6VQpjVTIbeCV7XLzWGb4_",
+  OPEN_REWARD_DIAMOND: "0xacd3379d449ad0042a12f4fa88bc183948f7f472",
 };
 
 // Staging environment
@@ -60,6 +61,7 @@ const STAGING_CONFIG: EnvironmentConfig = {
   MAGIC_PUBLISHABLE_API_KEY: "pk_live_STAGING_KEY",
   RUNTIME_URL: "https://runtime-staging.meappbounty.com",
   GELATO_API_KEY: "staging_gelato_key",
+  OPEN_REWARD_DIAMOND: "0xacd3379d449ad0042a12f4fa88bc183948f7f472",
 };
 
 // Production environment
@@ -71,6 +73,7 @@ const PROD_CONFIG: EnvironmentConfig = {
   MAGIC_PUBLISHABLE_API_KEY: "pk_live_PROD_KEY",
   RUNTIME_URL: "https://runtime.meappbounty.com",
   GELATO_API_KEY: "prod_gelato_key",
+  OPEN_REWARD_DIAMOND: "0xacd3379d449ad0042a12f4fa88bc183948f7f472",
 };
 
 const ENV_CONFIGS: Record<Environment, EnvironmentConfig> = {
@@ -84,24 +87,20 @@ const NETWORK_CONFIGS: Record<SupportedNetwork, NetworkConfig> = {
     CHAIN_ID: "11155111",
     RPC_URL:
       "https://eth-sepolia.g.alchemy.com/v2/Ytq0aV34dWOA9X6gWhl_6trwmUTb58Ip",
-    OPEN_REWARD_DIAMOND: "0x2C123047B23809DbCCDA2d34bB5158D2563221E3",
   },
   [SupportedNetwork.HEDERA]: {
     CHAIN_ID: "296",
     RPC_URL: "https://testnet.hashio.io/api",
-    OPEN_REWARD_DIAMOND: "0x3b03a7980bfe38c9daa4c346ccf495eb24e16782",
   },
   [SupportedNetwork.BASE]: {
     CHAIN_ID: "11155111", // Using Sepolia for now
     RPC_URL:
       "https://eth-sepolia.g.alchemy.com/v2/Ytq0aV34dWOA9X6gWhl_6trwmUTb58Ip",
-    OPEN_REWARD_DIAMOND: "0xacd3379d449ad0042a12f4fa88bc183948f7f472",
   },
   [SupportedNetwork.POLYGON]: {
     CHAIN_ID: "11155111", // Using Sepolia for now
     RPC_URL:
       "https://eth-sepolia.g.alchemy.com/v2/Ytq0aV34dWOA9X6gWhl_6trwmUTb58Ip",
-    OPEN_REWARD_DIAMOND: "0xacd3379d449ad0042a12f4fa88bc183948f7f472",
   },
 };
 

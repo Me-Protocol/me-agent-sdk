@@ -705,6 +705,7 @@ export const styles = `
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
+    position: relative;
   }
 
   /* Detail Panel Loading State */
@@ -1654,6 +1655,10 @@ export const styles = `
     bottom: 0;
     padding: 20px;
     background: white;
+    width: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1000;
   }
 
   .me-agent-detail-bottom-actions-content {

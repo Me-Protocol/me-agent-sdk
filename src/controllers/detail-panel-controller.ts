@@ -790,9 +790,9 @@ export class DetailPanelController {
         return;
       }
 
-      // Determine which amount to display (same logic as in the view)
+      // Determine which amount to display (prioritize amountNeeded for cross-brand)
       const displayAmount =
-        this.swapAmount.amount || this.swapAmount.amountNeeded || 0;
+        this.swapAmount.amountNeeded || this.swapAmount.amount || 0;
 
       // Update both amount displays with actual amount
       amountElement.textContent = `${displayAmount.toFixed(2)} ${

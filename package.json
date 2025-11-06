@@ -4,12 +4,21 @@
   "description": "AI Chatbot SDK - Embeddable chatbot widget for any website",
   "type": "module",
   "main": "dist/me-agent-sdk.js",
+  "module": "dist/me-agent-sdk.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/me-agent-sdk.js",
+      "require": "./dist/me-agent-sdk.min.js",
+      "default": "./dist/me-agent-sdk.js"
+    }
+  },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "webpack --config webpack.config.cjs",
+    "build": "webpack --config webpack.config.cjs && webpack --config webpack.esm.config.cjs",
     "build:types": "tsc --declaration --emitDeclarationOnly --outDir dist",
     "build:all": "npm run build && npm run build:types",
     "watch": "webpack --watch --config webpack.config.cjs",

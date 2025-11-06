@@ -5,14 +5,14 @@ module.exports = {
   entry: "./src/index.ts",
   output: {
     path: path.resolve(__dirname, "dist"),
-    filename: "me-agent-sdk.min.js",
+    filename: "me-agent-sdk.js",
     library: {
-      name: "MeAgent",
-      type: "umd",
-      export: "default",
+      type: "module",
     },
-    globalObject: "this",
-    clean: false, // Don't clean dist folder to preserve other builds
+    environment: {
+      module: true,
+    },
+    clean: false, // Don't clean dist folder
   },
   experiments: {
     outputModule: true,
@@ -39,7 +39,7 @@ module.exports = {
     ],
   },
   optimization: {
-    minimize: true,
+    minimize: false, // Don't minimize ES module version for better debugging
   },
   devtool: "source-map",
 };

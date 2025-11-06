@@ -38,10 +38,7 @@ export class RedemptionView {
       originalPrice,
       offerDetail.redemptionMethod as any as RedemptionMethodInput
     );
-    // Determine which amount to display - use amountNeeded for cross-brand, amount for same-brand
-    // For same-brand redemption, API returns amount in 'amount' field
-    // For cross-brand redemption, API returns the needed amount in 'amountNeeded' field
-    const displayAmount = swapAmount.amount || swapAmount.amountNeeded || 0;
+    const displayAmount = swapAmount.amountNeeded || swapAmount.amount || 0;
 
     console.log("🎯 Redemption Review - Swap Amount Data:", {
       amount: swapAmount.amount,
@@ -297,7 +294,7 @@ export class RedemptionView {
               }">Copy</button>
             </div>
             <div class="me-agent-coupon-discount">
-              ${order.coupon.discountValue || "Discount applied"}
+              ${`$${order.coupon.discountValue} OFF` || "Discount applied"}
             </div>
           </div>
 
