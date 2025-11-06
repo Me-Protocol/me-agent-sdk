@@ -6,13 +6,16 @@ import { clashDisplayFonts } from "../../core/fonts";
 import { fireImage } from "../../core/images";
 
 export const styles = `
+  /* Google Fonts - Manrope */
+  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap');
+
   /* Clash Display font - embedded */
   ${clashDisplayFonts}
 
   /* Container for all SDK elements */
   .me-agent-container * {
     box-sizing: border-box;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif !important;
   }
 
   /* Floating Button */
@@ -319,7 +322,7 @@ export const styles = `
     width: fit-content;
     padding: 12px 16px;
     border-radius: 16px;
-    font-size: 16px;
+    font-size: 16px !important;
     line-height: 1.5;
     word-wrap: break-word;
     word-break: break-word;
@@ -424,7 +427,7 @@ export const styles = `
   }
 
   .me-agent-welcome-message .me-agent-message-content > div:first-child {
-    font-size: 20px;
+    font-size: 16px !important;
     margin-bottom: 8px;
   }
 
