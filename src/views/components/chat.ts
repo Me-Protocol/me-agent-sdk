@@ -73,7 +73,9 @@ export class ChatPopup {
 
     // Initialize detail panel controller
     if (!this.redemptionService) {
-      throw new Error("RedemptionService is required for DetailPanelController");
+      throw new Error(
+        "RedemptionService is required for DetailPanelController"
+      );
     }
     this.detailPanelController = new DetailPanelController(
       config,
@@ -244,8 +246,7 @@ export class ChatPopup {
     const contentDiv = document.createElement("div");
     contentDiv.className = "me-agent-message-content";
     contentDiv.innerHTML = `
-      <div>👋</div>
-      <div>Hi there! Welcome, I am Meely. How would you like me to help you today?</div>
+      <div>How can I help you today?</div>
     `;
 
     // Quick actions
@@ -680,7 +681,10 @@ export class ChatPopup {
   /**
    * Show offer detail (for dev mode)
    */
-  async devShowOfferDetail(offerCode: string, sessionId: string): Promise<void> {
+  async devShowOfferDetail(
+    offerCode: string,
+    sessionId: string
+  ): Promise<void> {
     // Maximize if not already
     if (!this.isMaximized) {
       this.toggleMaximize();
@@ -690,7 +694,7 @@ export class ChatPopup {
     // Show detail panel
     this.element.classList.add("has-detail-panel");
     await this.detailPanelController.showOfferDetail(offerCode, sessionId);
-    
+
     // Show chat
     this.show();
   }

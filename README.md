@@ -98,7 +98,7 @@ No additional packages needed - everything works out of the box!
 | -------------- | ---------------- | -------- | -------------- | ------------------------------------------------------------- |
 | `emailAddress` | string           | No       | -              | User's email address for authentication                       |
 | `brandId`      | string           | No       | -              | Your brand identifier                                         |
-| `userId`       | string           | No       | auto-generated | Unique user identifier                                        |
+| `userId`       | string           | **Yes**  | -              | Unique user identifier (required)                             |
 | `position`     | string           | No       | 'bottom-right' | Widget position: 'bottom-right' or 'bottom-left'              |
 | `environment`  | Environment      | No       | DEV            | Environment: DEV, STAGING, or PROD                            |
 | `network`      | SupportedNetwork | No       | SEPOLIA        | Blockchain network: SEPOLIA, HEDERA, BASE, or POLYGON         |

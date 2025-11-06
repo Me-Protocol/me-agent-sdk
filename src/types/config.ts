@@ -9,8 +9,8 @@ export interface MeAgentConfig {
   emailAddress?: string;
   /** Brand ID (optional) */
   brandId?: string;
-  /** User ID (optional) */
-  userId?: string;
+  /** User ID (required) */
+  userId: string;
   /** Button position - defaults to 'bottom-right' */
   position?: "bottom-right" | "bottom-left";
   /** Environment - defaults to 'dev' */

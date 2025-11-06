@@ -4,7 +4,6 @@
  */
 
 import { MeAgentConfig, EnvConfig } from "../../types";
-import { generateUUID } from "../../core/utils/formatters";
 
 export class BaseAPI {
   protected config: MeAgentConfig;
@@ -14,7 +13,7 @@ export class BaseAPI {
   constructor(config: MeAgentConfig, env: EnvConfig) {
     this.config = config;
     this.env = env;
-    this.userId = config.userId || generateUUID();
+    this.userId = config.userId;
   }
 
   /**

@@ -86,7 +86,11 @@ export class MeAgentSDK {
    * Validate configuration
    */
   private validateConfig(config: MeAgentConfig): void {
-    // No required fields currently
+    if (!config.userId) {
+      throw new Error(
+        "MeAgent SDK: userId is required. Please provide a userId in the configuration."
+      );
+    }
   }
 
   /**

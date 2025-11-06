@@ -130,7 +130,7 @@ export class MessageComponent {
     const loadingIndicator = document.createElement("div");
     loadingIndicator.className = "me-agent-loading";
     loadingIndicator.innerHTML = `
-      <span class="me-agent-loading-text">Typing</span>
+      <span class="me-agent-loading-text">Thinking</span>
       <span class="me-agent-loading-dots">
         <span class="me-agent-loading-dot"></span>
         <span class="me-agent-loading-dot"></span>
