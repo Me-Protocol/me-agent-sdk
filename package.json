@@ -18,9 +18,10 @@
     "dist"
   ],
   "scripts": {
-    "build": "webpack --config webpack.config.cjs && webpack --config webpack.esm.config.cjs",
+    "clean": "rimraf dist",
+    "build": "npm run clean && webpack --config webpack.config.cjs && webpack --config webpack.esm.config.cjs",
     "build:types": "tsc --declaration --emitDeclarationOnly --outDir dist",
-    "build:all": "npm run build && npm run build:types",
+    "build:all": "npm run clean && npm run build && npm run build:types",
     "watch": "webpack --watch --config webpack.config.cjs",
     "dev": "npm run watch",
     "serve": "npx serve example -l 5500",
@@ -44,6 +45,7 @@
   },
   "devDependencies": {
     "concurrently": "^9.2.1",
+    "rimraf": "^6.1.0",
     "ts-loader": "^9.5.4",
     "tslib": "^2.6.2",
     "typescript": "^5.3.3",
