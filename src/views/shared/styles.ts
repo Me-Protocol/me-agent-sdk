@@ -2300,9 +2300,10 @@ export const styles = `
 
   @media (max-width: 480px) {
     .me-agent-chat {
-      width: calc(100vw - 32px) !important;
-      height: calc(100vh - 40px) !important;
-      bottom: 20px !important;
+      width: 100vw !important;
+      height: 90vh !important;
+      bottom: 0 !important;
+      border-radius: 16px 16px 0 0 !important;
     }
 
     .me-agent-button {
@@ -2311,8 +2312,8 @@ export const styles = `
 
     .me-agent-chat.bottom-right,
     .me-agent-chat.bottom-left {
-      left: 16px !important;
-      right: 16px !important;
+      left: 0 !important;
+      right: 0 !important;
     }
 
     .me-agent-chat.maximized {
@@ -2357,6 +2358,170 @@ export const styles = `
       flex-direction: column;
       align-items: flex-start;
     }
+
+    /* Mobile Font Size Adjustments */
+    .me-agent-chat h1,
+    .me-agent-detail-panel h1 {
+      font-size: 24px !important;
+      font-weight: 600 !important;
+    }
+
+    .me-agent-chat h2,
+    .me-agent-detail-panel h2 {
+      font-size: 18px !important;
+      font-weight: 600 !important;
+    }
+
+    .me-agent-chat h3,
+    .me-agent-detail-panel h3 {
+      font-size: 16px !important;
+      font-weight: 600 !important;
+    }
+
+    .me-agent-chat p,
+    .me-agent-detail-panel p,
+    .me-agent-message-text {
+      font-size: 14px !important;
+      line-height: 1.5 !important;
+    }
+
+    .me-agent-welcome-message .me-agent-message-content > div:first-child {
+      font-size: 14px !important;
+    }
+
+    .me-agent-welcome-message .me-agent-message-content {
+      font-size: 13px !important;
+    }
+
+    .me-agent-message-content {
+      font-size: 14px !important;
+      padding: 10px 14px !important;
+    }
+
+    .me-agent-confirm-savings {
+      font-size: 16px !important;
+    }
+
+    .me-agent-offer-title,
+    .me-agent-brand-title {
+      font-size: 16px !important;
+    }
+
+    .me-agent-offer-discount,
+    .me-agent-brand-discount {
+      font-size: 14px !important;
+    }
+
+    .me-agent-offer-description,
+    .me-agent-brand-description {
+      font-size: 13px !important;
+    }
+
+    .me-agent-button-text,
+    .me-agent-redeem-button,
+    .me-agent-add-to-cart-button {
+      font-size: 14px !important;
+      padding: 12px 16px !important;
+    }
+
+    .me-agent-detail-header-title {
+      font-size: 16px !important;
+    }
+
+    .me-agent-offer-detail-title {
+      font-size: 20px !important;
+    }
+
+    .me-agent-offer-detail-subtitle {
+      font-size: 14px !important;
+    }
+
+    .me-agent-price {
+      font-size: 18px !important;
+    }
+
+    .me-agent-original-price {
+      font-size: 14px !important;
+    }
+
+    .me-agent-category-title {
+      font-size: 14px !important;
+    }
+
+    .me-agent-redemption-subtitle {
+      font-size: 14px !important;
+    }
+
+    .me-agent-step-label {
+      font-size: 12px !important;
+    }
+
+    /* Reduce padding/spacing on mobile */
+    .me-agent-message-container {
+      padding: 12px !important;
+    }
+
+    .me-agent-offer-card,
+    .me-agent-brand-card {
+      padding: 12px !important;
+    }
+
+    .me-agent-detail-panel-content {
+      padding: 16px !important;
+    }
+
+    .me-agent-redemption-container {
+      padding: 16px !important;
+    }
+
+    .me-agent-offer-detail-scroll {
+      padding: 16px !important;
+    }
+
+    .me-agent-input-container {
+      padding: 0px !important;
+    }
+
+    .me-agent-input-content {
+      border-radius: 0px !important;
+    }
+
+    .me-agent-message-avatar-wrapper {
+      display: none !important;
+    }
+
+    .me-agent-detail-bottom-actions {
+      padding: 0px !important;
+    }
+
+    .me-agent-redemption-info {
+      display: none !important;
+    }
+
+    .me-agent-offer-summary-image {
+      width: 60px !important;
+      height: 60px !important;
+    }
+
+    .me-agent-offer-amount-needed {
+      display: none !important;
+    }
+
+    .me-agent-offer-summary-title {
+      font-size: 14px !important;
+      font-weight: 600 !important;
+      margin: 0 !important;
+    }
+
+    .me-agent-price-final {
+      font-size: 14px !important;
+      font-weight: 600 !important;
+    }
+
+    .me-agent-price-original {
+      font-size: 12px !important;
+      font-weight: 400 !important;
+    } 
   }
 
   /* ===== Redemption Styles ===== */
