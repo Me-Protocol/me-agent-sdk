@@ -26,7 +26,10 @@
     "dev": "npm run watch",
     "serve": "npx serve example -l 5500",
     "dev:full": "concurrently \"npm run watch\" \"npm run serve\"",
-    "prepublishOnly": "npm run build:all"
+    "prepublishOnly": "npm run build:all",
+    "release:patch": "npm version patch && git push && git push --tags && npm publish",
+    "release:minor": "npm version minor && git push && git push --tags && npm publish",
+    "release:major": "npm version major && git push && git push --tags && npm publish"
   },
   "keywords": [
     "chatbot",
