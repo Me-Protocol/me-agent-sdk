@@ -408,11 +408,24 @@ export class ChatPopup {
    * Hide the chat popup
    */
   hide(): void {
+    // Reset maximize state first (without animation)
+    if (this.isMaximized) {
+      this.isMaximized = false;
+      this.element.classList.remove("maximized");
+      const maximizeIcon = this.maximizeButton.querySelector(
+        ".me-agent-maximize-icon"
+      ) as HTMLElement;
+      const minimizeIcon = this.maximizeButton.querySelector(
+        ".me-agent-minimize-icon"
+      ) as HTMLElement;
+      if (maximizeIcon) maximizeIcon.style.display = "block";
+      if (minimizeIcon) minimizeIcon.style.display = "none";
+      this.maximizeButton.setAttribute("aria-label", "Maximize chat");
+    }
+
+    // Then hide the chat
     this.element.classList.remove("visible");
     this.hideDetailPanel(); // Hide detail panel when closing chat
-    if (this.isMaximized) {
-      this.toggleMaximize(); // Reset to normal size when closing
-    }
   }
 
   /**
