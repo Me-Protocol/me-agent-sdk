@@ -11,12 +11,19 @@ export class MessageComponent {
   private static parseMarkdown(content: string): string {
     if (!content) return "";
 
-    // First, handle offer links with images: [text](offer-url)(image-url)
+    // First, handle links with images: [text](url)(image-url)
     // This pattern appears when the AI includes both a link and an image
     let html = content.replace(
-      /\[([^\]]+)\]\((https?:\/\/[^\)]+\/offer\/([^\/\s\)]+))\)\((https?:\/\/[^\)]+)\)/g,
-      (match, text, offerUrl, offerCode, imageUrl) => {
-        return `<span class="me-agent-offer-link-with-image"><span class="me-agent-offer-thumbnail-wrapper"><img src="${imageUrl}" alt="${text}" class="me-agent-offer-thumbnail" /><div class="me-agent-offer-thumbnail-popover"><img src="${imageUrl}" alt="${text}" class="me-agent-offer-thumbnail-popover-image" /><div class="me-agent-offer-thumbnail-popover-title">${text}</div></div></span><a href="#" class="me-agent-offer-link" data-offer-code="${offerCode}">${text}</a></span>`;
+      /\[([^\]]+)\]\((https?:\/\/[^\)]+)\)\((https?:\/\/[^\)]+)\)/g,
+      (match, text, linkUrl, imageUrl) => {
+        // Check if this is an offer link with an offer code
+        const offerMatch = linkUrl.match(/\/offer\/([^\/\s]+)/);
+        if (offerMatch) {
+          const offerCode = offerMatch[1];
+          return `<span class="me-agent-offer-link-with-image"><span class="me-agent-offer-thumbnail-wrapper"><img src="${imageUrl}" alt="${text}" class="me-agent-offer-thumbnail" /><div class="me-agent-offer-thumbnail-popover"><img src="${imageUrl}" alt="${text}" class="me-agent-offer-thumbnail-popover-image" /><div class="me-agent-offer-thumbnail-popover-title">${text}</div></div></span><a href="#" class="me-agent-offer-link" data-offer-code="${offerCode}">${text}</a></span>`;
+        }
+        // Otherwise, it's a regular product link
+        return `<span class="me-agent-offer-link-with-image"><span class="me-agent-offer-thumbnail-wrapper"><img src="${imageUrl}" alt="${text}" class="me-agent-offer-thumbnail" /><div class="me-agent-offer-thumbnail-popover"><img src="${imageUrl}" alt="${text}" class="me-agent-offer-thumbnail-popover-image" /><div class="me-agent-offer-thumbnail-popover-title">${text}</div></div></span><a href="${linkUrl}" target="_blank" rel="noopener noreferrer">${text}</a></span>`;
       }
     );
 
