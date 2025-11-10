@@ -46,6 +46,7 @@ export class ChatPopup {
   private brandService: BrandService;
   private redemptionService: RedemptionService | null = null;
   private config: MeAgentConfig;
+  private isSending: boolean = false;
 
   constructor(
     position: "bottom-right" | "bottom-left",
@@ -189,13 +190,18 @@ export class ChatPopup {
    */
   private updateSendButtonState(): void {
     const hasText = this.inputElement.value.trim().length > 0;
-    this.sendButton.disabled = !hasText;
+    this.sendButton.disabled = !hasText || this.isSending;
   }
 
   /**
    * Handle send message
    */
   private handleSend(): void {
+    // Prevent sending if already sending
+    if (this.isSending) {
+      return;
+    }
+
     const message = this.inputElement.value.trim();
     if (message) {
       this.hideWelcome(); // Remove quick actions when user sends a message
@@ -432,8 +438,8 @@ export class ChatPopup {
    * Set loading state for input
    */
   setLoading(loading: boolean): void {
-    this.inputElement.disabled = loading;
-    this.sendButton.disabled = loading;
+    this.isSending = loading;
+    this.updateSendButtonState(); // Update send button based on loading state
   }
 
   /**

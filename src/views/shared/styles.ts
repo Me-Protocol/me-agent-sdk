@@ -327,7 +327,7 @@ export const styles = `
   }
 
   .me-agent-message-content {
-    max-width: 400px;
+    max-width: 450px;
     width: fit-content;
     padding: 12px 16px;
     border-radius: 16px;
@@ -376,6 +376,101 @@ export const styles = `
     color: #999999;
     border-bottom-color: #999999;
     text-decoration: none;
+  }
+
+  /* Offer link with image - inline layout */
+  .me-agent-message-content .me-agent-offer-link-with-image {
+    display: inline;
+    white-space: nowrap;
+  }
+
+  /* Offer thumbnail wrapper - container for thumbnail and popover */
+  .me-agent-message-content .me-agent-offer-thumbnail-wrapper {
+    display: inline-block;
+    position: relative;
+    vertical-align: middle;
+    margin-right: 4px;
+  }
+
+  /* Offer thumbnail - round image */
+  .me-agent-message-content .me-agent-offer-thumbnail {
+    display: block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #999999;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+
+  .me-agent-message-content .me-agent-offer-thumbnail:hover {
+    transform: scale(1.1);
+  }
+
+  /* Offer thumbnail popover */
+  .me-agent-offer-thumbnail-popover {
+    position: absolute;
+    bottom: calc(100% + 12px);
+    left: -10px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 10000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    min-width: 200px;
+    max-width: 300px;
+    white-space: normal;
+  }
+
+  .me-agent-offer-thumbnail-wrapper:hover .me-agent-offer-thumbnail-popover {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .me-agent-offer-thumbnail-popover-image {
+    width: 100%;
+    height: auto;
+    max-height: 200px;
+    object-fit: contain;
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+
+  .me-agent-offer-thumbnail-popover-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    line-height: 1.4;
+    text-align: left;
+  }
+
+  /* Arrow for popover */
+  .me-agent-offer-thumbnail-popover::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 10px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid white;
+  }
+
+  /* Offer link inside wrapper with image */
+  .me-agent-message-content .me-agent-offer-link-with-image .me-agent-offer-link {
+    display: inline;
+    vertical-align: middle;
+  }
+
+  /* Line break spacing */
+  .me-agent-message-content br {
+    line-height: 0.5;
   }
 
   /* Bold and italic text */
