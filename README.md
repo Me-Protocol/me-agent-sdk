@@ -517,7 +517,7 @@ For detailed architecture information, see [ARCHITECTURE_GUIDE.md](./ARCHITECTUR
 | Package      | Version | CDN URL                                                                    |
 | ------------ | ------- | -------------------------------------------------------------------------- |
 | ME Agent SDK | latest  | `https://cdn.jsdelivr.net/npm/me-agent-sdk/dist/me-agent-sdk.min.js`       |
-| ME Agent SDK | 1.0.0   | `https://cdn.jsdelivr.net/npm/me-agent-sdk@1.0.0/dist/me-agent-sdk.min.js` |
+| ME Agent SDK | 1.7.2   | `https://cdn.jsdelivr.net/npm/me-agent-sdk@1.7.2/dist/me-agent-sdk.min.js` |
 | unpkg (alt)  | latest  | `https://unpkg.com/me-agent-sdk/dist/me-agent-sdk.min.js`                  |
 
 ## License
