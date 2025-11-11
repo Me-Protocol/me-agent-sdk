@@ -3170,13 +3170,23 @@ export const styles = `
     transition: all 0.2s ease;
   }
 
-  .me-agent-reward-list-item:hover {
+  .me-agent-reward-list-item:hover:not(.disabled) {
     border-color: #0F0F0F;
   }
 
   .me-agent-reward-list-item.selected {
     border-color: #0F0F0F;
     background: #F5F5F5;
+  }
+
+  .me-agent-reward-list-item.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #F9FAFB;
+  }
+
+  .me-agent-reward-list-item.disabled .me-agent-reward-list-icon {
+    filter: grayscale(100%);
   }
 
   .me-agent-reward-list-icon {
@@ -3190,11 +3200,32 @@ export const styles = `
     flex: 1;
   }
 
+  .me-agent-reward-list-name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+  }
+
   .me-agent-reward-list-name {
     font-size: 16px;
     font-weight: 600;
     color: #0F0F0F;
-    margin-bottom: 4px;
+  }
+
+  .me-agent-network-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 8px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid;
+    white-space: nowrap;
   }
 
   .me-agent-reward-list-balance {
@@ -3218,6 +3249,10 @@ export const styles = `
 
   .me-agent-reward-list-item.selected .me-agent-reward-list-check {
     opacity: 1;
+  }
+
+  .me-agent-reward-list-item.disabled .me-agent-reward-list-check {
+    display: none;
   }
 
   /* ============================================

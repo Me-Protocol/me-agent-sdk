@@ -339,30 +339,103 @@ export class RedemptionView {
   /**
    * Render reward selection list (for bottom sheet)
    */
-  renderRewardList(rewards: RewardBalance[], currentRewardId: string): string {
+  renderRewardList(
+    rewards: RewardBalance[],
+    currentRewardId: string,
+    offerNetwork?: string
+  ): string {
     return `
       <div class="me-agent-reward-list-items">
         ${rewards
-          .map(
-            (reward) => `
+          .map((reward) => {
+            const isDisabled =
+              offerNetwork && reward.reward.brandNetwork !== offerNetwork;
+            const networkBadge = this.getNetworkBadge(
+              reward.reward.brandNetwork
+            );
+
+            return `
           <div class="me-agent-reward-list-item ${
             reward.reward.id === currentRewardId ? "selected" : ""
-          }" data-reward-id="${reward.reward.id}">
+          } ${isDisabled ? "disabled" : ""}" 
+               data-reward-id="${reward.reward.id}"
+               ${isDisabled ? 'data-disabled="true"' : ""}>
             <img src="${reward.reward.image}" alt="${
               reward.reward.name
             }" class="me-agent-reward-list-icon" />
             <div class="me-agent-reward-list-info">
-              <div class="me-agent-reward-list-name">${reward.reward.name}</div>
+              <div class="me-agent-reward-list-name-row">
+                <div class="me-agent-reward-list-name">${
+                  reward.reward.name
+                }</div>
+                ${networkBadge}
+              </div>
               <div class="me-agent-reward-list-balance">Balance: ${reward.balance.toFixed(
                 2
               )} ${reward.reward.symbol}</div>
             </div>
             <div class="me-agent-reward-list-check">✓</div>
           </div>
-        `
-          )
+        `;
+          })
           .join("")}
       </div>
     `;
+  }
+
+  /**
+   * Get network badge HTML with appropriate color
+   */
+  private getNetworkBadge(network: string): string {
+    const networkColors: Record<
+      string,
+      { bg: string; text: string; border: string }
+    > = {
+      arbitrum: {
+        bg: "#28A0F0",
+        text: "#FFFFFF",
+        border: "#1E88D8",
+      },
+      base: {
+        bg: "#0052FF",
+        text: "#FFFFFF",
+        border: "#0041CC",
+      },
+      optimism: {
+        bg: "#FF0420",
+        text: "#FFFFFF",
+        border: "#CC0319",
+      },
+      polygon: {
+        bg: "#8247E5",
+        text: "#FFFFFF",
+        border: "#6739B3",
+      },
+      ethereum: {
+        bg: "#627EEA",
+        text: "#FFFFFF",
+        border: "#4E65BA",
+      },
+      avalanche: {
+        bg: "#E84142",
+        text: "#FFFFFF",
+        border: "#BA3435",
+      },
+      bsc: {
+        bg: "#F3BA2F",
+        text: "#000000",
+        border: "#C29526",
+      },
+    };
+
+    const networkName = network.toLowerCase();
+    const colors = networkColors[networkName] ||
+      networkColors["ethereum"] || {
+        bg: "#6B7280",
+        text: "#FFFFFF",
+        border: "#4B5563",
+      };
+
+    return `<span class="me-agent-network-badge" style="background: ${colors.bg}; color: ${colors.text}; border-color: ${colors.border};">${network}</span>`;
   }
 }

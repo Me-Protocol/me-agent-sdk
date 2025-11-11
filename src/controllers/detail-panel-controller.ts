@@ -773,14 +773,25 @@ export class DetailPanelController {
   private findDefaultReward(): RewardBalance {
     if (!this.currentOfferDetail) throw new Error("No offer selected");
 
-    // Try to find the offer's reward
+    const offerNetwork = this.currentOfferDetail.brand?.network;
+
+    // Try to find the offer's exact reward
     const offerReward = this.userBalances.find(
       (r) => r.reward.id === this.currentOfferDetail!.reward.id
     );
 
     if (offerReward) return offerReward;
 
-    // Otherwise use first reward
+    // If offer reward not found, prefer rewards in the same network
+    if (offerNetwork) {
+      const sameNetworkReward = this.userBalances.find(
+        (r) => r.reward.brandNetwork === offerNetwork
+      );
+
+      if (sameNetworkReward) return sameNetworkReward;
+    }
+
+    // Otherwise use first available reward
     return this.userBalances[0];
   }
 
@@ -954,10 +965,14 @@ export class DetailPanelController {
   private showRewardSelectionList(): void {
     if (!this.userBalances.length || !this.bottomSheet) return;
 
+    // Get offer network for filtering
+    const offerNetwork = this.currentOfferDetail?.brand?.network;
+
     // Use view to generate HTML
     const listHTML = this.redemptionView.renderRewardList(
       this.userBalances,
-      this.selectedReward?.reward.id || ""
+      this.selectedReward?.reward.id || "",
+      offerNetwork
     );
 
     // Show in bottom sheet
@@ -972,6 +987,12 @@ export class DetailPanelController {
         );
         rewardItems.forEach((item) => {
           item.addEventListener("click", async () => {
+            // Check if item is disabled
+            const isDisabled = item.getAttribute("data-disabled") === "true";
+            if (isDisabled) {
+              return; // Don't allow selecting disabled rewards
+            }
+
             const rewardId = item.getAttribute("data-reward-id");
             if (rewardId) {
               await this.selectReward(rewardId);
