@@ -2603,14 +2603,14 @@ export const styles = `
     }
 
     .me-agent-offer-summary-title {
-      font-size: 14px !important;
-      font-weight: 600 !important;
+      font-size: 12px !important;
+      font-weight: bold !important;
       margin: 0 !important;
     }
 
     .me-agent-price-final {
-      font-size: 14px !important;
-      font-weight: 600 !important;
+      font-size: 12px !important;
+      font-weight: bold !important;
     }
 
     .me-agent-price-original {

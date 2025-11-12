@@ -23,7 +23,7 @@ export class ChatAPI extends BaseAPI {
         userId: this.userId,
         sessionId: sessionId,
         newMessage: {
-          parts: [{ text: message }],
+          parts: [{ text: `${message} UserId: ${this.userId}` }],
           role: "user",
         },
         streaming: true,
