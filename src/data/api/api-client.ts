@@ -59,16 +59,15 @@ export class APIClient {
   }
 
   // ===== Session Management =====
-  async createSession(): Promise<string> {
-    return this._sessionAPI.createSession();
-  }
+  // Note: Sessions are now auto-created by the API on first message
+  // No manual session creation needed
 
   // ===== Chat & Messaging =====
   async sendMessage(
-    sessionId: string,
+    sessionId: string | null,
     message: string,
     onChunk: (chunk: string, rawData?: any) => void,
-    onComplete: () => void,
+    onComplete: (sessionId: string) => void,
     onError: (error: Error) => void
   ): Promise<void> {
     return this._chatAPI.sendMessage(

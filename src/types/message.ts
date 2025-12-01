@@ -41,17 +41,30 @@ export interface SessionResponse {
 }
 
 /**
- * API message payload
+ * API message payload (new format)
  */
 export interface SendMessagePayload {
-  appName: string;
-  userId: string;
-  sessionId: string;
-  newMessage: {
-    parts: Array<{ text: string }>;
-    role: string;
+  query: string;
+  session_id?: string;
+  user_id: string;
+}
+
+/**
+ * API response from query endpoint
+ */
+export interface QueryResponse {
+  response: string;
+  session_id: string;
+  function_response?: {
+    id: string;
+    name: string;
+    response: {
+      count?: number;
+      message?: string;
+      status: string;
+      [key: string]: any;
+    };
   };
-  streaming: boolean;
 }
 
 /**

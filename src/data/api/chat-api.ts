@@ -4,30 +4,29 @@
  */
 
 import { BaseAPI } from "./base-api";
-import { SendMessagePayload } from "../../types";
+import { SendMessagePayload, QueryResponse } from "../../types";
 
 export class ChatAPI extends BaseAPI {
   /**
    * Send a message and handle streaming response via SSE
    */
   async sendMessage(
-    sessionId: string,
+    sessionId: string | null,
     message: string,
     onChunk: (chunk: string, rawData?: any) => void,
-    onComplete: () => void,
+    onComplete: (sessionId: string) => void,
     onError: (error: Error) => void
   ): Promise<void> {
     try {
       const payload: SendMessagePayload = {
-        appName: "consumer",
-        userId: this.userId,
-        sessionId: sessionId,
-        newMessage: {
-          parts: [{ text: `${message} UserId: ${this.userId}` }],
-          role: "user",
-        },
-        streaming: true,
+        query: message,
+        user_id: this.userId,
       };
+
+      // Only include session_id if it exists
+      if (sessionId) {
+        payload.session_id = sessionId;
+      }
 
       const headers: Record<string, string> = {};
 
@@ -36,7 +35,7 @@ export class ChatAPI extends BaseAPI {
         headers["x-user-email"] = this.config.emailAddress;
       }
 
-      const response = await fetch(`${this.env.AGENT_BASE_URL}/run_sse`, {
+      const response = await fetch(`${this.env.AGENT_BASE_URL}/query`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -63,7 +62,7 @@ export class ChatAPI extends BaseAPI {
   private async handleSSEStream(
     response: Response,
     onChunk: (chunk: string, rawData?: any) => void,
-    onComplete: () => void
+    onComplete: (sessionId: string) => void
   ): Promise<void> {
     const reader = response.body?.getReader();
     const decoder = new TextDecoder();
@@ -73,12 +72,14 @@ export class ChatAPI extends BaseAPI {
     }
 
     let buffer = "";
+    let returnedSessionId: string | null = null;
 
     while (true) {
       const { done, value } = await reader.read();
 
       if (done) {
-        onComplete();
+        // Pass session ID to onComplete
+        onComplete(returnedSessionId || "");
         break;
       }
 
@@ -90,7 +91,10 @@ export class ChatAPI extends BaseAPI {
         if (line.startsWith("data: ")) {
           const data = line.slice(6).trim();
           if (data && data !== "[DONE]") {
-            this.processSSEData(data, onChunk);
+            const sessionId = this.processSSEData(data, onChunk);
+            if (sessionId) {
+              returnedSessionId = sessionId;
+            }
           }
         }
       }
@@ -99,15 +103,27 @@ export class ChatAPI extends BaseAPI {
 
   /**
    * Process individual SSE data chunks
+   * Returns the session_id if found in the response
    */
   private processSSEData(
     data: string,
     onChunk: (chunk: string, rawData?: any) => void
-  ): void {
+  ): string | null {
     try {
       const parsed = JSON.parse(data);
 
-      // Extract text from content.parts[0].text
+      // New format: { response, session_id, function_response }
+      if (parsed.response !== undefined) {
+        // Extract the text response
+        if (parsed.response) {
+          onChunk(parsed.response, parsed);
+        }
+
+        // Return session_id if present
+        return parsed.session_id || null;
+      }
+
+      // Legacy format support (old API responses)
       if (parsed.content?.parts?.[0]?.text) {
         const text = parsed.content.parts[0].text;
         onChunk(text, parsed);
@@ -122,9 +138,12 @@ export class ChatAPI extends BaseAPI {
       } else if (parsed.text) {
         onChunk(parsed.text, parsed);
       }
+
+      return null;
     } catch (e) {
       // If not JSON, treat as plain text chunk
       onChunk(data);
+      return null;
     }
   }
 }

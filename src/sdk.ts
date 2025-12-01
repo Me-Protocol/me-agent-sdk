@@ -106,8 +106,8 @@ export class MeAgentSDK {
       // Inject styles
       injectStyles();
 
-      // Create session
-      const sessionId = await this.sessionService.getOrCreateSession();
+      // Session will be auto-created on first message
+      const sessionId = this.sessionService.getSessionId();
 
       // Initialize UI components
       this.button = new FloatingButton(
@@ -246,13 +246,6 @@ export class MeAgentSDK {
    * Send a message
    */
   private async sendMessage(content: string): Promise<void> {
-    const sessionId = this.sessionService.getSessionId();
-
-    if (!sessionId) {
-      console.error("MeAgent SDK: No active session");
-      return;
-    }
-
     // Add user message
     const userMessage = this.sessionService.createMessage("user", content);
     this.sessionService.addMessage(userMessage);
@@ -274,7 +267,7 @@ export class MeAgentSDK {
 
     try {
       await this.apiClient.sendMessage(
-        sessionId,
+        this.sessionService.getSessionId(),
         content,
         (chunk: string, rawData?: any) => {
           // Parse function calls and responses using MessageParser
@@ -335,8 +328,14 @@ export class MeAgentSDK {
             }
           }
         },
-        () => {
-          // On complete
+        (returnedSessionId: string) => {
+          // On complete - update session ID if this is the first message
+          if (returnedSessionId && !this.sessionService.getSessionId()) {
+            this.sessionService.setSessionId(returnedSessionId);
+            this.chat?.setSessionId(returnedSessionId);
+            console.log("MeAgent SDK: Session created:", returnedSessionId);
+          }
+
           this.chat?.setLoading(false);
           this.chat?.removeLoading();
 

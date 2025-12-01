@@ -40,7 +40,7 @@ export class ChatPopup {
   private isMaximized: boolean = false;
   private detailPanelController: DetailPanelController;
   private currentOffers: Offer[] = [];
-  private sessionId: string = "";
+  private sessionId: string | null = null;
   private apiClient: APIClient;
   private offerService: OfferService;
   private brandService: BrandService;
@@ -53,7 +53,7 @@ export class ChatPopup {
     onSendMessage: (message: string) => void,
     onClose: () => void,
     apiClient: APIClient,
-    sessionId: string,
+    sessionId: string | null,
     config: MeAgentConfig,
     redemptionService?: RedemptionService
   ) {
@@ -638,7 +638,7 @@ export class ChatPopup {
     }
 
     this.element.classList.add("has-detail-panel");
-    this.detailPanelController.showOfferGrid(offers, this.sessionId);
+    this.detailPanelController.showOfferGrid(offers, this.sessionId || "");
     this.detailPanelController.show();
   }
 
@@ -664,7 +664,7 @@ export class ChatPopup {
       this.element.classList.add("has-detail-panel");
       await this.detailPanelController.showOfferDetail(
         offerCode,
-        this.sessionId
+        this.sessionId || ""
       );
     } catch (error) {
       console.error("Error fetching offer details:", error);
@@ -691,6 +691,13 @@ export class ChatPopup {
    */
   getElement(): HTMLDivElement {
     return this.element;
+  }
+
+  /**
+   * Update session ID
+   */
+  setSessionId(sessionId: string): void {
+    this.sessionId = sessionId;
   }
 
   // ============================================

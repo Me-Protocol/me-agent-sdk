@@ -42,7 +42,7 @@ interface EnvironmentConfig {
 // Development environment
 const DEV_CONFIG: EnvironmentConfig = {
   API_URL: "https://paas.meappbounty.com/v1/api/",
-  AGENT_BASE_URL: "https://fastapi-proxy-580283507238.us-central1.run.app",
+  AGENT_BASE_URL: "https://agent-adk-api-580283507238.us-central1.run.app",
   ME_API_KEY: "hl3elmtvji75or71j4xy5e",
   API_V1_URL: "https://api.meappbounty.com/",
   MAGIC_PUBLISHABLE_API_KEY: "pk_live_FB79F672A43B8AC2",

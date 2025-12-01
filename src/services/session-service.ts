@@ -19,20 +19,18 @@ export class SessionService {
   constructor(private sessionAPI: SessionAPI, private chatAPI: ChatAPI) {}
 
   /**
-   * Initialize or get existing session
+   * Get current session ID (may be null initially)
+   * The API will auto-generate and return a session_id on first message
    */
-  async getOrCreateSession(): Promise<string> {
-    if (!this.sessionId) {
-      this.sessionId = await this.sessionAPI.createSession();
-    }
+  getSessionId(): string | null {
     return this.sessionId;
   }
 
   /**
-   * Get current session ID
+   * Set session ID (called when API returns session_id)
    */
-  getSessionId(): string | null {
-    return this.sessionId;
+  setSessionId(sessionId: string): void {
+    this.sessionId = sessionId;
   }
 
   /**
@@ -44,18 +42,22 @@ export class SessionService {
     onComplete: () => void,
     onError: (error: Error) => void
   ): Promise<void> {
-    const sessionId = await this.getOrCreateSession();
-
     // Add user message to history
     const userMessage = this.createMessage("user", content);
     this.messages.push(userMessage);
 
-    // Send via API
+    // Send via API (session_id is optional - API will create if needed)
     await this.chatAPI.sendMessage(
-      sessionId,
+      this.sessionId,
       content,
       onChunk,
-      onComplete,
+      (returnedSessionId: string) => {
+        // Update session ID if returned from API
+        if (returnedSessionId && !this.sessionId) {
+          this.setSessionId(returnedSessionId);
+        }
+        onComplete();
+      },
       onError
     );
   }
