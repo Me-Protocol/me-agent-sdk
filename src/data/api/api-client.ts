@@ -62,6 +62,14 @@ export class APIClient {
   // Note: Sessions are now auto-created by the API on first message
   // No manual session creation needed
 
+  async getUserSessions() {
+    return this._sessionAPI.getUserSessions();
+  }
+
+  async getConversation(sessionId: string) {
+    return this._sessionAPI.getConversation(sessionId);
+  }
+
   // ===== Chat & Messaging =====
   async sendMessage(
     sessionId: string | null,

@@ -125,6 +125,11 @@ export class MeAgentSDK {
         this.redemptionService || undefined
       );
 
+      // Set session switch callback
+      this.chat.setOnSessionSwitch((newSessionId: string) => {
+        this.sessionService.setSessionId(newSessionId);
+      });
+
       // Mount components
       this.button.mount();
       this.chat.mount();

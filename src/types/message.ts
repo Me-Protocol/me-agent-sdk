@@ -76,3 +76,46 @@ export interface QuickAction {
   value: string;
   icon?: string;
 }
+
+/**
+ * Session from history
+ */
+export interface ChatSession {
+  extracted_id: string;
+  raw_type: string;
+  raw_value: string;
+}
+
+/**
+ * List sessions response
+ */
+export interface ListSessionsResponse {
+  response_type: string;
+  sessions_count: number;
+  sessions: ChatSession[];
+}
+
+/**
+ * Conversation message
+ */
+export interface ConversationMessage {
+  content: {
+    parts: Array<{
+      text?: string;
+      function_call?: any;
+      function_response?: any;
+    }>;
+  };
+  role: "user" | "model";
+  timestamp: string;
+}
+
+/**
+ * Conversations response
+ */
+export interface ConversationsResponse {
+  message_count: number;
+  messages: ConversationMessage[];
+  session_id: string;
+  user_id: string;
+}

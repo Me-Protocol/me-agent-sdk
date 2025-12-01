@@ -5,16 +5,20 @@ import {
   Brand,
   Category,
   MeAgentConfig,
+  ChatSession,
+  ConversationMessage,
 } from "../../types";
 import { MessageComponent } from "./message";
 import { QuickActionsComponent } from "./quick-actions";
 import { OfferPreviewCard } from "./offer-preview";
 import { CardList, CardListItem } from "./card-list";
+import { ChatHistoryPopup } from "./chat-history";
 import { DetailPanelController } from "../../controllers/detail-panel-controller";
 import { OfferService } from "../../services/offer-service";
 import { BrandService } from "../../services/brand-service";
 import { RedemptionService } from "../../services/redemption-service";
 import { APIClient } from "../../data/api/api-client";
+import { generateId } from "../../core/utils/formatters";
 import {
   getCloseIcon,
   getMaximizeIcon,
@@ -47,6 +51,9 @@ export class ChatPopup {
   private redemptionService: RedemptionService | null = null;
   private config: MeAgentConfig;
   private isSending: boolean = false;
+  private historyPopup: ChatHistoryPopup;
+  private historyDropdownButton: HTMLButtonElement | null = null;
+  private onSessionSwitch: ((sessionId: string) => void) | null = null;
 
   constructor(
     position: "bottom-right" | "bottom-left",
@@ -97,6 +104,14 @@ export class ChatPopup {
     // Mount detail panel inside chat - controller provides its own wrapper
     this.element.appendChild(this.detailPanelController.getElement());
 
+    // Initialize history popup
+    this.historyPopup = new ChatHistoryPopup(
+      () => this.handleNewChat(),
+      (sessionId) => this.handleSessionSelect(sessionId),
+      () => this.toggleHistoryDropdownIcon(false)
+    );
+    this.element.appendChild(this.historyPopup.getElement());
+
     this.setupEventListeners();
   }
 
@@ -110,7 +125,7 @@ export class ChatPopup {
     chat.innerHTML = `
       <div class="me-agent-chat-content">
         <div class="me-agent-chat-header">
-          <div class="me-agent-chat-title-container">
+          <button class="me-agent-chat-title-dropdown" aria-label="Open chat history">
             ${getChatIcon({
               width: 20,
               height: 20,
@@ -118,7 +133,10 @@ export class ChatPopup {
               color: "#999999",
             })}
             <h3 class="me-agent-chat-title">Chats</h3>
-          </div>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" class="me-agent-dropdown-icon">
+              <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
           <div class="me-agent-header-buttons">
             <button class="me-agent-maximize-button" aria-label="Maximize chat">
               <span class="me-agent-maximize-icon">${getMaximizeIcon({
@@ -164,6 +182,14 @@ export class ChatPopup {
 
     // Maximize button
     this.maximizeButton.addEventListener("click", () => this.toggleMaximize());
+
+    // History dropdown button
+    this.historyDropdownButton = this.element.querySelector(
+      ".me-agent-chat-title-dropdown"
+    );
+    this.historyDropdownButton?.addEventListener("click", () =>
+      this.toggleHistory()
+    );
 
     // Send button
     this.sendButton.addEventListener("click", () => this.handleSend());
@@ -739,5 +765,96 @@ export class ChatPopup {
   devShowCategoryGrid(): void {
     // For now, we'll need sample data or fetch from API
     console.warn("Dev: Category grid requires data - use AI chat to trigger");
+  }
+
+  /**
+   * Toggle history dropdown
+   */
+  private async toggleHistory(): Promise<void> {
+    if (this.historyPopup.isOpen()) {
+      this.historyPopup.hide();
+      this.toggleHistoryDropdownIcon(false);
+    } else {
+      // Show popup immediately with loading state
+      this.historyPopup.show();
+      this.toggleHistoryDropdownIcon(true);
+
+      // Fetch sessions in background
+      try {
+        const response = await this.apiClient.getUserSessions();
+        this.historyPopup.updateSessions(response.sessions, this.sessionId);
+      } catch (error) {
+        console.error("Error fetching chat history:", error);
+        // Show error state in popup
+        this.historyPopup.updateSessions([], this.sessionId);
+      }
+    }
+  }
+
+  /**
+   * Toggle dropdown icon rotation
+   */
+  private toggleHistoryDropdownIcon(isOpen: boolean): void {
+    if (this.historyDropdownButton) {
+      if (isOpen) {
+        this.historyDropdownButton.classList.add("open");
+      } else {
+        this.historyDropdownButton.classList.remove("open");
+      }
+    }
+  }
+
+  /**
+   * Handle new chat
+   */
+  private handleNewChat(): void {
+    // Clear current session
+    this.sessionId = null;
+    this.messagesContainer.innerHTML = "";
+    this.showWelcome();
+  }
+
+  /**
+   * Handle session selection from history
+   */
+  private async handleSessionSelect(sessionId: string): Promise<void> {
+    try {
+      // Fetch conversation messages
+      const response = await this.apiClient.getConversation(sessionId);
+
+      // Update session ID
+      this.sessionId = sessionId;
+
+      // Clear current messages
+      this.messagesContainer.innerHTML = "";
+      this.hideWelcome();
+
+      // Convert and add messages
+      response.messages.forEach((msg) => {
+        if (msg.content.parts[0]?.text) {
+          const message: Message = {
+            id: generateId(),
+            role: msg.role === "user" ? "user" : "assistant",
+            content: msg.content.parts[0].text,
+            timestamp: Date.now(),
+          };
+          this.addMessage(message);
+        }
+      });
+
+      // Notify parent of session switch (if callback is set)
+      if (this.onSessionSwitch) {
+        this.onSessionSwitch(sessionId);
+      }
+    } catch (error) {
+      console.error("Error loading conversation:", error);
+    }
+  }
+
+  /**
+   * Set session switch callback
+   */
+  setOnSessionSwitch(callback: (sessionId: string) => void): void {
+    this.onSessionSwitch = callback;
   }
 }

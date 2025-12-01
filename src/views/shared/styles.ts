@@ -3347,6 +3347,224 @@ export const styles = `
   }
 
   /* ============================================
+     CHAT HISTORY POPUP
+     ============================================ */
+  .me-agent-history-popup {
+    position: absolute;
+    top: 60px;
+    left: 20px;
+    width: 280px;
+    max-height: 80vh;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    display: flex;
+    flex-direction: column;
+    z-index: 10001;
+    overflow: hidden;
+  }
+
+  .me-agent-history-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #E5E7EB;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .me-agent-history-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #0F0F0F;
+    margin: 0;
+  }
+
+  .me-agent-history-close {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #F3F4F6;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .me-agent-history-close:hover {
+    background: #E5E7EB;
+  }
+
+  .me-agent-history-content {
+    padding: 12px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .me-agent-new-chat-btn {
+    width: 100%;
+    padding: 12px 16px;
+    background: #0F0F0F;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.2s ease;
+  }
+
+  .me-agent-new-chat-btn:hover {
+    background: #1F1F1F;
+  }
+
+  .me-agent-history-divider {
+    height: 1px;
+    background: #E5E7EB;
+    margin: 16px 0;
+  }
+
+  .me-agent-history-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6B7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    padding: 0 4px;
+  }
+
+  .me-agent-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .me-agent-history-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: white;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .me-agent-history-item:hover {
+    background: #F9FAFB;
+    border-color: #E5E7EB;
+  }
+
+  .me-agent-history-item.active {
+    background: #F0F0F0;
+    border-color: #0F0F0F;
+  }
+
+  .me-agent-history-item-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #F3F4F6;
+    border-radius: 6px;
+    flex-shrink: 0;
+    color: #6B7280;
+  }
+
+  .me-agent-history-item.active .me-agent-history-item-icon {
+    background: #0F0F0F;
+    color: white;
+  }
+
+  .me-agent-history-item-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .me-agent-history-item-preview {
+    font-size: 14px;
+    color: #0F0F0F;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .me-agent-history-empty {
+    padding: 32px 16px;
+    text-align: center;
+  }
+
+  .me-agent-history-empty p {
+    font-size: 14px;
+    color: #9CA3AF;
+    margin: 0;
+  }
+
+  .me-agent-history-loading {
+    padding: 32px 16px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .me-agent-history-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #E5E7EB;
+    border-top-color: #0F0F0F;
+    border-radius: 50%;
+    animation: me-agent-history-spin 0.8s linear infinite;
+  }
+
+  @keyframes me-agent-history-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .me-agent-history-loading p {
+    font-size: 14px;
+    color: #6B7280;
+    margin: 0;
+  }
+
+  .me-agent-chat-title-dropdown {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #0F0F0F;
+    transition: opacity 0.2s ease;
+  }
+
+  .me-agent-chat-title-dropdown:hover {
+    opacity: 0.7;
+  }
+
+  .me-agent-dropdown-icon {
+    transition: transform 0.2s ease;
+  }
+
+  .me-agent-chat-title-dropdown.open .me-agent-dropdown-icon {
+    transform: rotate(180deg);
+  }
+
+  /* ============================================
      DEV HELPER STYLES
      ============================================ */
   .me-agent-dev-help-overlay {
