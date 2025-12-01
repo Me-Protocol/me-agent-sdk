@@ -17,6 +17,7 @@ import { DetailPanelController } from "../../controllers/detail-panel-controller
 import { OfferService } from "../../services/offer-service";
 import { BrandService } from "../../services/brand-service";
 import { RedemptionService } from "../../services/redemption-service";
+import { MessageParser } from "../../services/message-parser";
 import { APIClient } from "../../data/api/api-client";
 import { generateId } from "../../core/utils/formatters";
 import {
@@ -54,6 +55,7 @@ export class ChatPopup {
   private historyPopup: ChatHistoryPopup;
   private historyDropdownButton: HTMLButtonElement | null = null;
   private onSessionSwitch: ((sessionId: string) => void) | null = null;
+  private messageParser: MessageParser;
 
   constructor(
     position: "bottom-right" | "bottom-left",
@@ -78,6 +80,7 @@ export class ChatPopup {
       apiClient.brandAPI,
       apiClient.offerAPI
     );
+    this.messageParser = new MessageParser();
 
     // Initialize detail panel controller
     if (!this.redemptionService) {
@@ -829,6 +832,12 @@ export class ChatPopup {
       this.messagesContainer.innerHTML = "";
       this.hideWelcome();
 
+      // Track offers/brands/categories to show previews after all messages are added
+      let lastOffers: Offer[] = [];
+      let lastBrands: Brand[] = [];
+      let lastCategories: Category[] = [];
+      let shouldShowWaysToEarn = false;
+
       // Convert and add messages
       response.messages.forEach((msg) => {
         if (msg.content.parts[0]?.text) {
@@ -840,7 +849,50 @@ export class ChatPopup {
           };
           this.addMessage(message);
         }
+
+        // Parse function responses to show offer/brand/category cards
+        if (msg.role === "model") {
+          const parsedData = this.messageParser.parseMessageData({
+            content: msg.content,
+          });
+
+          if (parsedData.offers.length > 0) {
+            lastOffers = parsedData.offers;
+            lastBrands = []; // Clear brands/categories when offers are found
+            lastCategories = [];
+            shouldShowWaysToEarn = false;
+          }
+          if (parsedData.brands.length > 0) {
+            lastBrands = parsedData.brands;
+            lastOffers = []; // Clear offers/categories when brands are found
+            lastCategories = [];
+            shouldShowWaysToEarn = false;
+          }
+          if (parsedData.categories.length > 0) {
+            lastCategories = parsedData.categories;
+            lastOffers = []; // Clear offers/brands when categories are found
+            lastBrands = [];
+            shouldShowWaysToEarn = false;
+          }
+          if (parsedData.showWaysToEarn) {
+            shouldShowWaysToEarn = true;
+            lastOffers = [];
+            lastBrands = [];
+            lastCategories = [];
+          }
+        }
       });
+
+      // Show the most recent preview (offers, brands, categories, or ways to earn)
+      if (lastOffers.length > 0) {
+        this.showOfferPreview(lastOffers);
+      } else if (lastBrands.length > 0) {
+        this.showBrandPreview(lastBrands);
+      } else if (lastCategories.length > 0) {
+        this.showCategoryPreview(lastCategories);
+      } else if (shouldShowWaysToEarn) {
+        this.showWaysToEarnActions();
+      }
 
       // Notify parent of session switch (if callback is set)
       if (this.onSessionSwitch) {

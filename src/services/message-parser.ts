@@ -27,21 +27,36 @@ export class MessageParser {
     let categories: Category[] = [];
     let showWaysToEarn = false;
 
-    const functionResponse = rawData.content?.parts?.[0]?.functionResponse;
+    // New format: function_response at top level
+    const functionResponse =
+      rawData.function_response ||
+      rawData.content?.parts?.[0]?.functionResponse;
     const functionCall = rawData.content?.parts?.[0]?.functionCall;
 
     if (functionResponse) {
+      console.log(
+        "[MessageParser] Function response detected:",
+        functionResponse.name
+      );
+
       if (functionResponse.name === "query_offers") {
         const matches = functionResponse.response?.matches || [];
+        console.log("[MessageParser] Parsing offers, count:", matches.length);
         offers = this.parseOffers(matches);
+        console.log("[MessageParser] Parsed offers:", offers.length);
       } else if (functionResponse.name === "get_signup_earning_brands") {
         const rawBrands = functionResponse.response?.brands || [];
         brands = this.parseBrands(rawBrands);
       } else if (functionResponse.name === "get_category_purchase_earning") {
         const rawCategories = functionResponse.response?.categories || [];
         categories = mergeCategoriesWithPresets(rawCategories);
+      } else if (functionResponse.name === "ways_to_earn") {
+        // New format: ways_to_earn is now a function_response
+        console.log("[MessageParser] Ways to earn detected");
+        showWaysToEarn = true;
       }
     } else if (functionCall?.name === "ways_to_earn") {
+      // Old format: ways_to_earn as function_call (keep for backwards compatibility)
       showWaysToEarn = true;
     }
 
