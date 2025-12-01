@@ -275,6 +275,12 @@ export class MeAgentSDK {
         this.sessionService.getSessionId(),
         content,
         (chunk: string, rawData?: any) => {
+          console.log("[SDK] Chunk handler called:", {
+            chunk,
+            rawData,
+            isFirstChunk,
+          });
+
           // Parse function calls and responses using MessageParser
           if (rawData) {
             const parsed = this.messageParser.parseMessageData(rawData);
@@ -303,12 +309,16 @@ export class MeAgentSDK {
 
           // Create message container on first data, even if empty text
           if (isFirstChunk) {
+            console.log(
+              "[SDK] First chunk - creating message with content:",
+              chunk
+            );
             this.chat?.removeLoading();
             assistantMessage.content = chunk || "";
             this.sessionService.addMessage(assistantMessage);
             this.chat?.addMessage(assistantMessage);
             isFirstChunk = false;
-          } else if (chunk) {
+          } else if (chunk !== undefined) {
             // Check if this is a partial/streaming chunk or final complete message
             const isPartial = rawData?.partial === true;
 
@@ -317,8 +327,11 @@ export class MeAgentSDK {
               assistantMessage.content += chunk;
               this.sessionService.updateLastMessage(assistantMessage.content);
               this.chat?.updateLastMessage(assistantMessage.content);
-            } else if (rawData?.content?.parts?.[0]?.text) {
-              // Final complete message
+            } else if (
+              rawData?.response !== undefined ||
+              rawData?.content?.parts?.[0]?.text
+            ) {
+              // Final complete message (new format: rawData.response, old format: rawData.content.parts[0].text)
               if (hasFinalMessage) {
                 // We already have a final message, so this is additional text
                 // after a function call - append it with spacing

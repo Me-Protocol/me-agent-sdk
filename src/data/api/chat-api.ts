@@ -35,6 +35,8 @@ export class ChatAPI extends BaseAPI {
         headers["x-user-email"] = this.config.emailAddress;
       }
 
+      console.log("[ChatAPI] Sending message to /query:", payload);
+
       const response = await fetch(`${this.env.AGENT_BASE_URL}/query`, {
         method: "POST",
         headers: {
@@ -44,12 +46,33 @@ export class ChatAPI extends BaseAPI {
         body: JSON.stringify(payload),
       });
 
+      console.log("[ChatAPI] Response status:", response.status);
+      console.log(
+        "[ChatAPI] Response headers:",
+        response.headers.get("content-type")
+      );
+
       if (!response.ok) {
         throw new Error(`Failed to send message: ${response.statusText}`);
       }
 
-      // Handle SSE streaming response
-      await this.handleSSEStream(response, onChunk, onComplete);
+      // Check if response is SSE or regular JSON
+      const contentType = response.headers.get("content-type");
+      if (contentType?.includes("text/event-stream")) {
+        console.log("[ChatAPI] Handling as SSE stream");
+        await this.handleSSEStream(response, onChunk, onComplete);
+      } else {
+        console.log("[ChatAPI] Handling as regular JSON");
+        // Handle as regular JSON response
+        const data = await response.json();
+        console.log("[ChatAPI] JSON response:", data);
+
+        if (data.response !== undefined) {
+          onChunk(data.response, data);
+        }
+
+        onComplete(data.session_id || "");
+      }
     } catch (error) {
       console.error("Error sending message:", error);
       onError(error as Error);
@@ -112,12 +135,16 @@ export class ChatAPI extends BaseAPI {
     try {
       const parsed = JSON.parse(data);
 
+      console.log("[ChatAPI] Received SSE data:", parsed);
+
       // New format: { response, session_id, function_response }
       if (parsed.response !== undefined) {
-        // Extract the text response
-        if (parsed.response) {
-          onChunk(parsed.response, parsed);
-        }
+        console.log(
+          "[ChatAPI] New format detected, response:",
+          parsed.response
+        );
+        // Extract the text response (call onChunk even if response is empty string)
+        onChunk(parsed.response || "", parsed);
 
         // Return session_id if present
         return parsed.session_id || null;
