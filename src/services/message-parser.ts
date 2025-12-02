@@ -9,7 +9,8 @@ import { mergeCategoriesWithPresets } from "../core/constants/categories";
 export interface ParsedMessageData {
   offers: Offer[];
   brands: Brand[];
-  categories: Category[];
+  categories: Category[]; // For get_category_purchase_earning
+  searchCategories: Category[]; // For get_categories
   showWaysToEarn: boolean;
 }
 
@@ -25,6 +26,7 @@ export class MessageParser {
     let offers: Offer[] = [];
     let brands: Brand[] = [];
     let categories: Category[] = [];
+    let searchCategories: Category[] = [];
     let showWaysToEarn = false;
 
     // New format: function_response at top level
@@ -50,6 +52,17 @@ export class MessageParser {
       } else if (functionResponse.name === "get_category_purchase_earning") {
         const rawCategories = functionResponse.response?.categories || [];
         categories = mergeCategoriesWithPresets(rawCategories);
+      } else if (functionResponse.name === "get_categories") {
+        const rawCategories = functionResponse.response?.categories || [];
+        console.log(
+          "[MessageParser] Parsing search categories, count:",
+          rawCategories.length
+        );
+        searchCategories = this.parseSearchCategories(rawCategories);
+        console.log(
+          "[MessageParser] Parsed search categories:",
+          searchCategories.length
+        );
       } else if (functionResponse.name === "ways_to_earn") {
         // New format: ways_to_earn is now a function_response
         console.log("[MessageParser] Ways to earn detected");
@@ -60,7 +73,7 @@ export class MessageParser {
       showWaysToEarn = true;
     }
 
-    return { offers, brands, categories, showWaysToEarn };
+    return { offers, brands, categories, searchCategories, showWaysToEarn };
   }
 
   /**
@@ -113,6 +126,27 @@ export class MessageParser {
         },
         rules: [],
       },
+    }));
+  }
+
+  /**
+   * Parse search categories from get_categories function response
+   */
+  private parseSearchCategories(rawCategories: any[]): Category[] {
+    return rawCategories.map((cat: any) => ({
+      categoryId: cat.categoryId || "",
+      categoryName: cat.categoryName || "Unknown Category",
+      title: cat.categoryName || "Unknown Category",
+      brandCount: cat.brandCount || 0,
+      image:
+        cat.categoryImage ||
+        `https://via.placeholder.com/300x200?text=${
+          cat.categoryName?.charAt(0) || "C"
+        }`,
+      description: cat.categoryDescription || undefined,
+      categorySlug: cat.categorySlug || undefined,
+      categoryType: cat.categoryType || undefined,
+      categoryBanner: cat.categoryBanner || undefined,
     }));
   }
 }

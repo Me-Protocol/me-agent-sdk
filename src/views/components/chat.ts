@@ -595,6 +595,63 @@ export class ChatPopup {
   }
 
   /**
+   * Show search category card list (for get_categories response)
+   */
+  showSearchCategoryCardList(categories: Category[]): void {
+    const categoryItems: CardListItem[] = categories
+      .slice(0, 10)
+      .map((category) => ({
+        id: category.categoryId,
+        title: category.title || category.categoryName,
+        image:
+          category.image ||
+          `https://via.placeholder.com/40x40?text=${(
+            category.title || category.categoryName
+          ).charAt(0)}`,
+      }));
+
+    const categoryCard = CardList.create({
+      title: "Search for offers in these categories",
+      items: categoryItems,
+      actionLabel: "View All",
+      onAction: () => this.showSearchCategoryDetail(categories),
+    });
+
+    const messages = this.messagesContainer.querySelectorAll(
+      ".me-agent-message.assistant"
+    );
+    const lastMessage = messages[messages.length - 1] as HTMLElement;
+    if (lastMessage) {
+      MessageComponent.appendToMessage(lastMessage, categoryCard);
+    } else {
+      this.messagesContainer.appendChild(categoryCard);
+    }
+
+    this.scrollToBottom();
+  }
+
+  /**
+   * Show search category detail (opens detail panel with category grid)
+   */
+  private showSearchCategoryDetail(categories: Category[]): void {
+    const sessionId = this.sessionId || "";
+    if (this.isMaximized) {
+      this.detailPanelController.showSearchCategoryGrid(categories, sessionId);
+      this.element.classList.add("has-detail-panel");
+    } else {
+      this.toggleMaximize();
+      // Wait for maximize animation
+      setTimeout(() => {
+        this.detailPanelController.showSearchCategoryGrid(
+          categories,
+          sessionId
+        );
+        this.element.classList.add("has-detail-panel");
+      }, 300);
+    }
+  }
+
+  /**
    * Show categories detail panel with grid
    */
   private showCategoriesDetail(categories: Category[]): void {

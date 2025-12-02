@@ -245,6 +245,11 @@ export class DetailPanelController {
         this.attachCategoryGridListeners();
         break;
 
+      case "search-category-grid":
+        this.content.innerHTML = this.categoryGridView.render(viewState.data);
+        this.attachSearchCategoryGridListeners(viewState.data);
+        break;
+
       case "brand-offers":
         this.currentBrandsWithOffers = viewState.data;
         this.content.innerHTML = this.brandOffersView.render(viewState.data);
@@ -395,6 +400,104 @@ export class DetailPanelController {
   }
 
   /**
+   * Show search category grid (for get_categories response)
+   * When clicked, fetches and shows offers for that category
+   */
+  showSearchCategoryGrid(categories: Category[], sessionId: string): void {
+    this.sessionId = sessionId;
+    this.content.innerHTML = this.categoryGridView.render(categories);
+    this.currentView = "search-category-grid";
+    this.viewStack = [
+      {
+        type: "search-category-grid",
+        title: "Search Categories",
+        data: categories,
+      },
+    ];
+    this.updateHeader("Search Categories");
+    this.attachSearchCategoryGridListeners(categories);
+    this.show();
+  }
+
+  /**
+   * Show offers for a category (fetch by category ID)
+   */
+  async showOffersForCategory(
+    categoryId: string,
+    categoryName: string,
+    token?: string
+  ): Promise<void> {
+    // Cancel any existing request
+    this.cancelCurrentRequest();
+
+    // Create new AbortController
+    this.currentAbortController = new AbortController();
+    const signal = this.currentAbortController.signal;
+
+    try {
+      // Show loading with cancel button
+      this.content.innerHTML = this.offerGridView.renderLoading(true);
+      this.attachCancelLoadingListener();
+      this.updateHeader("Loading...");
+      this.show();
+
+      console.log(
+        "[DetailPanelController] Fetching offers for category:",
+        categoryId
+      );
+
+      // Fetch offers for this category
+      const offers = await this.offerService.getOffersByCategoryId(
+        categoryId,
+        token
+      );
+
+      console.log("[DetailPanelController] Fetched offers:", offers.length);
+
+      // Check if request was aborted
+      if (signal.aborted) {
+        console.log("[DetailPanelController] Request was aborted");
+        return;
+      }
+
+      // Check if we have offers
+      if (!offers || offers.length === 0) {
+        this.content.innerHTML = `<div class="me-agent-error">No offers found in this category</div>`;
+        this.updateHeader(categoryName);
+        this.currentAbortController = null;
+        return;
+      }
+
+      // Render offers in a grid
+      console.log("[DetailPanelController] Rendering offers grid");
+      this.content.innerHTML = this.offerGridView.render(offers);
+      this.currentView = "offer-grid";
+      this.viewStack.push({
+        type: "offer-grid",
+        title: categoryName,
+        data: offers,
+      });
+      this.updateHeader(categoryName);
+      this.attachOfferGridListeners();
+
+      // Clear abort controller after successful completion
+      this.currentAbortController = null;
+    } catch (error) {
+      // Don't show error if request was aborted
+      if (signal.aborted) {
+        return;
+      }
+      console.error(
+        "[DetailPanelController] Error showing offers for category:",
+        error
+      );
+      this.content.innerHTML = `<div class="me-agent-error">Failed to load offers. Please try again.</div>`;
+      this.updateHeader("Error");
+      this.currentAbortController = null;
+    }
+  }
+
+  /**
    * Show brands with offers for a category
    */
   async showBrandsWithOffers(
@@ -522,6 +625,30 @@ export class DetailPanelController {
         const categoryId = card.getAttribute("data-category-id");
         if (categoryId) {
           this.showBrandsWithOffers(categoryId);
+        }
+      });
+    });
+  }
+
+  /**
+   * Attach event listeners for search category grid
+   * (for get_categories response - fetches offers by category ID)
+   */
+  private attachSearchCategoryGridListeners(categories: Category[]): void {
+    const categoryCards = this.content.querySelectorAll(
+      ".me-agent-category-card"
+    );
+    categoryCards.forEach((card) => {
+      card.addEventListener("click", () => {
+        const categoryId = card.getAttribute("data-category-id");
+        const category = categories.find(
+          (cat) => cat.categoryId === categoryId
+        );
+        if (categoryId && category) {
+          this.showOffersForCategory(
+            categoryId,
+            category.categoryName || category.title || "Category"
+          );
         }
       });
     });

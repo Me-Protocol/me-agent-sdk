@@ -266,6 +266,7 @@ export class MeAgentSDK {
       offers: [] as Offer[],
       brands: [] as Brand[],
       categories: [] as Category[],
+      searchCategories: [] as Category[],
       showWaysToEarn: false,
     };
     let hasFinalMessage = false;
@@ -299,6 +300,13 @@ export class MeAgentSDK {
               console.log(
                 "[SDK] Detected purchase categories:",
                 parsed.categories.length
+              );
+            }
+            if (parsed.searchCategories.length > 0) {
+              parsedData.searchCategories = parsed.searchCategories;
+              console.log(
+                "[SDK] Detected search categories:",
+                parsed.searchCategories.length
               );
             }
             if (parsed.showWaysToEarn) {
@@ -370,6 +378,11 @@ export class MeAgentSDK {
           // Show category preview if categories were found
           if (parsedData.categories.length > 0) {
             this.chat?.showCategoryPreview(parsedData.categories);
+          }
+
+          // Show search category card list if search categories were found
+          if (parsedData.searchCategories.length > 0) {
+            this.chat?.showSearchCategoryCardList(parsedData.searchCategories);
           }
 
           // Show ways to earn quick actions if function was called

@@ -26,23 +26,40 @@ export class OfferGridView {
   /**
    * Render a single offer card (using same styling as brand offers)
    */
-  private renderOfferCard(offer: Offer): string {
-    const price =
-      typeof offer.price === "string" ? parseFloat(offer.price) : offer.price;
+  private renderOfferCard(offer: any): string {
+    // Handle both mapped API response and regular Offer type
+    const price = parseFloat(offer.price || offer.originalPrice || "0");
+
+    // Debug logging
+    console.log("[OfferGridView] Rendering offer:", {
+      name: offer.name,
+      price,
+      discountType: offer.discountType,
+      discountDetails: offer.discountDetails,
+      discountPercentage: offer.discountPercentage,
+      discountAmount: offer.discountAmount,
+    });
 
     const discountedPrice = calculateOfferDiscount(
       price,
-      offer.discountType,
-      offer.discountDetails
+      offer.discountType || "",
+      offer.discountDetails || []
     );
     const discountBadge = formatDiscount(
-      offer.discountType,
-      offer.discountDetails
+      offer.discountType || "",
+      offer.discountDetails || []
     );
+
+    console.log("[OfferGridView] Calculated:", {
+      discountedPrice,
+      discountBadge,
+    });
 
     // Check if it's free shipping
     const isFreeShipping = discountedPrice === "Free shipping";
-    const hasDiscount = isFreeShipping || (typeof discountedPrice === "number" && discountedPrice < price);
+    const hasDiscount =
+      isFreeShipping ||
+      (typeof discountedPrice === "number" && discountedPrice < price);
 
     return `
       <div class="me-agent-brand-offer-card" data-offer-code="${
@@ -51,7 +68,9 @@ export class OfferGridView {
         <div class="me-agent-brand-offer-image-container">
           <img 
             src="${
-              offer.image || "https://via.placeholder.com/200x200?text=No+Image"
+              offer.coverImage ||
+              offer.image ||
+              "https://via.placeholder.com/200x200?text=No+Image"
             }" 
             alt="${offer.name}"
             class="me-agent-brand-offer-image"
@@ -67,14 +86,20 @@ export class OfferGridView {
           <div class="me-agent-brand-offer-pricing">
             ${
               isFreeShipping
-                ? `<span class="me-agent-brand-offer-original-price">$${price.toFixed(2)}</span>
+                ? `<span class="me-agent-brand-offer-original-price">$${price.toFixed(
+                    2
+                  )}</span>
                    <span class="me-agent-brand-offer-price">Free Shipping</span>`
                 : `<span class="me-agent-brand-offer-price">$${
-                    typeof discountedPrice === "number" ? discountedPrice.toFixed(2) : price.toFixed(2)
+                    typeof discountedPrice === "number"
+                      ? discountedPrice.toFixed(2)
+                      : price.toFixed(2)
                   }</span>
                    ${
                      hasDiscount
-                       ? `<span class="me-agent-brand-offer-original-price">$${price.toFixed(2)}</span>`
+                       ? `<span class="me-agent-brand-offer-original-price">$${price.toFixed(
+                           2
+                         )}</span>`
                        : ""
                    }`
             }

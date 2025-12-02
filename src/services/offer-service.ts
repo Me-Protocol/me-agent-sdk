@@ -45,6 +45,22 @@ export class OfferService {
   }
 
   /**
+   * Get offers by category ID
+   */
+  async getOffersByCategoryId(
+    categoryId: string,
+    token?: string
+  ): Promise<any[]> {
+    console.log("[OfferService] Fetching offers for category:", categoryId);
+    const offers = await this.offerAPI.fetchOffersByCategoryId(
+      categoryId,
+      token
+    );
+    console.log("[OfferService] Received offers:", offers.length);
+    return offers;
+  }
+
+  /**
    * Clear offer cache
    */
   clearCache(): void {
