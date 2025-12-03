@@ -26,6 +26,14 @@ interface NetworkConfig {
 }
 
 /**
+ * Network configurations by environment (testnet vs mainnet)
+ */
+interface NetworkConfigSet {
+  testnet: NetworkConfig;
+  mainnet: NetworkConfig;
+}
+
+/**
  * Environment-specific base configurations
  */
 interface EnvironmentConfig {
@@ -37,9 +45,10 @@ interface EnvironmentConfig {
   GELATO_API_KEY: string;
   MAGIC_PUBLISHABLE_API_KEY: string;
   OPEN_REWARD_DIAMOND: string;
+  useMainnet: boolean; // Determines if mainnet or testnet should be used
 }
 
-// Development environment
+// Development environment (uses testnets)
 const DEV_CONFIG: EnvironmentConfig = {
   API_URL: "https://paas.meappbounty.com/v1/api/",
   AGENT_BASE_URL: "https://agent-adk-api-580283507238.us-central1.run.app",
@@ -49,31 +58,33 @@ const DEV_CONFIG: EnvironmentConfig = {
   RUNTIME_URL: "https://runtime.meappbounty.com",
   GELATO_API_KEY: "g1UFyiAfIyq_m_M3Cn3LWIO6VQpjVTIbeCV7XLzWGb4_",
   OPEN_REWARD_DIAMOND: "0xacd3379d449ad0042a12f4fa88bc183948f7f472",
+  useMainnet: false,
 };
 
-// Staging environment
+// Staging environment (uses testnets)
 const STAGING_CONFIG: EnvironmentConfig = {
-  API_URL: "https://paas-staging.meappbounty.com/v1/api/",
-  AGENT_BASE_URL:
-    "https://fastapi-proxy-staging-580283507238.us-central1.run.app",
-  ME_API_KEY: "staging_key",
-  API_V1_URL: "https://api-staging.meappbounty.com/",
-  MAGIC_PUBLISHABLE_API_KEY: "pk_live_STAGING_KEY",
-  RUNTIME_URL: "https://runtime-staging.meappbounty.com",
-  GELATO_API_KEY: "staging_gelato_key",
+  API_URL: "https://paas.usemeprotocol.com/v1/api/",
+  AGENT_BASE_URL: "https://agent-adk-api-580283507238.us-central1.run.app",
+  ME_API_KEY: "hl3elmtvji75or71j4xy5e",
+  API_V1_URL: "https://api.usemeprotocol.com/",
+  MAGIC_PUBLISHABLE_API_KEY: "pk_live_FB79F672A43B8AC2",
+  RUNTIME_URL: "https://runtime.usemeprotocol.com",
+  GELATO_API_KEY: "g1UFyiAfIyq_m_M3Cn3LWIO6VQpjVTIbeCV7XLzWGb4_",
   OPEN_REWARD_DIAMOND: "0xacd3379d449ad0042a12f4fa88bc183948f7f472",
+  useMainnet: false,
 };
 
-// Production environment
+// Production environment (uses mainnets)
 const PROD_CONFIG: EnvironmentConfig = {
-  API_URL: "https://paas.meappbounty.com/v1/api/",
-  AGENT_BASE_URL: "https://fastapi-proxy.meappbounty.com",
+  API_URL: "https://paas.memarketplace.io/v1/api/",
+  AGENT_BASE_URL: "https://agent-adk-api-prod-580283507238.us-central1.run.app",
   ME_API_KEY: "prod_key",
-  API_V1_URL: "https://api.meappbounty.com/",
-  MAGIC_PUBLISHABLE_API_KEY: "pk_live_PROD_KEY",
-  RUNTIME_URL: "https://runtime.meappbounty.com",
-  GELATO_API_KEY: "prod_gelato_key",
-  OPEN_REWARD_DIAMOND: "0xacd3379d449ad0042a12f4fa88bc183948f7f472",
+  API_V1_URL: "https://api.memarketplace.io/",
+  MAGIC_PUBLISHABLE_API_KEY: "pk_live_C375E621E344EE98",
+  RUNTIME_URL: "https://runtime.memarketplace.io",
+  GELATO_API_KEY: "NJ9Z1bv9FkqrfosPiB_e3pz_q7zh55T1fs3PYDbpEsY_",
+  OPEN_REWARD_DIAMOND: "0x65c70b78751e4dbfc5fa3c2ae838faf90bff3355",
+  useMainnet: true,
 };
 
 const ENV_CONFIGS: Record<Environment, EnvironmentConfig> = {
@@ -82,25 +93,57 @@ const ENV_CONFIGS: Record<Environment, EnvironmentConfig> = {
   [Environment.PROD]: PROD_CONFIG,
 };
 
-const NETWORK_CONFIGS: Record<SupportedNetwork, NetworkConfig> = {
+/**
+ * Network configurations with testnet and mainnet support
+ * DEV/STAGING environments use testnet configs
+ * PROD environment uses mainnet configs
+ */
+const NETWORK_CONFIGS: Record<SupportedNetwork, NetworkConfigSet> = {
   [SupportedNetwork.SEPOLIA]: {
-    CHAIN_ID: "11155111",
-    RPC_URL:
-      "https://eth-sepolia.g.alchemy.com/v2/Ytq0aV34dWOA9X6gWhl_6trwmUTb58Ip",
+    testnet: {
+      CHAIN_ID: "11155111", // Sepolia Testnet
+      RPC_URL:
+        "https://eth-sepolia.g.alchemy.com/v2/Ytq0aV34dWOA9X6gWhl_6trwmUTb58Ip",
+    },
+    mainnet: {
+      CHAIN_ID: "137", // Polygon Mainnet
+      RPC_URL:
+        "https://polygon-mainnet.g.alchemy.com/v2/GHkhurMtow255UH_k_Oyd-sFrba-NyLd",
+    },
   },
   [SupportedNetwork.HEDERA]: {
-    CHAIN_ID: "296",
-    RPC_URL: "https://testnet.hashio.io/api",
+    testnet: {
+      CHAIN_ID: "296", // Hedera Testnet
+      RPC_URL: "https://testnet.hashio.io/api",
+    },
+    mainnet: {
+      CHAIN_ID: "295", // Hedera Mainnet
+      RPC_URL: "https://mainnet.hashio.io/api",
+    },
   },
   [SupportedNetwork.BASE]: {
-    CHAIN_ID: "11155111", // Using Sepolia for now
-    RPC_URL:
-      "https://eth-sepolia.g.alchemy.com/v2/Ytq0aV34dWOA9X6gWhl_6trwmUTb58Ip",
+    testnet: {
+      CHAIN_ID: "84532", // Base Sepolia Testnet
+      RPC_URL:
+        "https://base-sepolia.g.alchemy.com/v2/Ytq0aV34dWOA9X6gWhl_6trwmUTb58Ip",
+    },
+    mainnet: {
+      CHAIN_ID: "8453", // Base Mainnet
+      RPC_URL:
+        "https://base-mainnet.g.alchemy.com/v2/Ytq0aV34dWOA9X6gWhl_6trwmUTb58Ip",
+    },
   },
   [SupportedNetwork.POLYGON]: {
-    CHAIN_ID: "11155111", // Using Sepolia for now
-    RPC_URL:
-      "https://eth-sepolia.g.alchemy.com/v2/Ytq0aV34dWOA9X6gWhl_6trwmUTb58Ip",
+    testnet: {
+      CHAIN_ID: "80001", // Polygon Mumbai Testnet
+      RPC_URL:
+        "https://polygon-mumbai.g.alchemy.com/v2/Ytq0aV34dWOA9X6gWhl_6trwmUTb58Ip",
+    },
+    mainnet: {
+      CHAIN_ID: "137", // Polygon Mainnet
+      RPC_URL:
+        "https://polygon-mainnet.g.alchemy.com/v2/Ytq0aV34dWOA9X6gWhl_6trwmUTb58Ip",
+    },
   },
 };
 
@@ -111,14 +154,20 @@ export interface EnvConfig extends EnvironmentConfig, NetworkConfig {}
 
 /**
  * Get environment configuration based on environment and network
+ * Automatically selects testnet or mainnet based on environment
  */
 export const getEnv = (
   environment: Environment = Environment.DEV,
   network: SupportedNetwork = SupportedNetwork.SEPOLIA
 ): EnvConfig => {
   const envConfig = ENV_CONFIGS[environment] || ENV_CONFIGS[Environment.DEV];
-  const networkConfig =
+  const networkConfigSet =
     NETWORK_CONFIGS[network] || NETWORK_CONFIGS[SupportedNetwork.SEPOLIA];
+
+  // Select testnet or mainnet based on environment
+  const networkConfig = envConfig.useMainnet
+    ? networkConfigSet.mainnet
+    : networkConfigSet.testnet;
 
   return {
     ...envConfig,
