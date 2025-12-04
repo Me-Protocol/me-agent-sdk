@@ -70,6 +70,10 @@ export class APIClient {
     return this._sessionAPI.getConversation(sessionId);
   }
 
+  async deleteSession(sessionId: string) {
+    return this._sessionAPI.deleteSession(sessionId);
+  }
+
   // ===== Chat & Messaging =====
   async sendMessage(
     sessionId: string | null,

@@ -114,6 +114,10 @@ export class ChatPopup {
       (sessionId) => this.handleSessionSelect(sessionId),
       () => this.toggleHistoryDropdownIcon(false)
     );
+    // Set delete callback
+    this.historyPopup.setOnDeleteSession(async (sessionId) => {
+      await this.handleDeleteSession(sessionId);
+    });
     this.element.appendChild(this.historyPopup.getElement());
 
     this.setupEventListeners();
@@ -785,17 +789,10 @@ export class ChatPopup {
    */
   setSessionId(sessionId: string, firstMessage?: string): void {
     const wasNull = this.sessionId === null;
-    console.log("[ChatPopup] setSessionId called:", {
-      sessionId,
-      firstMessage,
-      wasNull,
-      currentSessionId: this.sessionId,
-    });
     this.sessionId = sessionId;
-
+    
     // If this is the first session ID (new chat) and we have a first message, update the title
     if (wasNull && firstMessage) {
-      console.log("[ChatPopup] Updating title to first message:", firstMessage);
       this.updateChatTitle(firstMessage);
     }
   }
@@ -1010,6 +1007,24 @@ export class ChatPopup {
       }
     } catch (error) {
       console.error("Error loading conversation:", error);
+    }
+  }
+
+  /**
+   * Handle session deletion
+   */
+  private async handleDeleteSession(sessionId: string): Promise<void> {
+    try {
+      // Call API to delete the session
+      await this.apiClient.deleteSession(sessionId);
+
+      // If the deleted session is the current one, start a new chat
+      if (this.sessionId === sessionId) {
+        this.handleNewChat();
+      }
+    } catch (error) {
+      console.error("Error deleting session:", error);
+      throw error; // Re-throw so the UI can show an error message
     }
   }
 

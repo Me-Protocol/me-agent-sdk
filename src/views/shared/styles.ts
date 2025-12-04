@@ -3455,6 +3455,7 @@ export const styles = `
     cursor: pointer;
     transition: all 0.2s ease;
     padding: 12px 2px;
+    position: relative;
   }
 
   .me-agent-history-item:hover {
@@ -3475,6 +3476,7 @@ export const styles = `
   .me-agent-history-item-content {
     flex: 1;
     min-width: 0;
+    cursor: pointer;
   }
 
   .me-agent-history-item-preview {
@@ -3484,6 +3486,31 @@ export const styles = `
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .me-agent-history-item-delete {
+    opacity: 0;
+    visibility: hidden;
+    background: transparent;
+    border: none;
+    padding: 6px;
+    cursor: pointer;
+    color: #9CA3AF;
+    transition: all 0.2s ease;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .me-agent-history-item:hover .me-agent-history-item-delete {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .me-agent-history-item-delete:hover {
+    background: #FEE2E2;
+    color: #DC2626;
   }
 
   .me-agent-history-empty {

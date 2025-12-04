@@ -56,4 +56,18 @@ export class SessionAPI extends BaseAPI {
       throw error;
     }
   }
+
+  /**
+   * Delete a chat session
+   */
+  async deleteSession(sessionId: string): Promise<void> {
+    try {
+      await this.delete(
+        `${this.env.AGENT_BASE_URL}/sessions/${this.userId}/${sessionId}`
+      );
+    } catch (error) {
+      console.error("Error deleting session:", error);
+      throw error;
+    }
+  }
 }

@@ -4,7 +4,7 @@
  */
 
 import { ChatSession } from "../../types";
-import { getCloseIcon } from "../shared/icons";
+import { getCloseIcon, getTrashIcon } from "../shared/icons";
 
 export class ChatHistoryPopup {
   private element: HTMLDivElement;
@@ -12,6 +12,7 @@ export class ChatHistoryPopup {
   private onNewChat: () => void;
   private onSelectSession: (sessionId: string) => void;
   private onClose: () => void;
+  private onDeleteSession: ((sessionId: string) => Promise<void>) | null = null;
 
   constructor(
     onNewChat: () => void,
@@ -22,6 +23,13 @@ export class ChatHistoryPopup {
     this.onSelectSession = onSelectSession;
     this.onClose = onClose;
     this.element = this.create();
+  }
+
+  /**
+   * Set the delete session callback
+   */
+  setOnDeleteSession(callback: (sessionId: string) => Promise<void>): void {
+    this.onDeleteSession = callback;
   }
 
   /**
@@ -164,6 +172,9 @@ export class ChatHistoryPopup {
             <div class="me-agent-history-item-content">
               <div class="me-agent-history-item-preview">${preview}</div>
             </div>
+            <button class="me-agent-history-item-delete" data-session-id="${session.extracted_id}" aria-label="Delete chat">
+              ${getTrashIcon({ width: 16, height: 16 })}
+            </button>
           </div>
         `;
       })
@@ -172,11 +183,43 @@ export class ChatHistoryPopup {
     // Attach click listeners to session items
     const items = listContainer.querySelectorAll(".me-agent-history-item");
     items.forEach((item) => {
-      item.addEventListener("click", () => {
-        const sessionId = item.getAttribute("data-session-id");
+      const sessionId = item.getAttribute("data-session-id");
+      
+      // Click on item content to select session
+      const content = item.querySelector(".me-agent-history-item-content");
+      content?.addEventListener("click", () => {
         if (sessionId) {
           this.onSelectSession(sessionId);
           this.hide();
+        }
+      });
+
+      // Click on delete button to delete session
+      const deleteBtn = item.querySelector(".me-agent-history-item-delete");
+      deleteBtn?.addEventListener("click", async (e) => {
+        e.stopPropagation(); // Prevent triggering the item click
+        if (sessionId && this.onDeleteSession) {
+          // Show confirmation
+          if (confirm("Are you sure you want to delete this chat?")) {
+            try {
+              await this.onDeleteSession(sessionId);
+              // Remove the item from the UI
+              item.remove();
+              
+              // If no more items, show empty state
+              const remainingItems = listContainer.querySelectorAll(".me-agent-history-item");
+              if (remainingItems.length === 0) {
+                listContainer.innerHTML = `
+                  <div class="me-agent-history-empty">
+                    <p>No chat history yet</p>
+                  </div>
+                `;
+              }
+            } catch (error) {
+              console.error("Failed to delete session:", error);
+              alert("Failed to delete chat. Please try again.");
+            }
+          }
         }
       });
     });

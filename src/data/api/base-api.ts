@@ -75,4 +75,24 @@ export class BaseAPI {
 
     return await response.json();
   }
+
+  /**
+   * Make a DELETE request
+   */
+  protected async delete(
+    url: string,
+    headers: Record<string, string> = {}
+  ): Promise<void> {
+    const response = await fetch(url, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        ...headers,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`DELETE ${url} failed: ${response.statusText}`);
+    }
+  }
 }
