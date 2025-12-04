@@ -256,6 +256,16 @@ export class MeAgentSDK {
     this.sessionService.addMessage(userMessage);
     this.chat?.addMessage(userMessage);
 
+    // Store the first message to use as title if this creates a new session
+    const isFirstMessage = !this.sessionService.getSessionId();
+    const firstMessageContent = isFirstMessage ? content : null;
+    console.log(
+      "[SDK] sendMessage - isFirstMessage:",
+      isFirstMessage,
+      "content:",
+      content
+    );
+
     // Show loading
     this.chat?.setLoading(true);
     this.chat?.showLoading();
@@ -358,7 +368,14 @@ export class MeAgentSDK {
           // On complete - update session ID if this is the first message
           if (returnedSessionId && !this.sessionService.getSessionId()) {
             this.sessionService.setSessionId(returnedSessionId);
-            this.chat?.setSessionId(returnedSessionId);
+            console.log("[SDK] Calling setSessionId with:", {
+              returnedSessionId,
+              firstMessageContent,
+            });
+            this.chat?.setSessionId(
+              returnedSessionId,
+              firstMessageContent || undefined
+            );
             console.log("MeAgent SDK: Session created:", returnedSessionId);
           }
 

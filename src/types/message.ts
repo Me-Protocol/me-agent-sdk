@@ -84,6 +84,7 @@ export interface ChatSession {
   extracted_id: string;
   raw_type: string;
   raw_value: string;
+  title?: string; // Session title from the API
 }
 
 /**

@@ -56,6 +56,7 @@ export class ChatPopup {
   private historyDropdownButton: HTMLButtonElement | null = null;
   private onSessionSwitch: ((sessionId: string) => void) | null = null;
   private messageParser: MessageParser;
+  private currentSessionTitle: string = "Chats";
 
   constructor(
     position: "bottom-right" | "bottom-left",
@@ -782,8 +783,21 @@ export class ChatPopup {
   /**
    * Update session ID
    */
-  setSessionId(sessionId: string): void {
+  setSessionId(sessionId: string, firstMessage?: string): void {
+    const wasNull = this.sessionId === null;
+    console.log("[ChatPopup] setSessionId called:", {
+      sessionId,
+      firstMessage,
+      wasNull,
+      currentSessionId: this.sessionId,
+    });
     this.sessionId = sessionId;
+
+    // If this is the first session ID (new chat) and we have a first message, update the title
+    if (wasNull && firstMessage) {
+      console.log("[ChatPopup] Updating title to first message:", firstMessage);
+      this.updateChatTitle(firstMessage);
+    }
   }
 
   // ============================================
@@ -843,6 +857,16 @@ export class ChatPopup {
       try {
         const response = await this.apiClient.getUserSessions();
         this.historyPopup.updateSessions(response.sessions, this.sessionId);
+
+        // Update chat title if current session has a title
+        if (this.sessionId) {
+          const currentSession = response.sessions.find(
+            (s) => s.extracted_id === this.sessionId
+          );
+          if (currentSession?.title) {
+            this.updateChatTitle(currentSession.title);
+          }
+        }
       } catch (error) {
         console.error("Error fetching chat history:", error);
         // Show error state in popup
@@ -865,6 +889,19 @@ export class ChatPopup {
   }
 
   /**
+   * Update the chat title in the header
+   */
+  private updateChatTitle(title: string): void {
+    this.currentSessionTitle = title;
+    const titleElement = this.element.querySelector(
+      ".me-agent-chat-title"
+    ) as HTMLHeadingElement;
+    if (titleElement) {
+      titleElement.textContent = title;
+    }
+  }
+
+  /**
    * Handle new chat
    */
   private handleNewChat(): void {
@@ -872,6 +909,8 @@ export class ChatPopup {
     this.sessionId = null;
     this.messagesContainer.innerHTML = "";
     this.showWelcome();
+    // Reset chat title to default
+    this.updateChatTitle("Chats");
   }
 
   /**
@@ -884,6 +923,20 @@ export class ChatPopup {
 
       // Update session ID
       this.sessionId = sessionId;
+
+      // Fetch sessions to get the title
+      try {
+        const sessionsResponse = await this.apiClient.getUserSessions();
+        const currentSession = sessionsResponse.sessions.find(
+          (s) => s.extracted_id === sessionId
+        );
+        if (currentSession?.title) {
+          this.updateChatTitle(currentSession.title);
+        }
+      } catch (error) {
+        console.error("Error fetching session title:", error);
+        // Continue with default title
+      }
 
       // Clear current messages
       this.messagesContainer.innerHTML = "";

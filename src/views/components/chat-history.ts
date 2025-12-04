@@ -154,17 +154,13 @@ export class ChatHistoryPopup {
     listContainer.innerHTML = sessions
       .map((session) => {
         const isActive = session.extracted_id === currentSessionId;
-        const preview = this.extractPreview(session.raw_value);
+        // Use the title field if available, otherwise fallback to extracting from raw_value
+        const preview = session.title || this.extractPreview(session.raw_value);
 
         return `
           <div class="me-agent-history-item ${
             isActive ? "active" : ""
           }" data-session-id="${session.extracted_id}">
-            <div class="me-agent-history-item-icon">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M2 3C2 2.44772 2.44772 2 3 2H13C13.5523 2 14 2.44772 14 3V11C14 11.5523 13.5523 12 13 12H5L2 15V3Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
             <div class="me-agent-history-item-content">
               <div class="me-agent-history-item-preview">${preview}</div>
             </div>

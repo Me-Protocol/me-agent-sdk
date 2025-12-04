@@ -3450,34 +3450,21 @@ export const styles = `
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px;
     background: white;
-    border: 1px solid transparent;
-    border-radius: 8px;
+    border-radius: 12px;
     cursor: pointer;
     transition: all 0.2s ease;
+    padding: 12px 2px;
   }
 
   .me-agent-history-item:hover {
     background: #F9FAFB;
-    border-color: #E5E7EB;
+    padding: 12px 16px;
   }
 
   .me-agent-history-item.active {
     background: #F0F0F0;
-    border-color: #0F0F0F;
-  }
-
-  .me-agent-history-item-icon {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #F3F4F6;
-    border-radius: 6px;
-    flex-shrink: 0;
-    color: #6B7280;
+    padding: 12px 16px;
   }
 
   .me-agent-history-item.active .me-agent-history-item-icon {
@@ -3491,7 +3478,7 @@ export const styles = `
   }
 
   .me-agent-history-item-preview {
-    font-size: 14px;
+    font-size: 16px;
     color: #0F0F0F;
     font-weight: 500;
     overflow: hidden;
