@@ -4,6 +4,7 @@ import {
   Offer,
   Brand,
   Category,
+  Product,
   EnvConfig,
 } from "./types";
 import { mergeCategoriesWithPresets } from "./core/constants/categories";
@@ -260,6 +261,12 @@ export class MeAgentSDK {
     const isFirstMessage = !this.sessionService.getSessionId();
     const firstMessageContent = isFirstMessage ? content : null;
 
+    console.log("[SDK.sendMessage]", {
+      isFirstMessage,
+      firstMessageContent,
+      currentSessionId: this.sessionService.getSessionId(),
+    });
+
     // Show loading
     this.chat?.setLoading(true);
     this.chat?.showLoading();
@@ -271,6 +278,7 @@ export class MeAgentSDK {
       brands: [] as Brand[],
       categories: [] as Category[],
       searchCategories: [] as Category[],
+      products: [] as Product[],
       showWaysToEarn: false,
     };
     let hasFinalMessage = false;
@@ -297,6 +305,13 @@ export class MeAgentSDK {
               console.log(
                 "[SDK] Detected signup earning brands:",
                 parsed.brands.length
+              );
+            }
+            if (parsed.products.length > 0) {
+              parsedData.products = parsed.products;
+              console.log(
+                "[SDK] Detected products:",
+                parsed.products.length
               );
             }
             if (parsed.categories.length > 0) {
@@ -362,6 +377,10 @@ export class MeAgentSDK {
           // On complete - update session ID if this is the first message
           if (returnedSessionId && !this.sessionService.getSessionId()) {
             this.sessionService.setSessionId(returnedSessionId);
+            console.log("[SDK.onComplete] Calling setSessionId with:", {
+              returnedSessionId,
+              firstMessageContent,
+            });
             this.chat?.setSessionId(
               returnedSessionId,
               firstMessageContent || undefined
@@ -380,6 +399,11 @@ export class MeAgentSDK {
           // Show brand preview if brands were found
           if (parsedData.brands.length > 0) {
             this.chat?.showBrandPreview(parsedData.brands);
+          }
+
+          // Show product preview if products were found
+          if (parsedData.products.length > 0) {
+            this.chat?.showProductPreview(parsedData.products);
           }
 
           // Show category preview if categories were found

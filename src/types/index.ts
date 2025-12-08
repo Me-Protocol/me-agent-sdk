@@ -15,6 +15,9 @@ export * from "./offer";
 // Brand & Category types
 export * from "./brand";
 
+// Product types
+export * from "./product";
+
 // Redemption types
 export * from "./redemption";
 

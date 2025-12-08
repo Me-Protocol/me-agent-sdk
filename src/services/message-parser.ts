@@ -3,7 +3,7 @@
  * Extracts structured data from AI agent responses
  */
 
-import { Offer, Brand, Category } from "../types";
+import { Offer, Brand, Category, Product } from "../types";
 import { mergeCategoriesWithPresets } from "../core/constants/categories";
 
 export interface ParsedMessageData {
@@ -11,6 +11,7 @@ export interface ParsedMessageData {
   brands: Brand[];
   categories: Category[]; // For get_category_purchase_earning
   searchCategories: Category[]; // For get_categories
+  products: Product[]; // For query_products
   showWaysToEarn: boolean;
 }
 
@@ -27,6 +28,7 @@ export class MessageParser {
     let brands: Brand[] = [];
     let categories: Category[] = [];
     let searchCategories: Category[] = [];
+    let products: Product[] = [];
     let showWaysToEarn = false;
 
     // New format: function_response at top level
@@ -67,13 +69,18 @@ export class MessageParser {
         // New format: ways_to_earn is now a function_response
         console.log("[MessageParser] Ways to earn detected");
         showWaysToEarn = true;
+      } else if (functionResponse.name === "query_products") {
+        const matches = functionResponse.response?.matches || [];
+        console.log("[MessageParser] Parsing products, count:", matches.length);
+        products = this.parseProducts(matches);
+        console.log("[MessageParser] Parsed products:", products.length);
       }
     } else if (functionCall?.name === "ways_to_earn") {
       // Old format: ways_to_earn as function_call (keep for backwards compatibility)
       showWaysToEarn = true;
     }
 
-    return { offers, brands, categories, searchCategories, showWaysToEarn };
+    return { offers, brands, categories, searchCategories, products, showWaysToEarn };
   }
 
   /**
@@ -147,6 +154,23 @@ export class MessageParser {
       categorySlug: cat.categorySlug || undefined,
       categoryType: cat.categoryType || undefined,
       categoryBanner: cat.categoryBanner || undefined,
+    }));
+  }
+
+  /**
+   * Parse products from query_products function response
+   */
+  private parseProducts(matches: any[]): Product[] {
+    return matches.map((product: any) => ({
+      product_id: product.product_id || "",
+      product_name: product.product_name || "Unnamed Product",
+      brand_name: product.brand_name || "Unknown Brand",
+      description: product.description || "",
+      price: product.price || 0,
+      discounts: product.discounts || [],
+      brand_shopify_url: product.brand_shopify_url || "",
+      productUrl: product.productUrl || "",
+      coverImage: product.coverImage || "",
     }));
   }
 }

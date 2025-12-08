@@ -4,6 +4,7 @@ import {
   Offer,
   Brand,
   Category,
+  Product,
   MeAgentConfig,
   ChatSession,
   ConversationMessage,
@@ -11,6 +12,7 @@ import {
 import { MessageComponent } from "./message";
 import { QuickActionsComponent } from "./quick-actions";
 import { OfferPreviewCard } from "./offer-preview";
+import { ProductPreviewCard } from "./product-preview";
 import { CardList, CardListItem } from "./card-list";
 import { ChatHistoryPopup } from "./chat-history";
 import { DetailPanelController } from "../../controllers/detail-panel-controller";
@@ -266,7 +268,12 @@ export class ChatPopup {
         value: "Earn a reward",
         icon: "offers",
       },
-      { id: "rewards", label: "My rewards", value: "My rewards", icon: "tags" },
+      {
+        id: "rewards",
+        label: "Show my rewards",
+        value: "Show my rewards",
+        icon: "tags",
+      },
     ];
 
     // Avatar
@@ -439,9 +446,25 @@ export class ChatPopup {
   /**
    * Show the chat popup
    */
-  show(): void {
+  async show(): Promise<void> {
     this.element.classList.add("visible");
     this.inputElement.focus();
+
+    // If we have a session ID, fetch and display its title
+    if (this.sessionId) {
+      try {
+        const sessionsResponse = await this.apiClient.getUserSessions();
+        const currentSession = sessionsResponse.sessions.find(
+          (s) => s.extracted_id === this.sessionId
+        );
+        if (currentSession?.title) {
+          this.updateChatTitle(currentSession.title);
+        }
+      } catch (error) {
+        console.error("Error fetching session title on show:", error);
+        // Continue with current title
+      }
+    }
   }
 
   /**
@@ -544,6 +567,49 @@ export class ChatPopup {
     }
 
     this.scrollToBottom();
+  }
+
+  /**
+   * Show product preview - appends to the last assistant message
+   */
+  showProductPreview(products: Product[]): void {
+    // Create product preview card with its own products bound to the click handler
+    const productCard = ProductPreviewCard.create(products, () =>
+      this.showProductsDetail(products)
+    );
+
+    // Find the last assistant message and append the card to its content wrapper
+    const messages = this.messagesContainer.querySelectorAll(
+      ".me-agent-message.assistant"
+    );
+    const lastMessage = messages[messages.length - 1] as HTMLElement;
+
+    if (lastMessage) {
+      MessageComponent.appendToMessage(lastMessage, productCard);
+    } else {
+      // Fallback: append to messages container if no assistant message found
+      this.messagesContainer.appendChild(productCard);
+    }
+
+    this.scrollToBottom();
+  }
+
+  /**
+   * Show products detail panel with full grid
+   */
+  private showProductsDetail(products: Product[]): void {
+    if (this.isMaximized) {
+      this.detailPanelController.showProductGrid(products);
+      this.element.classList.add("has-detail-panel");
+    } else {
+      // Open external product URLs directly if not maximized
+      products.forEach((product) => {
+        const productUrl = product.productUrl.startsWith("http")
+          ? product.productUrl
+          : `https://${product.productUrl}`;
+        window.open(productUrl, "_blank", "noopener,noreferrer");
+      });
+    }
   }
 
   /**
@@ -790,9 +856,17 @@ export class ChatPopup {
   setSessionId(sessionId: string, firstMessage?: string): void {
     const wasNull = this.sessionId === null;
     this.sessionId = sessionId;
-    
+
+    console.log("[ChatPopup.setSessionId]", {
+      wasNull,
+      firstMessage,
+      sessionId,
+      willUpdateTitle: wasNull && !!firstMessage,
+    });
+
     // If this is the first session ID (new chat) and we have a first message, update the title
     if (wasNull && firstMessage) {
+      console.log("[ChatPopup] Updating title to:", firstMessage);
       this.updateChatTitle(firstMessage);
     }
   }
@@ -889,12 +963,16 @@ export class ChatPopup {
    * Update the chat title in the header
    */
   private updateChatTitle(title: string): void {
+    console.log("[ChatPopup.updateChatTitle] Setting title to:", title);
     this.currentSessionTitle = title;
     const titleElement = this.element.querySelector(
       ".me-agent-chat-title"
     ) as HTMLHeadingElement;
     if (titleElement) {
       titleElement.textContent = title;
+      console.log("[ChatPopup.updateChatTitle] Title element updated");
+    } else {
+      console.warn("[ChatPopup.updateChatTitle] Title element not found!");
     }
   }
 
@@ -914,6 +992,10 @@ export class ChatPopup {
    * Handle session selection from history
    */
   private async handleSessionSelect(sessionId: string): Promise<void> {
+    console.log(
+      "[ChatPopup.handleSessionSelect] Selecting session:",
+      sessionId
+    );
     try {
       // Fetch conversation messages
       const response = await this.apiClient.getConversation(sessionId);
@@ -927,8 +1009,20 @@ export class ChatPopup {
         const currentSession = sessionsResponse.sessions.find(
           (s) => s.extracted_id === sessionId
         );
+        console.log(
+          "[ChatPopup.handleSessionSelect] Current session:",
+          currentSession
+        );
         if (currentSession?.title) {
+          console.log(
+            "[ChatPopup.handleSessionSelect] Updating title to:",
+            currentSession.title
+          );
           this.updateChatTitle(currentSession.title);
+        } else {
+          console.warn(
+            "[ChatPopup.handleSessionSelect] No title found for session"
+          );
         }
       } catch (error) {
         console.error("Error fetching session title:", error);
@@ -943,6 +1037,7 @@ export class ChatPopup {
       let lastOffers: Offer[] = [];
       let lastBrands: Brand[] = [];
       let lastCategories: Category[] = [];
+      let lastProducts: Product[] = [];
       let shouldShowWaysToEarn = false;
 
       // Convert and add messages
@@ -965,20 +1060,30 @@ export class ChatPopup {
 
           if (parsedData.offers.length > 0) {
             lastOffers = parsedData.offers;
-            lastBrands = []; // Clear brands/categories when offers are found
+            lastBrands = []; // Clear brands/categories/products when offers are found
             lastCategories = [];
+            lastProducts = [];
             shouldShowWaysToEarn = false;
           }
           if (parsedData.brands.length > 0) {
             lastBrands = parsedData.brands;
             lastOffers = []; // Clear offers/categories when brands are found
             lastCategories = [];
+            lastProducts = [];
+            shouldShowWaysToEarn = false;
+          }
+          if (parsedData.products.length > 0) {
+            lastProducts = parsedData.products;
+            lastOffers = []; // Clear others when products are found
+            lastBrands = [];
+            lastCategories = [];
             shouldShowWaysToEarn = false;
           }
           if (parsedData.categories.length > 0) {
             lastCategories = parsedData.categories;
-            lastOffers = []; // Clear offers/brands when categories are found
+            lastOffers = []; // Clear offers/brands/products when categories are found
             lastBrands = [];
+            lastProducts = [];
             shouldShowWaysToEarn = false;
           }
           if (parsedData.showWaysToEarn) {
@@ -986,15 +1091,18 @@ export class ChatPopup {
             lastOffers = [];
             lastBrands = [];
             lastCategories = [];
+            lastProducts = [];
           }
         }
       });
 
-      // Show the most recent preview (offers, brands, categories, or ways to earn)
+      // Show the most recent preview (offers, brands, products, categories, or ways to earn)
       if (lastOffers.length > 0) {
         this.showOfferPreview(lastOffers);
       } else if (lastBrands.length > 0) {
         this.showBrandPreview(lastBrands);
+      } else if (lastProducts.length > 0) {
+        this.showProductPreview(lastProducts);
       } else if (lastCategories.length > 0) {
         this.showCategoryPreview(lastCategories);
       } else if (shouldShowWaysToEarn) {

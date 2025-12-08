@@ -8,6 +8,7 @@ import {
   Offer,
   Brand,
   Category,
+  Product,
   OfferDetail,
   OfferVariant,
   RewardBalance,
@@ -20,6 +21,7 @@ import { OfferDetailView } from "../views/offers/offer-detail-view";
 import { BrandListView } from "../views/brands/brand-list-view";
 import { BrandOffersView } from "../views/brands/brand-offers-view";
 import { CategoryGridView } from "../views/categories/category-grid-view";
+import { ProductGridView } from "../views/products/product-grid-view";
 import { RedemptionView } from "../views/redemption/redemption-view";
 import {
   getChevronLeftIcon,
@@ -73,6 +75,7 @@ export class DetailPanelController {
   private brandListView: BrandListView;
   private brandOffersView: BrandOffersView;
   private categoryGridView: CategoryGridView;
+  private productGridView: ProductGridView;
   private redemptionView: RedemptionView;
 
   // Components
@@ -91,6 +94,7 @@ export class DetailPanelController {
     this.brandListView = new BrandListView();
     this.brandOffersView = new BrandOffersView();
     this.categoryGridView = new CategoryGridView();
+    this.productGridView = new ProductGridView();
     this.redemptionView = new RedemptionView();
 
     // Create DOM elements
@@ -240,6 +244,10 @@ export class DetailPanelController {
         this.attachBrandListListeners();
         break;
 
+      case "product-grid":
+        this.content.innerHTML = this.productGridView.render(viewState.data);
+        break;
+
       case "category-grid":
         this.content.innerHTML = this.categoryGridView.render(viewState.data);
         this.attachCategoryGridListeners();
@@ -378,6 +386,23 @@ export class DetailPanelController {
     ];
     this.updateHeader("Brands with Sign-Up Rewards");
     this.attachBrandListListeners();
+    this.show();
+  }
+
+  /**
+   * Show product grid
+   */
+  showProductGrid(products: Product[]): void {
+    this.content.innerHTML = this.productGridView.render(products);
+    this.currentView = "product-grid";
+    this.viewStack = [
+      {
+        type: "product-grid",
+        title: "Products",
+        data: products,
+      },
+    ];
+    this.updateHeader("Products");
     this.show();
   }
 

@@ -1302,6 +1302,149 @@ export const styles = `
     width: 100%;
   }
 
+  /* Products Grid */
+  .me-agent-products-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: white;
+  }
+
+  .me-agent-products-grid {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    align-content: start;
+  }
+
+  .me-agent-product-card {
+    width: 100%;
+    background: #FAFAFA;
+    border: 1px solid #F5F5F5;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .me-agent-product-card:hover {
+    transform: scale(1.02);
+  }
+
+  .me-agent-product-image-container {
+    position: relative;
+    width: 100%;
+    padding-top: 100%;
+    overflow: hidden;
+    background: white;
+  }
+
+  .me-agent-product-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .me-agent-product-discount-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #000000;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .me-agent-product-info {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .me-agent-product-brand {
+    font-size: 12px;
+    font-weight: 500;
+    color: #6B7280;
+    margin: 0 0 4px 0;
+  }
+
+  .me-agent-product-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #000000;
+    margin: 0 0 8px 0;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .me-agent-product-pricing {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .me-agent-product-price {
+    font-size: 16px;
+    font-weight: 600;
+    color: #000000;
+  }
+
+  .me-agent-product-original-price {
+    font-size: 14px;
+    color: #9CA3AF;
+    text-decoration: line-through;
+  }
+
+  .me-agent-product-final-price {
+    font-size: 16px;
+    font-weight: 600;
+    color: #000000;
+  }
+
+  .me-agent-product-cta-button {
+    width: 100%;
+    padding: 8px 16px;
+    background: #0F0F0F;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    text-align: center;
+    text-decoration: none;
+    display: block;
+    margin-top: auto;
+  }
+
+  .me-agent-product-cta-button:hover {
+    background: #2D2D2D;
+  }
+
+  .me-agent-products-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6B7280;
+    font-size: 16px;
+  }
+
   /* Offers Loading */
   .me-agent-offers-loading {
     flex: 1;
@@ -2383,11 +2526,21 @@ export const styles = `
       grid-template-columns: repeat(3, 1fr);
       gap: 16px;
     }
+
+    .me-agent-products-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
   }
 
   /* Mobile Responsive */
   @media (max-width: 768px) {
     .me-agent-offers-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .me-agent-products-grid {
       grid-template-columns: repeat(2, 1fr);
       gap: 12px;
     }

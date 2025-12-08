@@ -11,11 +11,23 @@ export class MessageComponent {
   private static parseMarkdown(content: string): string {
     if (!content) return "";
 
+    // Helper function to ensure URL has protocol
+    const ensureProtocol = (url: string): string => {
+      if (!url.startsWith("http://") && !url.startsWith("https://")) {
+        return `https://${url}`;
+      }
+      return url;
+    };
+
     // First, handle links with images: [text](url)(image-url)
     // This pattern appears when the AI includes both a link and an image
     let html = content.replace(
-      /\[([^\]]+)\]\((https?:\/\/[^\)]+)\)\((https?:\/\/[^\)]+)\)/g,
+      /\[([^\]]+)\]\(([^\)]+)\)\(([^\)]+)\)/g,
       (match, text, linkUrl, imageUrl) => {
+        // Ensure both URLs have protocol
+        linkUrl = ensureProtocol(linkUrl);
+        imageUrl = ensureProtocol(imageUrl);
+
         // Check if this is an offer link with an offer code
         const offerMatch = linkUrl.match(/\/offer\/([^\/\s]+)/);
         if (offerMatch) {
@@ -27,10 +39,13 @@ export class MessageComponent {
       }
     );
 
-    // Then handle regular offer links without images: [text](offer-url)
+    // Then handle regular links without images: [text](url)
     html = html.replace(
-      /\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g,
+      /\[([^\]]+)\]\(([^\)]+)\)/g,
       (match, text, url) => {
+        // Ensure URL has protocol
+        url = ensureProtocol(url);
+
         // Check if this is an offer link
         const offerMatch = url.match(/\/offer\/([^\/\s]+)/);
         if (offerMatch) {
