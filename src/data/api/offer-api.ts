@@ -63,7 +63,7 @@ export class OfferAPI extends BaseAPI {
       }
 
       const result = await this.get<{ data: { offers: any[] } }>(
-        `${this.env.API_V1_URL}store/offer?page=1&limit=50&categoryId=${categoryId}`,
+        `${this.env.API_V1_URL}store/offer?page=1&limit=50&category=${categoryId}`,
         headers
       );
 

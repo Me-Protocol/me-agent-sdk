@@ -2393,17 +2393,18 @@ export const styles = `
   .me-agent-error-back-button {
     margin-top: 16px;
     padding: 12px 24px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #000000;
     color: white;
     border: none;
     border-radius: 8px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: transform 0.2s ease;
+    transition: all 0.2s ease;
   }
 
   .me-agent-error-back-button:hover {
+    background: #333333;
     transform: scale(1.05);
   }
 

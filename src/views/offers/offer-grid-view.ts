@@ -124,4 +124,18 @@ export class OfferGridView {
       </div>
     `;
   }
+
+  /**
+   * Render empty state when no offers are found
+   */
+  renderEmptyState(): string {
+    return `
+      <div class="me-agent-error-container">
+        <div class="me-agent-error-icon">📦</div>
+        <h3>No Offers Found</h3>
+        <p>There are currently no offers available in this category. Check back later for new deals!</p>
+        <button class="me-agent-error-back-button">Go Back</button>
+      </div>
+    `;
+  }
 }

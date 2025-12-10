@@ -235,6 +235,11 @@ export class DetailPanelController {
         this.attachOfferGridListeners();
         break;
 
+      case "offer-grid-empty":
+        this.content.innerHTML = this.offerGridView.renderEmptyState();
+        this.attachEmptyStateListeners();
+        break;
+
       case "brand-list":
         const origin = window.location.origin;
         this.content.innerHTML = this.brandListView.render(
@@ -487,8 +492,15 @@ export class DetailPanelController {
 
       // Check if we have offers
       if (!offers || offers.length === 0) {
-        this.content.innerHTML = `<div class="me-agent-error">No offers found in this category</div>`;
+        this.content.innerHTML = this.offerGridView.renderEmptyState();
+        this.currentView = "offer-grid-empty";
+        this.viewStack.push({
+          type: "offer-grid-empty",
+          title: categoryName,
+          data: [],
+        });
         this.updateHeader(categoryName);
+        this.attachEmptyStateListeners();
         this.currentAbortController = null;
         return;
       }
@@ -596,6 +608,20 @@ export class DetailPanelController {
         }
       });
     });
+  }
+
+  /**
+   * Attach event listeners for empty state
+   */
+  private attachEmptyStateListeners(): void {
+    const backButton = this.content.querySelector(
+      ".me-agent-error-back-button"
+    );
+    if (backButton) {
+      backButton.addEventListener("click", () => {
+        this.goBack();
+      });
+    }
   }
 
   /**
