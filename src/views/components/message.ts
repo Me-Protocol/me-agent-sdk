@@ -138,9 +138,9 @@ export class MessageComponent {
   }
 
   /**
-   * Create a loading indicator
+   * Create a loading indicator with dynamic status message
    */
-  static createLoading(): HTMLDivElement {
+  static createLoading(initialMessage: string = "Thinking"): HTMLDivElement {
     const loadingDiv = document.createElement("div");
     loadingDiv.className = "me-agent-message assistant";
     loadingDiv.setAttribute("data-loading", "true");
@@ -160,7 +160,7 @@ export class MessageComponent {
     const loadingIndicator = document.createElement("div");
     loadingIndicator.className = "me-agent-loading";
     loadingIndicator.innerHTML = `
-      <span class="me-agent-loading-text">Thinking</span>
+      <span class="me-agent-loading-text">${initialMessage}</span>
       <span class="me-agent-loading-dots">
         <span class="me-agent-loading-dot"></span>
         <span class="me-agent-loading-dot"></span>
@@ -174,6 +174,32 @@ export class MessageComponent {
     loadingDiv.appendChild(contentWrapper);
 
     return loadingDiv;
+  }
+
+  /**
+   * Update the loading status message with animation
+   */
+  static updateLoadingMessage(
+    loadingElement: HTMLElement,
+    newMessage: string
+  ): void {
+    const textSpan = loadingElement.querySelector(".me-agent-loading-text");
+    if (textSpan) {
+      // Add fade-out class
+      textSpan.classList.add("me-agent-status-fade-out");
+
+      // After fade out, update text and fade in
+      setTimeout(() => {
+        textSpan.textContent = newMessage;
+        textSpan.classList.remove("me-agent-status-fade-out");
+        textSpan.classList.add("me-agent-status-fade-in");
+
+        // Remove fade-in class after animation
+        setTimeout(() => {
+          textSpan.classList.remove("me-agent-status-fade-in");
+        }, 200);
+      }, 150);
+    }
   }
 
   /**

@@ -267,9 +267,9 @@ export class MeAgentSDK {
       currentSessionId: this.sessionService.getSessionId(),
     });
 
-    // Show loading
+    // Show loading with query context for dynamic status messages
     this.chat?.setLoading(true);
-    this.chat?.showLoading();
+    this.chat?.showLoading(content);
 
     let assistantMessage = this.sessionService.createMessage("assistant", "");
     let isFirstChunk = true;
@@ -296,9 +296,22 @@ export class MeAgentSDK {
 
           // Parse function calls and responses using MessageParser
           if (rawData) {
+            // Check for tool_call status event (converted to functionCall format by ChatAPI)
+            const functionCall = rawData.content?.parts?.[0]?.functionCall;
+            if (functionCall?.name) {
+              // Update status message with tool being called
+              this.chat?.updateStatusMessage("tool_call", {
+                tool: functionCall.name,
+              });
+            }
+
             const parsed = this.messageParser.parseMessageData(rawData);
             if (parsed.offers.length > 0) {
               parsedData.offers = parsed.offers;
+              // Update status for results found
+              this.chat?.updateStatusMessage("results_found", {
+                count: parsed.offers.length,
+              });
             }
             if (parsed.brands.length > 0) {
               parsedData.brands = parsed.brands;
@@ -306,6 +319,9 @@ export class MeAgentSDK {
                 "[SDK] Detected signup earning brands:",
                 parsed.brands.length
               );
+              this.chat?.updateStatusMessage("results_found", {
+                count: parsed.brands.length,
+              });
             }
             if (parsed.products.length > 0) {
               parsedData.products = parsed.products;
@@ -313,6 +329,9 @@ export class MeAgentSDK {
                 "[SDK] Detected products:",
                 parsed.products.length
               );
+              this.chat?.updateStatusMessage("results_found", {
+                count: parsed.products.length,
+              });
             }
             if (parsed.categories.length > 0) {
               parsedData.categories = parsed.categories;
@@ -320,6 +339,9 @@ export class MeAgentSDK {
                 "[SDK] Detected purchase categories:",
                 parsed.categories.length
               );
+              this.chat?.updateStatusMessage("results_found", {
+                count: parsed.categories.length,
+              });
             }
             if (parsed.searchCategories.length > 0) {
               parsedData.searchCategories = parsed.searchCategories;
@@ -327,6 +349,9 @@ export class MeAgentSDK {
                 "[SDK] Detected search categories:",
                 parsed.searchCategories.length
               );
+              this.chat?.updateStatusMessage("results_found", {
+                count: parsed.searchCategories.length,
+              });
             }
             if (parsed.showWaysToEarn) {
               parsedData.showWaysToEarn = true;

@@ -640,6 +640,28 @@ export const styles = `
     }
   }
 
+  /* Status Message Animations */
+  .me-agent-loading-text {
+    transition: opacity 0.15s ease-out;
+  }
+
+  .me-agent-status-fade-out {
+    opacity: 0;
+  }
+
+  .me-agent-status-fade-in {
+    animation: statusFadeIn 0.2s ease-in forwards;
+  }
+
+  @keyframes statusFadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
   /* Card List Component (for offers, earnings, etc.) */
   .me-agent-card-list {
     background: #CCD3FF;
