@@ -1,5 +1,6 @@
 import { Message } from "../../types";
 import { getUserAvatarIcon, getAssistantAvatarIcon } from "../shared/icons";
+import { LOADING_GIFT_ICON } from "../shared/loading-icon";
 
 /**
  * Message Component - Renders individual chat messages
@@ -160,12 +161,8 @@ export class MessageComponent {
     const loadingIndicator = document.createElement("div");
     loadingIndicator.className = "me-agent-loading";
     loadingIndicator.innerHTML = `
+      <img src="${LOADING_GIFT_ICON}" alt="" class="me-agent-loading-icon" />
       <span class="me-agent-loading-text">${initialMessage}</span>
-      <span class="me-agent-loading-dots">
-        <span class="me-agent-loading-dot"></span>
-        <span class="me-agent-loading-dot"></span>
-        <span class="me-agent-loading-dot"></span>
-      </span>
     `;
 
     contentDiv.appendChild(loadingIndicator);
@@ -177,7 +174,7 @@ export class MessageComponent {
   }
 
   /**
-   * Update the loading status message with animation
+   * Update the loading status message with smooth animation
    */
   static updateLoadingMessage(
     loadingElement: HTMLElement,
@@ -185,20 +182,20 @@ export class MessageComponent {
   ): void {
     const textSpan = loadingElement.querySelector(".me-agent-loading-text");
     if (textSpan) {
-      // Add fade-out class
+      // Add fade-out class with slide up
       textSpan.classList.add("me-agent-status-fade-out");
 
-      // After fade out, update text and fade in
+      // After fade out completes, update text and slide in
       setTimeout(() => {
         textSpan.textContent = newMessage;
         textSpan.classList.remove("me-agent-status-fade-out");
         textSpan.classList.add("me-agent-status-fade-in");
 
-        // Remove fade-in class after animation
+        // Remove fade-in class after animation completes
         setTimeout(() => {
           textSpan.classList.remove("me-agent-status-fade-in");
-        }, 200);
-      }, 150);
+        }, 250);
+      }, 200);
     }
   }
 

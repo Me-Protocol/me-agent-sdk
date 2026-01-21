@@ -7,7 +7,7 @@
 
 import {
   STATUS_MESSAGES,
-  GENERIC_STARTED_MESSAGES,
+  detectIntent,
 } from "../core/constants/status-messages";
 
 export interface StatusContext {
@@ -18,6 +18,7 @@ export interface StatusContext {
 
 export class StatusMessageService {
   private lastMessageIndex: Record<string, number> = {};
+  private usedMessages: Set<string> = new Set();
 
   /**
    * Get a status message for a given event type
@@ -30,9 +31,9 @@ export class StatusMessageService {
 
     switch (eventType) {
       case "started":
-        messagePool = context.query
-          ? STATUS_MESSAGES.started
-          : GENERIC_STARTED_MESSAGES;
+        // Use intent detection to pick the right message pool
+        const intent = context.query ? detectIntent(context.query) : "default";
+        messagePool = STATUS_MESSAGES.started[intent] || STATUS_MESSAGES.started["default"];
         break;
 
       case "tool_call":
@@ -61,15 +62,23 @@ export class StatusMessageService {
   }
 
   /**
-   * Pick a random message, avoiding the last used one for variety
+   * Pick a random message, avoiding any already used in this session
    */
   private pickRandom(pool: string[], poolKey: string): string {
     if (pool.length === 0) {
       return "Processing...";
     }
 
-    if (pool.length === 1) {
-      return pool[0];
+    // Filter out messages already used in this session
+    const availableMessages = pool.filter(msg => !this.usedMessages.has(msg));
+
+    // If all messages have been used, reset and use full pool
+    const messagesToChooseFrom = availableMessages.length > 0 ? availableMessages : pool;
+
+    if (messagesToChooseFrom.length === 1) {
+      const message = messagesToChooseFrom[0];
+      this.usedMessages.add(message);
+      return message;
     }
 
     // Get a random index different from the last one
@@ -77,11 +86,13 @@ export class StatusMessageService {
     const lastIndex = this.lastMessageIndex[poolKey];
 
     do {
-      index = Math.floor(Math.random() * pool.length);
-    } while (index === lastIndex && pool.length > 1);
+      index = Math.floor(Math.random() * messagesToChooseFrom.length);
+    } while (index === lastIndex && messagesToChooseFrom.length > 1);
 
     this.lastMessageIndex[poolKey] = index;
-    return pool[index];
+    const message = messagesToChooseFrom[index];
+    this.usedMessages.add(message);
+    return message;
   }
 
   /**
@@ -142,10 +153,11 @@ export class StatusMessageService {
   }
 
   /**
-   * Reset the last message tracking (useful for new conversations)
+   * Reset the message tracking (call on new session/conversation)
    */
   reset(): void {
     this.lastMessageIndex = {};
+    this.usedMessages.clear();
   }
 }
 

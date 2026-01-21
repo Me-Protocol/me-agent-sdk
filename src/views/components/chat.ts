@@ -8,9 +8,11 @@ import {
   MeAgentConfig,
   ChatSession,
   ConversationMessage,
+  SearchOption,
 } from "../../types";
 import { MessageComponent } from "./message";
 import { QuickActionsComponent } from "./quick-actions";
+import { SearchOptionsComponent } from "./search-options";
 import { OfferPreviewCard } from "./offer-preview";
 import { ProductPreviewCard } from "./product-preview";
 import { CardList, CardListItem } from "./card-list";
@@ -811,6 +813,39 @@ export class ChatPopup {
     } else {
       // Fallback: append to messages container if no assistant message found
       this.messagesContainer.appendChild(quickActionsElement);
+    }
+
+    this.scrollToBottom();
+  }
+
+  /**
+   * Show search options as clickable suggestions
+   * When user clicks an option, it appears as a user message and triggers a search
+   */
+  showSearchOptions(options: SearchOption[]): void {
+    if (!options || options.length === 0) return;
+
+    const optionsElement = SearchOptionsComponent.create(
+      options,
+      (label) => {
+        // Remove the options after selection
+        optionsElement.remove();
+        // Send the label as a message (this will show it as user message and trigger search)
+        this.onSendMessage(label);
+      }
+    );
+
+    // Find the last assistant message and append the options
+    const messages = this.messagesContainer.querySelectorAll(
+      ".me-agent-message.assistant"
+    );
+    const lastMessage = messages[messages.length - 1] as HTMLElement;
+
+    if (lastMessage) {
+      MessageComponent.appendToMessage(lastMessage, optionsElement);
+    } else {
+      // Fallback: append to messages container if no assistant message found
+      this.messagesContainer.appendChild(optionsElement);
     }
 
     this.scrollToBottom();

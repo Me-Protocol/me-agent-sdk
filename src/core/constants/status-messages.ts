@@ -7,11 +7,67 @@
  */
 
 export interface StatusMessageConfig {
-  started: string[];
+  started: Record<string, string[]>;
   tool_call: Record<string, string[]>;
   results_found: string[];
   error: string[];
   fallback: string[];
+}
+
+/**
+ * Intent detection keywords
+ */
+export const INTENT_KEYWORDS = {
+  greeting: ["hi", "hello", "hey", "howdy", "hiya", "sup", "yo", "good morning", "good afternoon", "good evening", "greetings"],
+  question: ["what", "how", "why", "when", "where", "which", "who", "can you", "could you", "would you", "is there", "are there", "do you", "does"],
+  search: ["find", "search", "show", "looking for", "look for", "get me", "i need", "i want", "browse", "shop for", "buy"],
+  help: ["help", "assist", "support", "guide", "explain", "tell me about"],
+  surprise: ["surprise", "random", "anything", "whatever", "recommend", "suggest", "pick for me"],
+};
+
+/**
+ * Detect intent from user query
+ */
+export function detectIntent(query: string): string {
+  const lowerQuery = query.toLowerCase().trim();
+
+  // Check greetings first (exact or starts with)
+  for (const keyword of INTENT_KEYWORDS.greeting) {
+    if (lowerQuery === keyword || lowerQuery.startsWith(keyword + " ") || lowerQuery.startsWith(keyword + "!") || lowerQuery.startsWith(keyword + ",")) {
+      return "greeting";
+    }
+  }
+
+  // Check questions (starts with)
+  for (const keyword of INTENT_KEYWORDS.question) {
+    if (lowerQuery.startsWith(keyword + " ") || lowerQuery.startsWith(keyword + "?")) {
+      return "question";
+    }
+  }
+
+  // Check help
+  for (const keyword of INTENT_KEYWORDS.help) {
+    if (lowerQuery.includes(keyword)) {
+      return "help";
+    }
+  }
+
+  // Check surprise/random
+  for (const keyword of INTENT_KEYWORDS.surprise) {
+    if (lowerQuery.includes(keyword)) {
+      return "surprise";
+    }
+  }
+
+  // Check search intent
+  for (const keyword of INTENT_KEYWORDS.search) {
+    if (lowerQuery.includes(keyword)) {
+      return "search";
+    }
+  }
+
+  // Default to search for anything else
+  return "default";
 }
 
 /**
@@ -21,16 +77,141 @@ export interface StatusMessageConfig {
  * - {tool}  : Name of the tool being used
  */
 export const STATUS_MESSAGES: StatusMessageConfig = {
-  // When search/processing starts
-  started: [
-    "Searching for {query}...",
-    "Finding {query} for you...",
-    "Looking for the best {query}...",
-    "On it! Searching {query}...",
-    "Let me find {query}...",
-    "Hunting for {query}...",
-    "Browsing {query}...",
-  ],
+  // Intent-based started messages
+  started: {
+    greeting: [
+      "Hey there!",
+      "Hi!",
+      "Hello!",
+      "Hey!",
+      "Hi there!",
+      "Hello there!",
+      "Hey, hi!",
+      "Hiya!",
+      "What's up!",
+      "Howdy!",
+      "Nice to see you!",
+      "Welcome!",
+      "Good to see you!",
+      "Hey, how's it going!",
+      "Hi, friend!",
+      "Hello, hello!",
+      "Hey there, hi!",
+      "Well hello!",
+      "Oh hey!",
+      "Yo!",
+    ],
+    question: [
+      "Good question...",
+      "Let me think...",
+      "Hmm, let me see...",
+      "Great question!",
+      "Let me check on that...",
+      "Interesting question...",
+      "Let me find out...",
+      "Thinking...",
+      "Let me look into that...",
+      "One moment...",
+      "Let me see here...",
+      "Checking on that...",
+      "Let me figure that out...",
+      "Good one...",
+      "Hmm...",
+      "Let me dig into that...",
+      "Interesting...",
+      "Let me help with that...",
+      "Ah, let me check...",
+      "Ooh, let me see...",
+    ],
+    search: [
+      "Looking...",
+      "Searching...",
+      "On it!",
+      "Let me find that...",
+      "Searching now...",
+      "Looking for that...",
+      "Finding that for you...",
+      "Let me look...",
+      "Hunting for that...",
+      "Browsing...",
+      "Let me search...",
+      "Looking that up...",
+      "On the hunt!",
+      "Searching away...",
+      "Let me dig in...",
+      "Looking around...",
+      "Checking our catalog...",
+      "Browsing for you...",
+      "Scouting...",
+      "On the case!",
+    ],
+    help: [
+      "Happy to help!",
+      "I can help with that!",
+      "Sure, let me help...",
+      "Of course!",
+      "Absolutely!",
+      "I'm here to help!",
+      "Let me assist...",
+      "I've got you!",
+      "No problem!",
+      "Sure thing!",
+      "I'm on it!",
+      "Let me guide you...",
+      "Happy to assist!",
+      "Here to help!",
+      "I can do that!",
+      "Let me help out...",
+      "Glad to help!",
+      "Let's figure this out...",
+      "I'll help with that...",
+      "Right away!",
+    ],
+    surprise: [
+      "Ooh, fun!",
+      "Let's see...",
+      "I love surprises!",
+      "Picking something good...",
+      "Let me find something cool...",
+      "Hmm, how about...",
+      "Let's get creative!",
+      "Surprise coming up!",
+      "Let me pick something...",
+      "Something special...",
+      "One surprise coming up!",
+      "Let's see what we've got...",
+      "Finding something fun...",
+      "Ooh, let me pick...",
+      "Random time!",
+      "Let me surprise you...",
+      "Grabbing something good...",
+      "Finding a gem...",
+      "Let's discover...",
+      "Adventure time!",
+    ],
+    default: [
+      "On it!",
+      "Got it!",
+      "Sure thing!",
+      "Let me check...",
+      "Looking...",
+      "One moment...",
+      "Right away!",
+      "Let me see...",
+      "Checking now...",
+      "On the case!",
+      "Coming right up!",
+      "Let me look...",
+      "One sec...",
+      "Working on it...",
+      "Just a sec...",
+      "Alright!",
+      "You got it!",
+      "Let's see...",
+      "Hang tight...",
+      "Sure!",
+    ],
+  },
 
   // Tool-specific messages (nested by tool name)
   tool_call: {
@@ -112,13 +293,14 @@ export const STATUS_MESSAGES: StatusMessageConfig = {
 
 /**
  * Generic fallback messages when query context is missing
+ * (Now same as started since we use punchy acknowledgments)
  */
 export const GENERIC_STARTED_MESSAGES: string[] = [
-  "Searching...",
-  "Looking for options...",
-  "Finding what you need...",
-  "On it...",
+  "On it!",
+  "Got it!",
+  "Looking...",
   "Let me check...",
+  "One moment...",
 ];
 
 /**

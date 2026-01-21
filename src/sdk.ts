@@ -6,6 +6,7 @@ import {
   Category,
   Product,
   EnvConfig,
+  SearchOption,
 } from "./types";
 import { mergeCategoriesWithPresets } from "./core/constants/categories";
 import { SessionService } from "./services/session-service";
@@ -279,6 +280,7 @@ export class MeAgentSDK {
       categories: [] as Category[],
       searchCategories: [] as Category[],
       products: [] as Product[],
+      options: [] as SearchOption[],
       showWaysToEarn: false,
     };
     let hasFinalMessage = false;
@@ -360,6 +362,12 @@ export class MeAgentSDK {
             if (parsed.showWaysToEarn) {
               parsedData.showWaysToEarn = true;
               console.log("[SDK] Detected ways_to_earn function call");
+            }
+
+            // Extract options (search suggestions) from API response
+            if (rawData.options && rawData.options.length > 0) {
+              parsedData.options = rawData.options;
+              console.log("[SDK] Detected search options:", rawData.options.length);
             }
           }
 
@@ -449,6 +457,12 @@ export class MeAgentSDK {
           if (parsedData.showWaysToEarn) {
             console.log("[SDK] Showing ways to earn actions");
             this.chat?.showWaysToEarnActions();
+          }
+
+          // Show search options if present (suggestions when no/few results found)
+          if (parsedData.options.length > 0) {
+            console.log("[SDK] Showing search options:", parsedData.options.length);
+            this.chat?.showSearchOptions(parsedData.options);
           }
         },
         (error: Error) => {

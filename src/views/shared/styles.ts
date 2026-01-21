@@ -520,6 +520,57 @@ export const styles = `
     flex-shrink: 0;
   }
 
+  /* Search Options (suggestion chips) */
+  .me-agent-search-options {
+    margin-top: 12px;
+  }
+
+  .me-agent-search-options-header {
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 8px;
+  }
+
+  .me-agent-search-options-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .me-agent-search-option-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .me-agent-search-option-chip:hover {
+    background: #e5e7eb;
+    border-color: #d1d5db;
+    transform: translateY(-1px);
+  }
+
+  .me-agent-search-option-chip:active {
+    transform: translateY(0);
+  }
+
+  .me-agent-search-option-icon {
+    flex-shrink: 0;
+    color: #6b7280;
+  }
+
+  .me-agent-search-option-text {
+    flex-shrink: 0;
+  }
+
   /* Welcome Message Specific Styles */
   .me-agent-welcome-message .me-agent-message-content {
     max-width: 400px;
@@ -590,75 +641,66 @@ export const styles = `
     background: #999999;
   }
 
-  /* Loading Indicator */
+  /* Loading Indicator - Elegant Style */
   .me-agent-loading {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
+  }
+
+  .me-agent-loading-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
   }
 
   .me-agent-loading-text {
-    color: #6b7280;
     font-size: 14px;
+    font-weight: 450;
+    letter-spacing: -0.01em;
+    background: linear-gradient(
+      90deg,
+      #374151 0%,
+      #374151 40%,
+      #9ca3af 50%,
+      #374151 60%,
+      #374151 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 2s ease-in-out infinite;
   }
 
-  .me-agent-loading-dots {
-    display: flex;
-    align-items: flex-end;
-    gap: 2px;
-    height: 14px;
-  }
-
-  .me-agent-loading-dot {
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: #9ca3af;
-    animation: bounce 1.4s infinite ease-in-out both;
-  }
-
-  .me-agent-loading-dot:nth-child(1) {
-    animation-delay: -0.32s;
-  }
-
-  .me-agent-loading-dot:nth-child(2) {
-    animation-delay: -0.16s;
-  }
-
-  .me-agent-loading-dot:nth-child(3) {
-    animation-delay: 0s;
-  }
-
-  @keyframes bounce {
-    0%, 60%, 100% {
-      transform: translateY(0);
-      opacity: 0.4;
+  @keyframes shimmer {
+    0% {
+      background-position: 100% 0;
     }
-    30% {
-      transform: translateY(-4px);
-      opacity: 1;
+    100% {
+      background-position: -100% 0;
     }
   }
 
-  /* Status Message Animations */
-  .me-agent-loading-text {
-    transition: opacity 0.15s ease-out;
-  }
-
+  /* Status Message Transitions */
   .me-agent-status-fade-out {
     opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
   }
 
   .me-agent-status-fade-in {
-    animation: statusFadeIn 0.2s ease-in forwards;
+    animation: statusSlideIn 0.25s ease-out forwards;
   }
 
-  @keyframes statusFadeIn {
+  @keyframes statusSlideIn {
     from {
       opacity: 0;
+      transform: translateY(4px);
     }
     to {
       opacity: 1;
+      transform: translateY(0);
     }
   }
 

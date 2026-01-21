@@ -225,6 +225,11 @@ export class ChatAPI extends BaseAPI {
           responseData.function_response = functionResponses[0];
         }
 
+        // Pass through options if present
+        if (parsed.data?.options?.length > 0) {
+          responseData.options = parsed.data.options;
+        }
+
         onChunk(parsed.text || "", responseData);
         return parsed.session_id || null;
       }
