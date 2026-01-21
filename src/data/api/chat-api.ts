@@ -35,9 +35,9 @@ export class ChatAPI extends BaseAPI {
         headers["x-user-email"] = this.config.emailAddress;
       }
 
-      console.log("[ChatAPI] Sending message to /query:", payload);
+      console.log("[ChatAPI] Sending message to /query/stream:", payload);
 
-      const response = await fetch(`${this.env.AGENT_BASE_URL}/query`, {
+      const response = await fetch(`${this.env.AGENT_BASE_URL}/query/stream`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -56,23 +56,9 @@ export class ChatAPI extends BaseAPI {
         throw new Error(`Failed to send message: ${response.statusText}`);
       }
 
-      // Check if response is SSE or regular JSON
-      const contentType = response.headers.get("content-type");
-      if (contentType?.includes("text/event-stream")) {
-        console.log("[ChatAPI] Handling as SSE stream");
-        await this.handleSSEStream(response, onChunk, onComplete);
-      } else {
-        console.log("[ChatAPI] Handling as regular JSON");
-        // Handle as regular JSON response
-        const data = await response.json();
-        console.log("[ChatAPI] JSON response:", data);
-
-        if (data.response !== undefined) {
-          onChunk(data.response, data);
-        }
-
-        onComplete(data.session_id || "");
-      }
+      // Streaming endpoint always returns SSE
+      console.log("[ChatAPI] Handling SSE stream from /query/stream");
+      await this.handleSSEStream(response, onChunk, onComplete);
     } catch (error) {
       console.error("Error sending message:", error);
       onError(error as Error);
@@ -125,7 +111,12 @@ export class ChatAPI extends BaseAPI {
   }
 
   /**
-   * Process individual SSE data chunks
+   * Process individual SSE data chunks from /query/stream endpoint
+   *
+   * Streaming format:
+   * - Status events: {"type": "status", "event": "started|tool_call|results_found", ...}
+   * - Result event: {"type": "result", "text": "...", "data": {...}, "session_id": "..."}
+   *
    * Returns the session_id if found in the response
    */
   private processSSEData(
@@ -137,38 +128,123 @@ export class ChatAPI extends BaseAPI {
 
       console.log("[ChatAPI] Received SSE data:", parsed);
 
-      // New format: { response, session_id, function_response }
-      if (parsed.response !== undefined) {
-        console.log(
-          "[ChatAPI] New format detected, response:",
-          parsed.response
-        );
-        // Extract the text response (call onChunk even if response is empty string)
-        onChunk(parsed.response || "", parsed);
+      // Handle streaming format from /query/stream
+      if (parsed.type === "status") {
+        // Status events (started, tool_call, results_found)
+        console.log("[ChatAPI] Status event:", parsed.event);
 
-        // Return session_id if present
+        // Pass status events to handler for UI updates
+        if (parsed.event === "tool_call") {
+          // Create function_call format for MessageParser compatibility
+          onChunk("", {
+            content: {
+              parts: [{
+                functionCall: {
+                  name: parsed.tool,
+                  args: parsed.args
+                }
+              }]
+            }
+          });
+        }
+        // Other status events can be used for loading states
+        return null;
+      }
+
+      if (parsed.type === "result") {
+        // Final result with text and structured data
+        console.log("[ChatAPI] Result event, text:", parsed.text);
+
+        // Convert streaming data format to function_response format for MessageParser
+        const functionResponses: any[] = [];
+
+        if (parsed.data?.offers?.length > 0) {
+          functionResponses.push({
+            name: "query_offers",
+            response: {
+              matches: parsed.data.offers.map((offer: any) => [
+                offer.id,
+                offer.name,
+                offer.code,
+                offer.price,
+                offer.description,
+                null, // allowedCombinations
+                null, // redemptionMethodName
+                offer.discounts,
+                offer.variant,
+                null, // shippingLocation
+                null, // review
+                offer.brand,
+                offer.image_url
+              ]),
+              count: parsed.data.offers.length
+            }
+          });
+        }
+
+        if (parsed.data?.products?.length > 0) {
+          functionResponses.push({
+            name: "query_products",
+            response: {
+              // Convert streaming format to MessageParser expected format
+              matches: parsed.data.products.map((product: any) => ({
+                product_id: product.id,
+                product_name: product.name,
+                brand_name: product.brand,
+                category_name: product.category,
+                description: product.description || "",
+                price: product.price,
+                discounts: product.discounts || [],
+                brand_shopify_url: product.brand_shopify_url || "",
+                productUrl: product.product_url,
+                coverImage: product.image_url
+              })),
+              count: parsed.data.products.length
+            }
+          });
+        }
+
+        if (parsed.data?.categories?.length > 0) {
+          functionResponses.push({
+            name: "get_categories",
+            response: {
+              categories: parsed.data.categories,
+              count: parsed.data.categories.length
+            }
+          });
+        }
+
+        // Send text with function responses
+        const responseData: any = {
+          response: parsed.text,
+          session_id: parsed.session_id
+        };
+
+        // Add first function response if available
+        if (functionResponses.length > 0) {
+          responseData.function_response = functionResponses[0];
+        }
+
+        onChunk(parsed.text || "", responseData);
         return parsed.session_id || null;
       }
 
-      // Legacy format support (old API responses)
-      if (parsed.content?.parts?.[0]?.text) {
-        const text = parsed.content.parts[0].text;
-        onChunk(text, parsed);
-      } else if (parsed.content?.parts?.[0]?.functionCall) {
-        // Function call - pass along but no text chunk
-        onChunk("", parsed);
-      } else if (parsed.content?.parts?.[0]?.functionResponse) {
-        // Function response - pass along but no text chunk
-        onChunk("", parsed);
-      } else if (parsed.chunk) {
-        onChunk(parsed.chunk, parsed);
-      } else if (parsed.text) {
-        onChunk(parsed.text, parsed);
+      if (parsed.type === "error") {
+        console.error("[ChatAPI] Error event:", parsed.message);
+        onChunk("Sorry, something went wrong. Please try again.", parsed);
+        return null;
+      }
+
+      // Fallback: Legacy format support
+      if (parsed.response !== undefined) {
+        onChunk(parsed.response || "", parsed);
+        return parsed.session_id || null;
       }
 
       return null;
     } catch (e) {
       // If not JSON, treat as plain text chunk
+      console.warn("[ChatAPI] Failed to parse SSE data:", e);
       onChunk(data);
       return null;
     }
