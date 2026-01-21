@@ -298,11 +298,15 @@ export class MeAgentSDK {
           if (rawData) {
             // Check for tool_call status event (converted to functionCall format by ChatAPI)
             const functionCall = rawData.content?.parts?.[0]?.functionCall;
-            if (functionCall?.name) {
-              // Update status message with tool being called
+            const isStatusEvent = functionCall?.name && !rawData.function_response;
+
+            if (isStatusEvent) {
+              // This is a status event (tool_call), update status message but don't remove loading
               this.chat?.updateStatusMessage("tool_call", {
                 tool: functionCall.name,
               });
+              // Skip the rest of chunk processing for status events
+              return;
             }
 
             const parsed = this.messageParser.parseMessageData(rawData);
