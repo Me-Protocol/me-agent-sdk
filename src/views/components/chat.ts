@@ -60,6 +60,7 @@ export class ChatPopup {
   private historyPopup: ChatHistoryPopup;
   private historyDropdownButton: HTMLButtonElement | null = null;
   private onSessionSwitch: ((sessionId: string) => void) | null = null;
+  private onClearSession: (() => void) | null = null;
   private messageParser: MessageParser;
   private currentSessionTitle: string = "Chats";
   private currentLoadingElement: HTMLDivElement | null = null;
@@ -1046,6 +1047,13 @@ export class ChatPopup {
   }
 
   /**
+   * Set callback for clearing session (called when new chat is started)
+   */
+  setOnClearSession(callback: () => void): void {
+    this.onClearSession = callback;
+  }
+
+  /**
    * Handle new chat
    */
   private handleNewChat(): void {
@@ -1055,6 +1063,10 @@ export class ChatPopup {
     this.showWelcome();
     // Reset chat title to default
     this.updateChatTitle("Chats");
+    // Notify SDK to clear session service
+    if (this.onClearSession) {
+      this.onClearSession();
+    }
   }
 
   /**

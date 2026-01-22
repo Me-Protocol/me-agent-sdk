@@ -132,6 +132,11 @@ export class MeAgentSDK {
         this.sessionService.setSessionId(newSessionId);
       });
 
+      // Set clear session callback (for new chat)
+      this.chat.setOnClearSession(() => {
+        this.sessionService.clearSession();
+      });
+
       // Mount components
       this.button.mount();
       this.chat.mount();
