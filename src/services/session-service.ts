@@ -105,6 +105,14 @@ export class SessionService {
   }
 
   /**
+   * Clear session (for starting a new chat)
+   */
+  clearSession(): void {
+    this.sessionId = null;
+    this.messages = [];
+  }
+
+  /**
    * Create a message object
    */
   createMessage(

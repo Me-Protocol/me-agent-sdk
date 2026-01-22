@@ -6,6 +6,7 @@ import {
   Category,
   Product,
   EnvConfig,
+  SearchOption,
 } from "./types";
 import { mergeCategoriesWithPresets } from "./core/constants/categories";
 import { SessionService } from "./services/session-service";
@@ -129,6 +130,11 @@ export class MeAgentSDK {
       // Set session switch callback
       this.chat.setOnSessionSwitch((newSessionId: string) => {
         this.sessionService.setSessionId(newSessionId);
+      });
+
+      // Set clear session callback (for new chat)
+      this.chat.setOnClearSession(() => {
+        this.sessionService.clearSession();
       });
 
       // Mount components
@@ -267,9 +273,9 @@ export class MeAgentSDK {
       currentSessionId: this.sessionService.getSessionId(),
     });
 
-    // Show loading
+    // Show loading with query context for dynamic status messages
     this.chat?.setLoading(true);
-    this.chat?.showLoading();
+    this.chat?.showLoading(content);
 
     let assistantMessage = this.sessionService.createMessage("assistant", "");
     let isFirstChunk = true;
@@ -279,6 +285,7 @@ export class MeAgentSDK {
       categories: [] as Category[],
       searchCategories: [] as Category[],
       products: [] as Product[],
+      options: [] as SearchOption[],
       showWaysToEarn: false,
     };
     let hasFinalMessage = false;
@@ -296,9 +303,26 @@ export class MeAgentSDK {
 
           // Parse function calls and responses using MessageParser
           if (rawData) {
+            // Check for tool_call status event (converted to functionCall format by ChatAPI)
+            const functionCall = rawData.content?.parts?.[0]?.functionCall;
+            const isStatusEvent = functionCall?.name && !rawData.function_response;
+
+            if (isStatusEvent) {
+              // This is a status event (tool_call), update status message but don't remove loading
+              this.chat?.updateStatusMessage("tool_call", {
+                tool: functionCall.name,
+              });
+              // Skip the rest of chunk processing for status events
+              return;
+            }
+
             const parsed = this.messageParser.parseMessageData(rawData);
             if (parsed.offers.length > 0) {
               parsedData.offers = parsed.offers;
+              // Update status for results found
+              this.chat?.updateStatusMessage("results_found", {
+                count: parsed.offers.length,
+              });
             }
             if (parsed.brands.length > 0) {
               parsedData.brands = parsed.brands;
@@ -306,6 +330,9 @@ export class MeAgentSDK {
                 "[SDK] Detected signup earning brands:",
                 parsed.brands.length
               );
+              this.chat?.updateStatusMessage("results_found", {
+                count: parsed.brands.length,
+              });
             }
             if (parsed.products.length > 0) {
               parsedData.products = parsed.products;
@@ -313,6 +340,9 @@ export class MeAgentSDK {
                 "[SDK] Detected products:",
                 parsed.products.length
               );
+              this.chat?.updateStatusMessage("results_found", {
+                count: parsed.products.length,
+              });
             }
             if (parsed.categories.length > 0) {
               parsedData.categories = parsed.categories;
@@ -320,6 +350,9 @@ export class MeAgentSDK {
                 "[SDK] Detected purchase categories:",
                 parsed.categories.length
               );
+              this.chat?.updateStatusMessage("results_found", {
+                count: parsed.categories.length,
+              });
             }
             if (parsed.searchCategories.length > 0) {
               parsedData.searchCategories = parsed.searchCategories;
@@ -327,10 +360,19 @@ export class MeAgentSDK {
                 "[SDK] Detected search categories:",
                 parsed.searchCategories.length
               );
+              this.chat?.updateStatusMessage("results_found", {
+                count: parsed.searchCategories.length,
+              });
             }
             if (parsed.showWaysToEarn) {
               parsedData.showWaysToEarn = true;
               console.log("[SDK] Detected ways_to_earn function call");
+            }
+
+            // Extract options (search suggestions) from API response
+            if (rawData.options && rawData.options.length > 0) {
+              parsedData.options = rawData.options;
+              console.log("[SDK] Detected search options:", rawData.options.length);
             }
           }
 
@@ -420,6 +462,12 @@ export class MeAgentSDK {
           if (parsedData.showWaysToEarn) {
             console.log("[SDK] Showing ways to earn actions");
             this.chat?.showWaysToEarnActions();
+          }
+
+          // Show search options if present (suggestions when no/few results found)
+          if (parsedData.options.length > 0) {
+            console.log("[SDK] Showing search options:", parsedData.options.length);
+            this.chat?.showSearchOptions(parsedData.options);
           }
         },
         (error: Error) => {

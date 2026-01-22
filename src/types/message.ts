@@ -120,3 +120,15 @@ export interface ConversationsResponse {
   session_id: string;
   user_id: string;
 }
+
+/**
+ * Search option returned when no/few results are found
+ * These appear as clickable suggestions below the assistant message
+ */
+export interface SearchOption {
+  label: string;
+  action: string;
+  params: Record<string, any>;
+  preview_count?: number;
+  label_with_count?: string;
+}

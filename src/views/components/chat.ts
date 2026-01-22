@@ -8,9 +8,11 @@ import {
   MeAgentConfig,
   ChatSession,
   ConversationMessage,
+  SearchOption,
 } from "../../types";
 import { MessageComponent } from "./message";
 import { QuickActionsComponent } from "./quick-actions";
+import { SearchOptionsComponent } from "./search-options";
 import { OfferPreviewCard } from "./offer-preview";
 import { ProductPreviewCard } from "./product-preview";
 import { CardList, CardListItem } from "./card-list";
@@ -20,6 +22,7 @@ import { OfferService } from "../../services/offer-service";
 import { BrandService } from "../../services/brand-service";
 import { RedemptionService } from "../../services/redemption-service";
 import { MessageParser } from "../../services/message-parser";
+import { statusMessageService } from "../../services/status-message-service";
 import { APIClient } from "../../data/api/api-client";
 import { generateId } from "../../core/utils/formatters";
 import {
@@ -57,8 +60,11 @@ export class ChatPopup {
   private historyPopup: ChatHistoryPopup;
   private historyDropdownButton: HTMLButtonElement | null = null;
   private onSessionSwitch: ((sessionId: string) => void) | null = null;
+  private onClearSession: (() => void) | null = null;
   private messageParser: MessageParser;
   private currentSessionTitle: string = "Chats";
+  private currentLoadingElement: HTMLDivElement | null = null;
+  private currentQuery: string = "";
 
   constructor(
     position: "bottom-right" | "bottom-left",
@@ -341,13 +347,42 @@ export class ChatPopup {
   }
 
   /**
-   * Show loading indicator
+   * Show loading indicator with dynamic status message
    */
-  showLoading(): HTMLDivElement {
-    const loadingElement = MessageComponent.createLoading();
+  showLoading(query?: string): HTMLDivElement {
+    // Store the query for status updates
+    this.currentQuery = query || "";
+
+    // Reset status message service for new search
+    statusMessageService.reset();
+
+    // Get initial status message
+    const initialMessage = statusMessageService.getMessage("started", {
+      query: this.currentQuery,
+    });
+
+    const loadingElement = MessageComponent.createLoading(initialMessage);
+    this.currentLoadingElement = loadingElement;
     this.messagesContainer.appendChild(loadingElement);
     this.scrollToBottom();
     return loadingElement;
+  }
+
+  /**
+   * Update status message during processing
+   */
+  updateStatusMessage(
+    eventType: "started" | "tool_call" | "results_found" | "error",
+    context: { tool?: string; count?: number } = {}
+  ): void {
+    if (!this.currentLoadingElement) return;
+
+    const message = statusMessageService.getMessage(eventType, {
+      query: this.currentQuery,
+      ...context,
+    });
+
+    MessageComponent.updateLoadingMessage(this.currentLoadingElement, message);
   }
 
   /**
@@ -360,6 +395,8 @@ export class ChatPopup {
     if (loadingElement) {
       loadingElement.remove();
     }
+    this.currentLoadingElement = null;
+    this.currentQuery = "";
   }
 
   /**
@@ -783,6 +820,39 @@ export class ChatPopup {
   }
 
   /**
+   * Show search options as clickable suggestions
+   * When user clicks an option, it appears as a user message and triggers a search
+   */
+  showSearchOptions(options: SearchOption[]): void {
+    if (!options || options.length === 0) return;
+
+    const optionsElement = SearchOptionsComponent.create(
+      options,
+      (label) => {
+        // Remove the options after selection
+        optionsElement.remove();
+        // Send the label as a message (this will show it as user message and trigger search)
+        this.onSendMessage(label);
+      }
+    );
+
+    // Find the last assistant message and append the options
+    const messages = this.messagesContainer.querySelectorAll(
+      ".me-agent-message.assistant"
+    );
+    const lastMessage = messages[messages.length - 1] as HTMLElement;
+
+    if (lastMessage) {
+      MessageComponent.appendToMessage(lastMessage, optionsElement);
+    } else {
+      // Fallback: append to messages container if no assistant message found
+      this.messagesContainer.appendChild(optionsElement);
+    }
+
+    this.scrollToBottom();
+  }
+
+  /**
    * Show detail panel with offers
    */
   private showDetailPanel(offers: Offer[]): void {
@@ -977,6 +1047,13 @@ export class ChatPopup {
   }
 
   /**
+   * Set callback for clearing session (called when new chat is started)
+   */
+  setOnClearSession(callback: () => void): void {
+    this.onClearSession = callback;
+  }
+
+  /**
    * Handle new chat
    */
   private handleNewChat(): void {
@@ -986,6 +1063,10 @@ export class ChatPopup {
     this.showWelcome();
     // Reset chat title to default
     this.updateChatTitle("Chats");
+    // Notify SDK to clear session service
+    if (this.onClearSession) {
+      this.onClearSession();
+    }
   }
 
   /**
