@@ -1,6 +1,6 @@
 {
-  "name": "me-agent-sdk",
-  "version": "1.7.13",
+  "name": "@meprotocol/agent-me-sdk",
+  "version": "1.0.0",
   "description": "AI Chatbot SDK - Embeddable chatbot widget for any website",
   "type": "module",
   "main": "dist/me-agent-sdk.js",
@@ -8,7 +8,7 @@
   "types": "dist/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "https://github.com/codemobii/me-agent-sdk.git"
+    "url": "https://github.com/Me-Protocol/me-agent-sdk.git"
   },
   "exports": {
     ".": {
