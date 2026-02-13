@@ -596,7 +596,9 @@ export class RedemptionService {
         this.openRewardDiamond,
         ethers.BigNumber.from(this.chainId),
         signer,
-        this.runtimeUrl
+        this.runtimeUrl,
+        brandRewardAddress,
+        expectedAmountOfTargetedReward,
       );
 
       // Push transaction to runtime
