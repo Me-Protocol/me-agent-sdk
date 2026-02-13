@@ -24,7 +24,7 @@ import { ethers } from "ethers";
 import {
   same_brand_reward_redeption_magic,
   spend_reward_magic,
-} from "@developeruche/runtime-sdk";
+} from "meprotocol-runtime-sdk";
 import { relay, usersServiceWithPermit } from "@developeruche/protocol-core";
 
 export class RedemptionService {
