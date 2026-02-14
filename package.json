@@ -45,9 +45,9 @@
   "license": "MIT",
   "dependencies": {
     "@developeruche/protocol-core": "0.10.64-ethers5",
-    "meprotocol-runtime-sdk": "1.0.0",
     "@gelatonetwork/relay-sdk": "4.0.0",
     "ethers": "^5.8.0",
+    "meprotocol-runtime-sdk": "^1.0.1",
     "web3": "^4.16.0"
   },
   "devDependencies": {
